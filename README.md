@@ -5,5 +5,5 @@
 * Insert data: `npm run insert`
 * Start db in background: `docker compose up -d mongodb `
 * Index on geometry: `db.buildings.createIndex({ "geometry": "2dsphere" })`
-* 
+
 

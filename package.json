@@ -1,0 +1,19 @@
+{
+  "name": "geojsontomongodb",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "insert": "node insert.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "big-json": "^3.2.0",
+    "mongodb": "^6.12.0",
+    "stream-chain": "^3.3.2",
+    "stream-json": "^1.9.1"
+  }
+}
