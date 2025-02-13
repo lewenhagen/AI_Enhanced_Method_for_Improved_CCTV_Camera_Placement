@@ -1,4 +1,5 @@
 import { MongoClient } from 'mongodb'
+import * as fs from 'fs'
 
 const uri = "mongodb://root:pass@localhost:27017"
 const dbName = "sweden"
@@ -29,7 +30,7 @@ async function insertGeoJSON() {
       await client.connect()
       console.log("Connected to MongoDB")
 
-      
+
 
       // Create a streaming pipeline to process the GeoJSON file
       const pipeline = chain([
@@ -80,7 +81,7 @@ async function insertGeoJSON() {
       })
   } catch (err) {
       console.error("Database connection error:", err)
-  } 
+  }
 }
 
 insertGeoJSON()

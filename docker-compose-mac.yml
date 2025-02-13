@@ -1,11 +1,11 @@
 services:
   mongodb:
-    image: mongo:latest
+    image: mongo:4.4.18
     container_name: mongo
     ports:
       - "27017:27017"
-    volumes: 
-    - /data/db:/data/db
+    volumes:
+    - /tmp/db:/data/db
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: pass
