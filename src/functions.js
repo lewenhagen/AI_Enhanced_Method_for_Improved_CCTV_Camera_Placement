@@ -3,54 +3,35 @@ import * as turf from '@turf/turf'
 
 const uri = "mongodb://root:pass@localhost:27017"
 const mongo = new MongoClient(uri)
-const client = await mongo.connect()
-const db = client.db("sweden")
-const collection = db.collection("buildings")
 
-async function getBuildings(poly) {
-    console.log(poly)
-    let newPoly = poly.map(function(tmp) {
-        // console.log(tmp)
-        return tmp.reverse()
-    })
-    console.log(newPoly)
-    // let latlngs = poly.getLatLngs()[0];  // Get first ring (outer boundary)
-
-    // // Convert Leaflet LatLng objects to GeoJSON-style coordinates (lon, lat)
-    // let coords = latlngs.map(ll => [ll.lng, ll.lat]);
-
-    // // Ensure the polygon is closed by repeating the first coordinate at the end
-    // if (coords.length > 0 &&
-    //     (coords[0][0] !== coords[coords.length - 1][0] ||
-    //     coords[0][1] !== coords[coords.length - 1][1])) {
-    //     coords.push(coords[0]);  // Close the ring
-    // }
-    // function convertLeafletToTurf(leafletPolygon) {
-    //     let turfCoordinates = ;
-    //     return turf.polygon(turfCoordinates);
-    // }
-
-    // let turfPolygon = convertLeafletToTurf(leafletPolygon);
-    // console.log(turfPolygon);
-    let turfPoly = turf.polygon([poly])
-    // console.log(turfPoly)
+async function getIntersectingBuildings(poly) {
+    const client = await mongo.connect()
+    const db = client.db("sweden")
+    const collection = db.collection("buildings")
+    const turfPoly = turf.cleanCoords(turf.polygon([poly]))
+   
     const query = {
-    geometry: {
-        $geoIntersects: {
-            $geometry: {
-                type: "Polygon",
-                coordinates: [newPoly]
+        geometry: {
+            $geoIntersects: {
+                $geometry: {
+                    type: "Polygon",
+                    coordinates: turfPoly.geometry.coordinates
+                }
             }
         }
     }
-    };
 
-    const results = await collection.find(query).toArray();
-    console.log(results)
+    const result = await collection.find(query).toArray()
+    const intersections = result.map(feature => turf.intersect(turf.featureCollection([feature, turfPoly])))
 
     mongo.close()
+
+    const returnData = {
+        "boundingBox": turfPoly,
+        "buildings": intersections
+    }
+    
+    return intersections
 }
 
-
-
-export { getBuildings }
+export { getIntersectingBuildings }

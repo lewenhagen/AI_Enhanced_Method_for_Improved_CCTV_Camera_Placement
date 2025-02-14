@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
+     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
+     <script src='https://npmcdn.com/@turf/turf/turf.
+min.js'></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/shell.js/1.0.2/js/shell.min.js"
+  integrity="sha512-AmhG69SAff7cukvJQcd3djYLbIXAlTwJQXA7qycTDx8OJyKkmmq98BATzQdSpf9MBM9R13KEBod3lYoC/lT95w=="
+  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- <link rel="stylesheet" href="style/style.css"> -->
+    <meta charset="utf-8">
+    <title>Generate</title>
+    <style>
+      body {
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 100%;
+}
+
+.left {
+  width: 75%;
+}
+
+.right {
+  width: 25%;
+}
+
+#map {
+    /* position: absolute;
+    top: 0;
+    bottom: 0; */
+    /* width: 75%; */
+    height: 100vh;
+}
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-ajax/2.1.0/leaflet.ajax.min.js"></script>
+    <!-- <script type="module" src="js/main.js"></script> -->
+     <script>
+      const map = L.map('map', {
+        center: L.latLng(55.583331, 13.0333332),
+        zoom: 14,
+      })
+      
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: `&copy;
+        <a href="https://www.openstreetmap.org/copyright">
+        OpenStreetMap</a> contributors`,
+        maxZoom: 20,
+        maxNativeZoom: 19
+      }).addTo(map)
+     </script>
+  </body>
+</html>

@@ -1,5 +1,5 @@
 import express from 'express'
-import { getBuildings } from './src/functions.js'
+import { getIntersectingBuildings } from './src/functions.js'
 
 
 const app = express()
@@ -12,10 +12,11 @@ app.get("/", (req, res) => {
     res.send("index.html")
 });
 
-app.post("/init", (req, res) => {
-    getBuildings(req.body.key)
-    res.json({"status": "FUCK YOU"})
-});
+app.post("/init", async (req, res) => {
+    let buildings = await getIntersectingBuildings(req.body.bbox)
+
+    res.json({"status": "Ok", "buildings": buildings})
+})
 
 app.listen(port, () => {
     console.log(`Server up and running on port: ${port}`)
