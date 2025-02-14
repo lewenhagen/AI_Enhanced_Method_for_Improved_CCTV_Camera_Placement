@@ -1,3 +1,4 @@
 node_modules
 *.geojson
 data/*
+*.yml

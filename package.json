@@ -1,18 +1,21 @@
 {
-  "name": "geojsontomongodb",
+  "name": "ai_enhanced_method_for_improved_cctv_camera_placement",
   "version": "1.0.0",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "insert": "node insert.js"
+    "insert": "node insert.js",
+    "http-server": "npx http-server -p 9001 ."
   },
-  "author": "",
+  "author": "Kenneth Lewenhagen",
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "big-json": "^3.2.0",
-    "mongodb": "^6.12.0",
+    "@turf/turf": "^7.2.0",
+    "express": "^4.21.2",
+    "http-server": "^14.1.1",
+    "mongodb": "^6.13.0",
     "stream-chain": "^3.3.2",
     "stream-json": "^1.9.1"
   }
