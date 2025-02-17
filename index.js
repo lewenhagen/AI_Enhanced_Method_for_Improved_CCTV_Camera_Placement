@@ -1,5 +1,6 @@
 import express from 'express'
 import { getIntersectingBuildings } from './src/functions.js'
+import { generate } from './src/generate.js'
 
 
 const app = express()
@@ -13,9 +14,16 @@ app.get("/", (req, res) => {
 });
 
 app.post("/init", async (req, res) => {
-    let data = await getIntersectingBuildings(req.body.bbox)
+    // try {
+      let data = await getIntersectingBuildings(req.body.bbox)
+      let cam = await generate(data.buildings, req.body.bbox)
+      res.json({"status": "Ok", "data": data, "cam": cam})
+    // } catch(e) {
+      // res.json({"status": "error", "message": e.codeName})
+    // }
+    
 
-    res.json({"status": "Ok", "data": data})
+    
 })
 
 app.listen(port, () => {

@@ -32,6 +32,10 @@ let drawControl = new L.Control.Draw({
 
 map.addControl(drawControl)
 
+map.on("click", function(e) {
+  console.log(e.latlng.lng, e.latlng.lat)
+})
+
 map.on('draw:created', async function (event) {
     let layer = event.layer
 
@@ -62,12 +66,25 @@ map.on('draw:created', async function (event) {
     })
 
     let json = await response.json()
+    
+    if (json.status === "error") {
+      alert(json.message)
+      drawnItems.clearLayers()
+    } else {
+      console.log(json.cam)
 
-    // console.log(json)
+      for (const building of json.data.buildings) {
+          // console.log(building.geometry.coordinates)
+          drawnItems.addLayer(L.geoJSON(building))
+      }
 
-    for (const building of json.data.buildings) {
-        // console.log(building.geometry.coordinates)
-        drawnItems.addLayer(L.geoJSON(building))
+      for (const cam of json.cam) {
+          // console.log(building.geometry.coordinates)
+          drawnItems.addLayer(L.geoJSON(cam, {style: {color:"green"}}))
+      }
     }
+    
+
+    
     // console.log("Polygon Coordinates:", coords)
 })
