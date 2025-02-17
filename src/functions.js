@@ -31,7 +31,7 @@ async function getIntersectingBuildings(poly) {
         "buildings": intersections
     }
     
-    return intersections
+    return returnData
 }
 
 export { getIntersectingBuildings }

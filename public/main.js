@@ -63,10 +63,11 @@ map.on('draw:created', async function (event) {
 
     let json = await response.json()
 
-    console.log(json.status)
-    for (const building of json.buildings) {
-        console.log(building.geometry.coordinates)
-        L.geoJSON(building).addTo(map)
+    // console.log(json)
+
+    for (const building of json.data.buildings) {
+        // console.log(building.geometry.coordinates)
+        drawnItems.addLayer(L.geoJSON(building))
     }
     // console.log("Polygon Coordinates:", coords)
 })

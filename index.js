@@ -13,9 +13,9 @@ app.get("/", (req, res) => {
 });
 
 app.post("/init", async (req, res) => {
-    let buildings = await getIntersectingBuildings(req.body.bbox)
+    let data = await getIntersectingBuildings(req.body.bbox)
 
-    res.json({"status": "Ok", "buildings": buildings})
+    res.json({"status": "Ok", "data": data})
 })
 
 app.listen(port, () => {
