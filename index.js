@@ -16,7 +16,7 @@ app.get("/", (req, res) => {
 app.post("/init", async (req, res) => {
     // try {
       let data = await getIntersectingBuildings(req.body.bbox)
-      let cam = await generate(data.buildings, req.body.bbox)
+      let cam = await generate(data.buildings, req.body.bbox, req.body.nrOfCams, req.body.distance)
       res.json({"status": "Ok", "data": data, "cam": cam})
     // } catch(e) {
       // res.json({"status": "error", "message": e.codeName})

@@ -37,6 +37,9 @@ map.on("click", function(e) {
 })
 
 map.on('draw:created', async function (event) {
+    let nrOfCams = parseInt(prompt("How many cameras?"))
+    let distance = parseFloat(prompt("Distance?"))
+    
     let layer = event.layer
 
     drawnItems.addLayer(layer)
@@ -61,7 +64,9 @@ map.on('draw:created', async function (event) {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            bbox: coords
+            bbox: coords,
+            nrOfCams: nrOfCams,
+            distance: distance
         })
     })
 

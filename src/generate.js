@@ -31,37 +31,64 @@ function createWorker(chunk, boundingBox) {
 /**
  * Main function.
  */
-async function generate(buildings, boundingBox, coordinates=[[12.981017231941225, 55.56310394585858], [12.98041105270386, 55.562797554207854], [12.98214912414551, 55.56312366405128]]) {
+async function generate(buildings, boundingBox, nrOfCams, distance) {
   let workerPromises = []
   let result = []
   circleHolder = []
 
-  for (const coord of coordinates) {
-      let point = turf.point(coord)
-      let options = {units: 'kilometers', steps: circleSteps}
-      let circle = turf.circle(point, distance/1000, options)
-      const intersectingFeatures = []
-      // const polygonBbox = turf.bbox(circle)
+  let coordinates = turf.randomPoint(nrOfCams, {bbox: turf.bbox(turf.polygon([boundingBox]))})
+  
+  turf.featureEach(coordinates, function(currentFeature, featureIndex) {
+    let options = {units: 'kilometers', steps: circleSteps}
+    let circle = turf.circle(currentFeature, distance/1000, options)
+    const intersectingFeatures = []
+    // const polygonBbox = turf.bbox(circle)
 
-      // Search the tree with bounding box from circles
-      // tree.search({
-      //     minX: polygonBbox[0],
-      //     minY: polygonBbox[1],
-      //     maxX: polygonBbox[2],
-      //     maxY: polygonBbox[3]
-      // })
-      buildings.forEach(item => {
-          if (turf.booleanIntersects(item, circle)) {
-              intersectingFeatures.push(turf.flatten(item).features[0])
-          }
-      });
+    // Search the tree with bounding box from circles
+    // tree.search({
+    //     minX: polygonBbox[0],
+    //     minY: polygonBbox[1],
+    //     maxX: polygonBbox[2],
+    //     maxY: polygonBbox[3]
+    // })
+    buildings.forEach(item => {
+        if (turf.booleanIntersects(item, circle)) {
+            intersectingFeatures.push(turf.flatten(item).features[0])
+        }
+    });
+
+    
+
+    // Add each circle as Object to the array
+    circleHolder.push({"center": currentFeature, "area": circle, "buildings": intersectingFeatures})
+  })
+
+  // for (const coord of coordinates) {
+  //     let point = turf.point(coord)
+  //     let options = {units: 'kilometers', steps: circleSteps}
+  //     let circle = turf.circle(point, distance/1000, options)
+  //     const intersectingFeatures = []
+  //     // const polygonBbox = turf.bbox(circle)
+
+  //     // Search the tree with bounding box from circles
+  //     // tree.search({
+  //     //     minX: polygonBbox[0],
+  //     //     minY: polygonBbox[1],
+  //     //     maxX: polygonBbox[2],
+  //     //     maxY: polygonBbox[3]
+  //     // })
+  //     buildings.forEach(item => {
+  //         if (turf.booleanIntersects(item, circle)) {
+  //             intersectingFeatures.push(turf.flatten(item).features[0])
+  //         }
+  //     });
 
       
 
-      // Add each circle as Object to the array
-      circleHolder.push({"center": point, "area": circle, "buildings": intersectingFeatures})
+  //     // Add each circle as Object to the array
+  //     circleHolder.push({"center": point, "area": circle, "buildings": intersectingFeatures})
   
-  }
+  // }
   
   // Loop all circles and create chunks to send to worker
   for (let i = 0; i < circleHolder.length; i += THREAD_COUNT) {
