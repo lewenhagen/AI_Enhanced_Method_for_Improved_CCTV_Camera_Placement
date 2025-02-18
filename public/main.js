@@ -31,6 +31,11 @@ let drawControl = new L.Control.Draw({
 })
 
 map.addControl(drawControl)
+L.control.polylineMeasure({
+  // measureControlTitleOn: "Turn on measurement.",
+  // measureControlTitleoff: "Turn off measurement."
+}).addTo(map)
+
 
 map.on("click", function(e) {
   console.log(e.latlng.lng, e.latlng.lat)

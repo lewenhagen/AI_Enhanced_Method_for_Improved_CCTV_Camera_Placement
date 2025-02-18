@@ -27,6 +27,21 @@ function createWorker(chunk, boundingBox) {
   })
 }
 
+function getRandomPointsInPolygon(n, polygon) {
+  let points = [];
+  const bbox = turf.bbox(polygon); // Get bounding box of polygon
+
+  while (points.length < n) {
+    const randomPoint = turf.randomPoint(1, { bbox }).features[0];
+    if (turf.booleanPointInPolygon(randomPoint, polygon)) {
+      points.push(randomPoint);
+    }
+  }
+
+  return turf.featureCollection(points);
+}
+
+
 
 /**
  * Main function.
@@ -36,8 +51,10 @@ async function generate(buildings, boundingBox, nrOfCams, distance) {
   let result = []
   circleHolder = []
 
-  let coordinates = turf.randomPoint(nrOfCams, {bbox: turf.bbox(turf.polygon([boundingBox]))})
+  // let coordinates = turf.randomPoint(nrOfCams, {bbox: turf.bbox(turf.polygon([boundingBox]))})
+  let coordinates = getRandomPointsInPolygon(nrOfCams, turf.polygon([boundingBox]))
   
+
   turf.featureEach(coordinates, function(currentFeature, featureIndex) {
     let options = {units: 'kilometers', steps: circleSteps}
     let circle = turf.circle(currentFeature, distance/1000, options)
