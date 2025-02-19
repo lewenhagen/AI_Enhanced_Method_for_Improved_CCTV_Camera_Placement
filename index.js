@@ -1,6 +1,8 @@
 import express from 'express'
 import { getIntersectingBuildings } from './src/functions.js'
 import { generate } from './src/generate.js'
+import { createGrid } from './src/createGrid.js'
+import { polygonDivide } from './src/createSubAreas.js'
 
 
 const app = express()
@@ -16,8 +18,12 @@ app.get("/", (req, res) => {
 app.post("/init", async (req, res) => {
     // try {
       let data = await getIntersectingBuildings(req.body.bbox)
+      let grid = await polygonDivide(req.body.bbox, req.body.nrOfCams)
       let cam = await generate(data.buildings, req.body.bbox, req.body.nrOfCams, req.body.distance)
-      res.json({"status": "Ok", "data": data, "cam": cam})
+      // let grid = await createGrid(req.body.distance, req.body.bbox)
+      
+
+      res.json({"status": "Ok", "data": data, "cam": cam, "grid": grid})
     // } catch(e) {
       // res.json({"status": "error", "message": e.codeName})
     // }

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Equal-Area Grid Division</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
+    <style>
+        #map { height: 500px; }
+    </style>
+</head>
+<body>
+
+    <h2>Equal-Area Grid Division of a Polygon</h2>
+    <div id="map"></div>
+
+    <script>
+        // Initialize Leaflet map
+        const map = L.map('map').setView([39.7, -75.35], 9);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Define an irregular polygon (GeoJSON format)
+        const polygon = turf.polygon([
+            [
+                [-75.6, 39.9], 
+                [-75.3, 39.85], 
+                [-75.2, 39.7], 
+                [-75.35, 39.55], 
+                [-75.5, 39.6], 
+                [-75.6, 39.75], 
+                [-75.6, 39.9] // Close the polygon
+            ]
+        ]);
+
+        // Define number of desired equal-area sections (N)
+        const N = 10; // Change this to specify the number of divisions
+
+        // Compute polygon area
+        const totalArea = turf.area(polygon);
+
+        // Compute target area per section
+        const targetArea = totalArea / N;
+
+        // Compute approximate grid cell size (square root of target area)
+        const cellSize = Math.sqrt(targetArea) / 1000; // Convert from square meters to degrees
+
+        // Generate a square grid that covers the polygon
+        const bbox = turf.bbox(polygon);
+        const grid = turf.hexGrid(bbox, cellSize);
+
+        // Clip the grid cells to the polygon and ensure they are valid polygons
+        let clippedCells = grid.features
+            .map(cell => turf.intersect(cell, polygon))
+            .filter(Boolean); // Remove null values
+
+        // Ensure exactly N cells (if more are generated, take only N)
+        if (clippedCells.length > N) {
+            clippedCells = clippedCells.slice(0, N);
+        }
+
+        // Function to generate random colors
+        function getRandomColor() {
+            return `#${Math.floor(Math.random() * 16777215).toString(16)}`;
+        }
+
+        // Add clipped grid cells to the map as individual polygons
+        clippedCells.forEach(cell => {
+            L.geoJSON(cell, {
+                style: () => ({
+                    color: 'black',
+                    weight: 1,
+                    fillColor: getRandomColor(),
+                    fillOpacity: 0.5
+                })
+            }).addTo(map);
+        });
+
+        // Add the main polygon outline
+        L.geoJSON(polygon, {
+            style: {
+                color: 'red',
+                weight: 2,
+                fillOpacity: 0
+            }
+        }).addTo(map);
+
+    </script>
+
+</body>
+</html>

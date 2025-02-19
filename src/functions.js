@@ -22,6 +22,8 @@ async function getIntersectingBuildings(poly) {
     }
 
     const result = await collection.find(query).toArray()
+
+    // Remove coverage area outside main area
     const intersections = result.map(feature => turf.intersect(turf.featureCollection([feature, turfPoly])))
 
     mongo.close()

@@ -81,7 +81,7 @@ map.on('draw:created', async function (event) {
       alert(json.message)
       drawnItems.clearLayers()
     } else {
-      console.log(json.cam)
+      // console.log(json.cam)
 
       for (const building of json.data.buildings) {
           // console.log(building.geometry.coordinates)
@@ -91,6 +91,27 @@ map.on('draw:created', async function (event) {
       for (const cam of json.cam) {
           // console.log(building.geometry.coordinates)
           drawnItems.addLayer(L.geoJSON(cam, {style: {color:"green"}}))
+      }
+      console.log(json.grid)
+      for (const grid of json.grid) {
+          console.log(grid)
+          // L.geoJSON(grid, {
+          //       style: () => ({
+          //           color: 'black',
+          //           weight: 1,
+          //           fillColor: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+          //           fillOpacity: 0.5
+          //       })
+          //   })
+        
+          drawnItems.addLayer(L.geoJSON(grid, {
+            style: {
+              color: 'black',
+              weight: 1,
+              fillColor: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+              fillOpacity: 0.5
+            }
+          }))
       }
     }
     
