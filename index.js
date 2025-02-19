@@ -19,7 +19,8 @@ app.post("/init", async (req, res) => {
     // try {
       let data = await getIntersectingBuildings(req.body.bbox)
       let grid = await polygonDivide(req.body.bbox, req.body.nrOfCams)
-      let cam = await generate(data.buildings, req.body.bbox, req.body.nrOfCams, req.body.distance)
+      let cam = await generate(data.buildings, req.body.bbox, grid.centroids, req.body.distance)
+      // let cam = await generate(data.buildings, req.body.bbox, req.body.nrOfCams, req.body.distance)
       // let grid = await createGrid(req.body.distance, req.body.bbox)
       
 

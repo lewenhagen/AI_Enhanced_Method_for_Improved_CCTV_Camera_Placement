@@ -92,19 +92,10 @@ map.on('draw:created', async function (event) {
           // console.log(building.geometry.coordinates)
           drawnItems.addLayer(L.geoJSON(cam, {style: {color:"green"}}))
       }
-      console.log(json.grid)
-      for (const grid of json.grid) {
-          console.log(grid)
-          // L.geoJSON(grid, {
-          //       style: () => ({
-          //           color: 'black',
-          //           weight: 1,
-          //           fillColor: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
-          //           fillOpacity: 0.5
-          //       })
-          //   })
-        
-          drawnItems.addLayer(L.geoJSON(grid, {
+      // console.log(json.grid)
+      for (const area of json.grid.areas) {
+          console.log(area)        
+          drawnItems.addLayer(L.geoJSON(area, {
             style: {
               color: 'black',
               weight: 1,
@@ -113,6 +104,11 @@ map.on('draw:created', async function (event) {
             }
           }))
       }
+
+      // for (const center of json.grid.centroids) {
+                
+      //     drawnItems.addLayer(L.geoJSON(center))
+      // }
     }
     
 

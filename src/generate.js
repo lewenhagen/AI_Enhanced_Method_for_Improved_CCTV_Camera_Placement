@@ -51,8 +51,9 @@ async function generate(buildings, boundingBox, nrOfCams, distance) {
   let result = []
   circleHolder = []
 
-  // let coordinates = turf.randomPoint(nrOfCams, {bbox: turf.bbox(turf.polygon([boundingBox]))})
-  let coordinates = getRandomPointsInPolygon(nrOfCams, turf.polygon([boundingBox]))
+  let coordinates = turf.featureCollection(nrOfCams)
+  //INTE DENNA let coordinates = turf.randomPoint(nrOfCams, {bbox: turf.bbox(turf.polygon([boundingBox]))})
+  // let coordinates = getRandomPointsInPolygon(nrOfCams, turf.polygon([boundingBox]))
   
 
   turf.featureEach(coordinates, function(currentFeature, featureIndex) {

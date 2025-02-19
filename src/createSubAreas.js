@@ -43,7 +43,13 @@ async function polygonDivide(polygonFeature, nDivisions) {
   });
   // clippedVoronoiPolygons = turf.featureCollection(clippedVoronoiPolygons);
 
-  return clippedVoronoiPolygons;
+  let centroids = []
+
+  for (const item of clippedVoronoiPolygons) {
+    centroids.push(turf.centroid(item))
+  }
+
+  return {"areas": clippedVoronoiPolygons, "centroids": centroids};
 }
 
 export { polygonDivide }
