@@ -54,7 +54,7 @@ async function generate(buildings, boundingBox, nrOfCams, distance) {
   let coordinates = turf.featureCollection(nrOfCams)
   //INTE DENNA let coordinates = turf.randomPoint(nrOfCams, {bbox: turf.bbox(turf.polygon([boundingBox]))})
   // let coordinates = getRandomPointsInPolygon(nrOfCams, turf.polygon([boundingBox]))
-  
+
 
   turf.featureEach(coordinates, function(currentFeature, featureIndex) {
     let options = {units: 'kilometers', steps: circleSteps}
@@ -75,7 +75,7 @@ async function generate(buildings, boundingBox, nrOfCams, distance) {
         }
     });
 
-    
+
 
     // Add each circle as Object to the array
     circleHolder.push({"center": currentFeature, "area": circle, "buildings": intersectingFeatures})
@@ -101,13 +101,13 @@ async function generate(buildings, boundingBox, nrOfCams, distance) {
   //         }
   //     });
 
-      
+
 
   //     // Add each circle as Object to the array
   //     circleHolder.push({"center": point, "area": circle, "buildings": intersectingFeatures})
-  
+
   // }
-  
+
   // Loop all circles and create chunks to send to worker
   for (let i = 0; i < circleHolder.length; i += THREAD_COUNT) {
       const chunk = circleHolder.slice(i, i + THREAD_COUNT)
@@ -119,7 +119,14 @@ async function generate(buildings, boundingBox, nrOfCams, distance) {
   result = (await Promise.all(workerPromises))
   workerPromises = null
 
-  return {"polygons": result, "area": turf.area(turf.featureCollection(result[0]))}
+  let polys = result[0].filter(function(item) {
+    return item.geometry.type === "Polygon"
+  })
+
+  // console.log(polys)
+  // console.log("here:", turf.area(turf.union(turf.featureCollection(polys))))
+  // console.log(turf.intersect(turf.featureCollection(result)))
+  return {"polygons": result, "area": turf.area(turf.union(turf.featureCollection(polys)))}
   // Write the resulting GeoJSON to file
   // await fs.writeFile('./output/result.geojson', JSON.stringify(result), 'utf8')
 }

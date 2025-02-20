@@ -5,13 +5,11 @@
 * TBD: For now it is hardcoded sweden_buildings.geojson. Make it dynamic.
 
 
-* Install packages: `npm install` 
+* Install packages: `npm install`
 * Start db in background: `docker compose up -d mongodb `
 * Insert data: `npm run insert`
 
 ### Index on geometry
-* Pull and start cli container: `docker compose run mongodb mongosh -u <user> -p <password> mongodb://mongodb/`. Look in docker-compose.yml.
+* Pull and start cli container: `docker compose run mongodb mongosh -u <user> -p <password> mongodb://mongodb/`. Look in docker-compose.yml. On MAC it is `mogno`, not `mongosh`.
 * `use <db>` (sweden)
 * Index on geometry: `db.buildings.createIndex({ "geometry": "2dsphere" })`
-
-

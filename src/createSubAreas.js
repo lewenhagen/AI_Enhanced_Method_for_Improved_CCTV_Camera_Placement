@@ -37,7 +37,7 @@ async function polygonDivide(polygonFeature, nDivisions) {
       let clippedFeature = turf.intersect(turf.featureCollection([feature, polygon]));
       let clippedFeatureArea = turf.area(clippedFeature);
       clippedFeature.properties.percentage = clippedFeatureArea / idealPieceArea;
-      // clippedFeature.properties.color = `#${Math.floor(Math.random() * 16777215).toString(16)}` 
+      // clippedFeature.properties.color = `#${Math.floor(Math.random() * 16777215).toString(16)}`
 
       return clippedFeature;
   });
@@ -49,7 +49,7 @@ async function polygonDivide(polygonFeature, nDivisions) {
     centroids.push(turf.centroid(item))
   }
 
-  return {"areas": clippedVoronoiPolygons, "centroids": centroids};
+  return {"polys": clippedVoronoiPolygons, "centroids": centroids, "areas": turf.area(turf.featureCollection(clippedVoronoiPolygons))};
 }
 
 export { polygonDivide }

@@ -44,12 +44,12 @@ map.on("click", function(e) {
 map.on('draw:created', async function (event) {
     let nrOfCams = parseInt(prompt("How many cameras?"))
     let distance = parseFloat(prompt("Distance?"))
-    
+
     let layer = event.layer
 
     drawnItems.addLayer(layer)
 
-    let latlngs = layer.getLatLngs()[0] 
+    let latlngs = layer.getLatLngs()[0]
 
     // Convert Leaflet LatLng objects to GeoJSON-style coordinates (lon, lat)
     let coords = latlngs.map(ll => [ll.lng, ll.lat])
@@ -76,7 +76,7 @@ map.on('draw:created', async function (event) {
     })
 
     let json = await response.json()
-    
+
     if (json.status === "error") {
       alert(json.message)
       drawnItems.clearLayers()
@@ -93,9 +93,9 @@ map.on('draw:created', async function (event) {
           drawnItems.addLayer(L.geoJSON(poly, {style: {color:"green"}}))
       }
       // console.log(json.grid)
-      for (const area of json.grid.areas) {
-          console.log(area)        
-          drawnItems.addLayer(L.geoJSON(area, {
+      for (const poly of json.grid.polys) {
+          console.log(poly)
+          drawnItems.addLayer(L.geoJSON(poly, {
             style: {
               color: 'black',
               weight: 1,
@@ -106,12 +106,12 @@ map.on('draw:created', async function (event) {
       }
 
       // for (const center of json.grid.centroids) {
-                
+
       //     drawnItems.addLayer(L.geoJSON(center))
       // }
     }
-    
 
-    
+
+
     // console.log("Polygon Coordinates:", coords)
 })
