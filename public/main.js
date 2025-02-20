@@ -88,9 +88,9 @@ map.on('draw:created', async function (event) {
           drawnItems.addLayer(L.geoJSON(building))
       }
 
-      for (const cam of json.cam) {
+      for (const poly of json.coverage.polygons) {
           // console.log(building.geometry.coordinates)
-          drawnItems.addLayer(L.geoJSON(cam, {style: {color:"green"}}))
+          drawnItems.addLayer(L.geoJSON(poly, {style: {color:"green"}}))
       }
       // console.log(json.grid)
       for (const area of json.grid.areas) {

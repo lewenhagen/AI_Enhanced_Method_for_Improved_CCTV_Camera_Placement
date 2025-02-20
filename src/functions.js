@@ -28,9 +28,14 @@ async function getIntersectingBuildings(poly) {
 
     mongo.close()
 
+    console.log("buildings area:", turf.area(turf.featureCollection(intersections)))
+    console.log("boundingbox area:", turf.area(turfPoly))
+
     const returnData = {
         "boundingBox": turfPoly,
-        "buildings": intersections
+        "buildings": intersections,
+        "boundingBoxArea": turf.area(turfPoly),
+        "buildingArea": turf.area(turf.featureCollection(intersections))
     }
     
     return returnData

@@ -118,7 +118,8 @@ async function generate(buildings, boundingBox, nrOfCams, distance) {
   // Await all workers to finish
   result = (await Promise.all(workerPromises))
   workerPromises = null
-  return result
+
+  return {"polygons": result, "area": turf.area(turf.featureCollection(result[0]))}
   // Write the resulting GeoJSON to file
   // await fs.writeFile('./output/result.geojson', JSON.stringify(result), 'utf8')
 }
