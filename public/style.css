@@ -26,7 +26,7 @@ body {
 
 /* Add styles to the form container */
 .form-container {
-  max-width: 300px;
+  max-width: 400px;
   padding: 10px;
   background-color: white;
 }
@@ -34,7 +34,7 @@ body {
 /* Full-width input fields */
 .form-container input[type=text], input[type=tel], .form-container input[type=password] {
   width: 100%;
-  padding: 15px;
+  padding: 15px 0px;
   margin: 5px 0 22px 0;
   border: none;
   background: #f1f1f1;
