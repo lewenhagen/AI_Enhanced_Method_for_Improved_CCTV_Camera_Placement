@@ -25,7 +25,7 @@ async function getIntersectingBuildings(poly) {
 
     // Remove coverage area outside main area
     const intersections = result.map(feature => turf.intersect(turf.featureCollection([feature, turfPoly])))
-    console.log(intersections.length)
+    // console.log(intersections.length)
     mongo.close()
 
     // console.log("buildings area:", turf.area(turf.featureCollection(intersections)))

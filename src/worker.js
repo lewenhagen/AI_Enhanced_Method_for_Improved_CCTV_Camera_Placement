@@ -13,13 +13,13 @@ for (const circle of workerData.chunk) {
             if (turf.booleanContains(building, circle.center)) {
 
                 circle.center = turf.nearestPointOnLine(turf.lineString(building.geometry.coordinates[0]), circle.center)
-                console.log("Nearest point on line: ", turf.getCoords(circle.center))
+                // console.log("Nearest point on line: ", turf.getCoords(circle.center))
                 for (let i = -180; i <= 180; i++) {
                     const destinationPoint = turf.destination(circle.center, 0.0005, i)
 
                     if (!turf.booleanContains(building, destinationPoint)) {
                         circle.center = destinationPoint
-                        console.log("Moving to: ", turf.getCoords(circle.center))
+                        // console.log("Moving to: ", turf.getCoords(circle.center))
 
                         break
                     }
@@ -55,7 +55,7 @@ for (const circle of workerData.chunk) {
 
     result.push(turf.intersect(turf.featureCollection([c, bbox])))
     result.push(circle.center)
-    console.log("MOVING TO:", circle.center)
+    // console.log("MOVING TO:", circle.center)
 }
 
 parentPort.postMessage(result)

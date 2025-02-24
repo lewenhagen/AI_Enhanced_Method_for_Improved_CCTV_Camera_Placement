@@ -17,6 +17,22 @@
 </head>
 <body>
     <div id="map"></div>
+
+    <div class="form-popup" id="myForm">
+      <form id="theForm" class="form-container">
+        <h1>Add data</h1>
+
+        <label for="nrofcams"><b>Nr of cams</b></label>
+        <input type="tel" placeholder="How many cameras?" id="nrofcams" required>
+    
+        <label for="distance"><b>Distance (m)</b></label>
+        <input type="tel" placeholder="Distance (m)" id="distance" required>
+    
+        <button id="okButton" type="button" class="btn ok">Ok</button>
+        <button id="cancelButton" type="button" class="btn cancel">Close</button>
+      </form>
+    </div>
+    
     <script type="module" src="main.js"></script>
 </body>
 </html>

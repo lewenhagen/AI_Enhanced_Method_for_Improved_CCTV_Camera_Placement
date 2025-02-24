@@ -126,7 +126,14 @@ async function generate(buildings, boundingBox, nrOfCams, distance) {
   // console.log(polys)
   // console.log("here:", turf.area(turf.union(turf.featureCollection(polys))))
   // console.log(turf.intersect(turf.featureCollection(result)))
-  return {"polygons": result, "area": turf.area(turf.union(turf.featureCollection(polys)))}
+  let pArea = null
+
+  if (polys.length < 2) {
+    pArea = turf.area(turf.featureCollection(polys))
+  } else {
+    pArea = turf.area(turf.union(turf.featureCollection(polys)))
+  }
+  return {"polygons": result, "area": pArea}
   // Write the resulting GeoJSON to file
   // await fs.writeFile('./output/result.geojson', JSON.stringify(result), 'utf8')
 }

@@ -2,8 +2,7 @@ import * as turf from '@turf/turf'
 
 async function polygonDivide(polygonFeature, nDivisions) {
   let temp = turf.polygon([polygonFeature])
-    // Bounding box for the grid
-  const polygon = turf.cleanCoords(temp)
+  let polygon = turf.cleanCoords(temp)
   let polygonBbox = turf.bbox(polygon);
 
   let randomPoints = turf.randomPoint(5000, {bbox: polygonBbox});
@@ -33,11 +32,9 @@ async function polygonDivide(polygonFeature, nDivisions) {
   let polygonArea = turf.area(polygon);
   let idealPieceArea = polygonArea / nDivisions;
   let clippedVoronoiPolygons = voronoiPolygons.features.map((feature, i) => {
-      // console.log(feature)
       let clippedFeature = turf.intersect(turf.featureCollection([feature, polygon]));
       let clippedFeatureArea = turf.area(clippedFeature);
-      clippedFeature.properties.percentage = clippedFeatureArea / idealPieceArea;
-      // clippedFeature.properties.color = `#${Math.floor(Math.random() * 16777215).toString(16)}`
+      clippedFeature.properties.percentage = clippedFeatureArea / polygonArea;
 
       return clippedFeature;
   });
@@ -53,3 +50,9 @@ async function polygonDivide(polygonFeature, nDivisions) {
 }
 
 export { polygonDivide }
+
+
+// slumpa fram 5000 punkter inom polygonen bbox->polygon
+// skapa n antal kluster med en centrumpunkt
+// skapa voronoi diagram efter centumpunkterna
+// klipp de nya areorna så de håller sig innanför polygonen
