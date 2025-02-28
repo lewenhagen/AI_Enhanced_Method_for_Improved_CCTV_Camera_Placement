@@ -36,18 +36,19 @@ function handleOutput(json) {
     /**
      * Walker area
      */
-    drawnItems.addLayer(L.geoJSON(json.walker[0].polygon, {style: {color:"green"}}))
-    drawnItems.addLayer(L.geoJSON(json.walker[0].center))
+    // drawnItems.addLayer(L.geoJSON(json.walker[0].polygon, {style: {color:"green"}}))
+    // drawnItems.addLayer(L.geoJSON(json.walker[0].center))
 
-    drawnItems.addLayer(L.geoJSON(json.walker[1].polygon, {style: {color:"green"}}))
-    drawnItems.addLayer(L.geoJSON(json.walker[1].center))
+    // drawnItems.addLayer(L.geoJSON(json.walker[1].polygon, {style: {color:"yellow"}}))
+    // drawnItems.addLayer(L.geoJSON(json.walker[1].center))
 
-    drawnItems.addLayer(L.geoJSON(json.walker[2].polygon, {style: {color:"green"}}))
-    drawnItems.addLayer(L.geoJSON(json.walker[2].center))
-    // for (const poly of json.walker.polygons) {
-    //   // console.log(building.geometry.coordinates)
-    //   drawnItems.addLayer(L.geoJSON(poly, {style: {color:"green"}}))
-    // } 
+    // drawnItems.addLayer(L.geoJSON(json.walker[2].polygon, {style: {color:"orange"}}))
+    // drawnItems.addLayer(L.geoJSON(json.walker[2].center))
+    for (const index in json.walker) {
+      // console.log(building.geometry.coordinates)
+      drawnItems.addLayer(L.geoJSON(json.walker[index].polygon, {style: {color:"green"}}))
+      drawnItems.addLayer(L.geoJSON(json.walker[index].center).bindPopup((parseInt(index)+1).toString()))
+    } 
 
     /**
      * Voronoi diagrams
@@ -262,3 +263,10 @@ map.on('draw:created', async function (event) {
 
 // för varje voronoi
 // hitta center utan byggnader,
+
+
+
+// SISTA varianten
+// 1. sortera på area storlek
+// 2. ta bort alla som nuddar den största
+// 3. ta näst största -||-

@@ -54,13 +54,15 @@ app.post("/walk", async (req, res) => {
       let data = await getIntersectingBuildings(req.body.bbox)
       let walkerResult = await walkAlongBuilding(data, req.body.distance)
       
-      walkerResult.sort((a, b) => b.area - a.area)
+      
+      
 
-      // console.log(walkerResult[0].area)
+      // console.log(walkerResult)
       console.log(walkerResult.length)
-      console.log(walkerResult[0])
-      console.log(walkerResult[1])
-      console.log(walkerResult[2])
+
+      // console.log(walkerResult[0])
+      // console.log(walkerResult[walkerResult.length-1])
+      // console.log(walkerResult[2])
       // let grid = await polygonDivide(req.body.bbox, req.body.nrOfCams)
       // let coverage = await generate(data.buildings, req.body.bbox, grid.centroids, req.body.distance)
 

@@ -10,6 +10,7 @@ let circleHolder = []
 async function generate(buildings, boundingBox, pointsOnBoundary, distance) {
 
   let result = []
+  let checkupFeatureCollection = turf.featureCollection([])
 
   for (const currentCoord of pointsOnBoundary) {
     // console.log(current)
@@ -79,37 +80,33 @@ async function generate(buildings, boundingBox, pointsOnBoundary, distance) {
     // console.log(boundingBox)
   
     let bbox = turf.cleanCoords(boundingBox)
-    // console.log(bbox)
-    // // console.log(c)
-    // console.log(bbox)
-  
-    // result.push(turf.intersect(turf.featureCollection([c, bbox])))
-    // result.push(circle.center)
-    // // workerPromises = null
-    // result.push(turf.polygon([newCircle]))
-    // let polys = newCircle[0].filter(function(item) {
-    //   return item.geometry.type === "Polygon"
-    // })
-  
     
-    // console.log("here:", turf.area(turf.union(turf.featureCollection(polys))))
-    // console.log(turf.intersect(turf.featureCollection(result)))
-    // let pArea = null
-  
-    // if (result.length < 2) {
-    //   pArea = turf.area(turf.featureCollection(result))
-    // } else {
-    //   pArea = turf.area(turf.union(turf.featureCollection(result)))
-    // }
-    // console.log(pArea)
     // let circlePoly = turf.polygon([newCircle])
     // if (turf.intersect(turf.featureCollection([turf.polygon([newCircle]), bbox])) !== null) {
     let circlePoly = turf.intersect(turf.featureCollection([turf.polygon([newCircle]), bbox]))
     // console.log(circlePoly)
     let area = circlePoly == null ? turf.area(turf.polygon([newCircle])) : turf.area(circlePoly)
     // }
-  
+    // let intersects = false
+
+    // for (const feature of checkupFeatureCollection.features) {
+    //   if (turf.booleanIntersects(circlePoly, feature)) {
+    //       intersects = true
+    //       console.log("Intersection found.")
+    //       break
+    //   }
+    // }
+    
+    // if (!intersects) {
+    //   checkupFeatureCollection.features.push(circlePoly)
+    //   result.push({"center": circleObj.center, "polygon": circlePoly, "area": area})
+    // }
+
+    
     result.push({"center": circleObj.center, "polygon": circlePoly, "area": area})
+    
+
+    // result.push({"center": circleObj.center, "polygon": circlePoly, "area": area})
     // console.log(turf.area(circlePoly))
   
   }
