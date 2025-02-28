@@ -49,12 +49,18 @@ app.post("/init", async (req, res) => {
 })
 
 app.post("/walk", async (req, res) => {
-
+  
     try {
       let data = await getIntersectingBuildings(req.body.bbox)
-      let lines = await walkAlongBuilding(data, req.body.distance)
+      let walkerResult = await walkAlongBuilding(data, req.body.distance)
+      
+      walkerResult.sort((a, b) => b.area - a.area)
 
-      // console.log(lines)
+      // console.log(walkerResult[0].area)
+      console.log(walkerResult.length)
+      console.log(walkerResult[0])
+      console.log(walkerResult[1])
+      console.log(walkerResult[2])
       // let grid = await polygonDivide(req.body.bbox, req.body.nrOfCams)
       // let coverage = await generate(data.buildings, req.body.bbox, grid.centroids, req.body.distance)
 
@@ -73,7 +79,7 @@ app.post("/walk", async (req, res) => {
       //   `)
 
       // res.json({"status": "Ok", "data": data, "coverage": coverage, "grid": grid})
-      res.json({"status": "Ok", "data": data})
+      res.json({"status": "Ok", "data": data, "walker": walkerResult})
     } catch(e) {
       res.json({"status": "error", "message": e})
     }

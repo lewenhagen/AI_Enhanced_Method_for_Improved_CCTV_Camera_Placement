@@ -28,25 +28,41 @@ function handleOutput(json) {
      * Coverage area
      */
 
-    for (const poly of json.coverage.polygons) {
-        // console.log(building.geometry.coordinates)
-        drawnItems.addLayer(L.geoJSON(poly, {style: {color:"green"}}))
-    }
+    // for (const poly of json.coverage.polygons) {
+    //     // console.log(building.geometry.coordinates)
+    //     drawnItems.addLayer(L.geoJSON(poly, {style: {color:"green"}}))
+    // }
+
+    /**
+     * Walker area
+     */
+    drawnItems.addLayer(L.geoJSON(json.walker[0].polygon, {style: {color:"green"}}))
+    drawnItems.addLayer(L.geoJSON(json.walker[0].center))
+
+    drawnItems.addLayer(L.geoJSON(json.walker[1].polygon, {style: {color:"green"}}))
+    drawnItems.addLayer(L.geoJSON(json.walker[1].center))
+
+    drawnItems.addLayer(L.geoJSON(json.walker[2].polygon, {style: {color:"green"}}))
+    drawnItems.addLayer(L.geoJSON(json.walker[2].center))
+    // for (const poly of json.walker.polygons) {
+    //   // console.log(building.geometry.coordinates)
+    //   drawnItems.addLayer(L.geoJSON(poly, {style: {color:"green"}}))
+    // } 
 
     /**
      * Voronoi diagrams
      */
-    for (const poly of json.grid.polys) {
-        console.log(poly)
-        drawnItems.addLayer(L.geoJSON(poly, {
-          style: {
-            color: 'black',
-            weight: 1,
-            // fillColor: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
-            // fillOpacity: 0.5
-          }
-        }).bindPopup(poly.properties.percentage.toString()))
-    }
+    // for (const poly of json.grid.polys) {
+    //     console.log(poly)
+    //     drawnItems.addLayer(L.geoJSON(poly, {
+    //       style: {
+    //         color: 'black',
+    //         weight: 1,
+    //         // fillColor: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+    //         // fillOpacity: 0.5
+    //       }
+    //     }).bindPopup(poly.properties.percentage.toString()))
+    // }
 
 
     /**
