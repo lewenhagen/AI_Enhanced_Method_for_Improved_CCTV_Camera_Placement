@@ -12,10 +12,10 @@ function closeModal() {
 
 function handleOutput(json) {
   if (json.status === "error") {
-    alert(json.message)
+    alert("Something went wrong:", json.message)
     drawnItems.clearLayers()
   } else {
-   
+
     /**
      * Buildings
      */
@@ -32,7 +32,7 @@ function handleOutput(json) {
         // console.log(building.geometry.coordinates)
         drawnItems.addLayer(L.geoJSON(poly, {style: {color:"green"}}))
     }
-    
+
     /**
      * Voronoi diagrams
      */
@@ -77,11 +77,11 @@ function fixCoords(event) {
     }
 
     return coords
-    
+
 }
 
 async function startFetch(coords) {
-  let response = await fetch('/init', {
+  let response = await fetch('/walk', {
       method: 'POST',
       headers: {
           'Content-Type': 'application/json'
@@ -99,7 +99,7 @@ async function startFetch(coords) {
 }
 
 const map = L.map('map', {
-  center: L.latLng(55.56334663061865, 12.975368499755861),
+  center: L.latLng(55.56274294950438, 12.98059344291687),
   zoom: 18,
 })
 
@@ -155,16 +155,16 @@ map.on('draw:created', async function (event) {
     okButton.addEventListener("click", async function() {
       drawnItems.clearLayers()
       json = await startFetch(coords)
-      
+
       handleOutput(json)
     })
 
     cancelButton.onclick = closeModal
-    
+
     // let nrOfCams = parseInt(prompt("How many cameras?"))
     // let distance = parseFloat(prompt("Distance?"))
 
-    
+
 
 
     // let response = await fetch('/init', {
@@ -185,7 +185,7 @@ map.on('draw:created', async function (event) {
     //   alert(json.message)
     //   drawnItems.clearLayers()
     // } else {
-     
+
     //   /**
     //    * Buildings
     //    */
@@ -202,7 +202,7 @@ map.on('draw:created', async function (event) {
     //   //     // console.log(building.geometry.coordinates)
     //   //     drawnItems.addLayer(L.geoJSON(poly, {style: {color:"green"}}))
     //   // }
-      
+
     //   /**
     //    * Voronoi diagrams
     //    */
@@ -237,12 +237,12 @@ map.on('draw:created', async function (event) {
 
 
 
-// klipp ut areor, 
-// bort med byggnader, 
-// ranka storlek, 
+// klipp ut areor,
+// bort med byggnader,
+// ranka storlek,
 // hitta mitten
 // hitta närmaste hus
 
 
 // för varje voronoi
-// hitta center utan byggnader, 
+// hitta center utan byggnader,
