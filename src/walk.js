@@ -45,8 +45,7 @@ async function walkAlongBuilding(data, distance, nrOfCams) {
     }
 
     result.sort((a, b) => b.area - a.area)
-    // console.log(result[0])
-    // console.log(result.length)
+
     let n = parseInt(nrOfCams)
     let endResult = []
     let remainingPolygons = [...result]
@@ -54,16 +53,32 @@ async function walkAlongBuilding(data, distance, nrOfCams) {
     for (let i = 0; i < remainingPolygons.length && endResult.length < n; i++) {
         let currentPolygon = remainingPolygons[i];
 
-        // Add the current polygon to the final list
         endResult.push(currentPolygon);
 
-        // Step 3: Remove all polygons that intersect with this one
-        remainingPolygons = remainingPolygons.filter(poly => !turf.booleanIntersects(currentPolygon.polygon, poly.polygon));
+        // remainingPolygons = remainingPolygons.filter(poly => !turf.booleanIntersects(currentPolygon.polygon, poly.polygon));
+        remainingPolygons = remainingPolygons.filter(function(poly) {
+            if (turf.booleanIntersects(currentPolygon.polygon, poly.polygon)) {
+                let a = turf.area(turf.intersect(turf.featureCollection([currentPolygon.polygon, poly.polygon])))
+                let tempA = turf.area(currentPolygon.polygon)
+                let tempB = turf.area(poly.polygon)
+                let total = tempA + tempB
+                console.log(parseFloat((a / total)))
+                if ((a / total) < 0.05) {
+                    return poly.polygon
+                }
+                // return !turf.booleanIntersects(currentPolygon.polygon, poly.polygon)
+
+            } else {
+                return poly.polygon
+            }
+
+        })
 
     }
 
 
     return endResult
+
 }
 
 
