@@ -4,7 +4,6 @@ import { generate } from './generateCoverageArea.js'
 let stepSize = 5
 
 async function walkAlongBuilding(data, distance, nrOfCams) {
-    console.log("in function walkAlong building")
     let current = {}
     let result = []
     let buildings = data.buildings
