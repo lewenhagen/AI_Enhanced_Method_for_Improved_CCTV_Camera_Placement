@@ -48,7 +48,7 @@ function handleOutput(json) {
       // console.log(building.geometry.coordinates)
       drawnItems.addLayer(L.geoJSON(json.walker[index].polygon, {style: {color:"green"}}))
       drawnItems.addLayer(L.geoJSON(json.walker[index].center).bindPopup((parseInt(index)+1).toString()))
-    } 
+    }
 
     /**
      * Voronoi diagrams
@@ -106,7 +106,8 @@ async function startFetch(coords) {
       body: JSON.stringify({
           bbox: coords,
           nrOfCams: parseInt(document.getElementById("nrofcams").value),
-          distance: parseFloat(document.getElementById("distance").value)
+          distance: parseFloat(document.getElementById("distance").value),
+          overlap: parseFloat(document.getElementById("overlap").value)
       })
   })
 

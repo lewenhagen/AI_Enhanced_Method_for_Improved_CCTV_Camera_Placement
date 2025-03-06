@@ -52,7 +52,7 @@ app.post("/walk", async (req, res) => {
 
     try {
       let data = await getIntersectingBuildings(req.body.bbox)
-      let walkerResult = await walkAlongBuilding(data, req.body.distance, req.body.nrOfCams)
+      let walkerResult = await walkAlongBuilding(data, req.body.distance, req.body.nrOfCams, req.body.overlap)
       // console.log(walkerResult)
       // console.log(walkerResult.length)
 

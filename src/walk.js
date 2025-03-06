@@ -3,7 +3,7 @@ import { generate } from './generateCoverageArea.js'
 
 let stepSize = 5
 
-async function walkAlongBuilding(data, distance, nrOfCams) {
+async function walkAlongBuilding(data, distance, nrOfCams, overlap) {
     let current = {}
     let result = []
     let buildings = data.buildings
@@ -62,8 +62,8 @@ async function walkAlongBuilding(data, distance, nrOfCams) {
                 let tempA = turf.area(currentPolygon.polygon)
                 let tempB = turf.area(poly.polygon)
                 let total = tempA + tempB
-                console.log(parseFloat((a / total)))
-                if ((a / total) < 0.05) {
+                // console.log(overlap)
+                if ((a / total) < parseFloat(overlap)/100) {
                     return poly.polygon
                 }
                 // return !turf.booleanIntersects(currentPolygon.polygon, poly.polygon)
