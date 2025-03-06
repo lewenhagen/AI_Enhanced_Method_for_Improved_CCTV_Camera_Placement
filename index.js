@@ -53,6 +53,7 @@ app.post("/walk", async (req, res) => {
     try {
       let data = await getIntersectingBuildings(req.body.bbox)
       let walkerResult = await walkAlongBuilding(data, req.body.distance, req.body.nrOfCams, req.body.overlap)
+      let coverageAreaPercent = walkerResult.totalArea / (data.boundingBoxArea - data.buildingArea)
       // console.log(walkerResult)
       // console.log(walkerResult.length)
 
@@ -62,19 +63,18 @@ app.post("/walk", async (req, res) => {
       // let grid = await polygonDivide(req.body.bbox, req.body.nrOfCams)
       // let coverage = await generate(data.buildings, req.body.bbox, grid.centroids, req.body.distance)
 
-      // console.log(`
-      //   Areas (m\u00B2)
-      //   ----------------------
-      //   Boundingbox:            ${data.boundingBoxArea.toFixed(2)}
-      //   Voronoi:                ${grid.areas.toFixed(2)}
-      //   Buildings:              ${data.buildingArea.toFixed(2)}
-      //   BBox without buildings: ${(data.boundingBoxArea - data.buildingArea).toFixed(2)}
-      //   Coverage (union):       ${coverage.area.toFixed(2)}
+      console.log(`
+        Areas (m\u00B2)
+        ----------------------
+        Boundingbox:            ${data.boundingBoxArea.toFixed(2)}
+        Buildings:              ${data.buildingArea.toFixed(2)}
+        BBox without buildings: ${(data.boundingBoxArea - data.buildingArea).toFixed(2)}
+        Coverage (union):       ${walkerResult.totalArea.toFixed(2)}
 
-      //   Percentage (%)
-      //   ----------------------
-      //   Coverage:               ${((coverage.area/(data.boundingBoxArea - data.buildingArea))*100).toFixed(2)}
-      //   `)
+        Percentage (%)
+        ----------------------
+        Coverage:               ${(coverageAreaPercent*100).toFixed(2)}
+        `)
 
       // res.json({"status": "Ok", "data": data, "coverage": coverage, "grid": grid})
       res.json({"status": "Ok", "data": data, "walker": walkerResult})

@@ -64,12 +64,12 @@ async function walkAlongBuilding(data, distance, nrOfCams, overlap) {
                 let total = tempA + tempB
                 // console.log(overlap)
                 if ((a / total) < parseFloat(overlap)/100) {
-                    return poly.polygon
+                    return poly
                 }
                 // return !turf.booleanIntersects(currentPolygon.polygon, poly.polygon)
 
             } else {
-                return poly.polygon
+                return poly
             }
 
         })
@@ -77,7 +77,18 @@ async function walkAlongBuilding(data, distance, nrOfCams, overlap) {
     }
 
 
-    return endResult
+    let totalArea = null
+    let polys = endResult.map(function(item) {
+        return item.polygon
+    })
+
+    // if (endResult.length < 2) {
+    //     totalArea = turf.area(turf.featureCollection(endResult))
+    // } else {
+    totalArea = turf.area(turf.union(turf.featureCollection(polys)))
+    // }
+
+    return {"polys": endResult, "totalArea": totalArea}
 
 }
 

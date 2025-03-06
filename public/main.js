@@ -44,10 +44,10 @@ function handleOutput(json) {
 
     // drawnItems.addLayer(L.geoJSON(json.walker[2].polygon, {style: {color:"orange"}}))
     // drawnItems.addLayer(L.geoJSON(json.walker[2].center))
-    for (const index in json.walker) {
+    for (const index in json.walker.polys) {
       // console.log(building.geometry.coordinates)
-      drawnItems.addLayer(L.geoJSON(json.walker[index].polygon, {style: {color:"green"}}))
-      drawnItems.addLayer(L.geoJSON(json.walker[index].center).bindPopup((parseInt(index)+1).toString()))
+      drawnItems.addLayer(L.geoJSON(json.walker.polys[index].polygon, {style: {color:"green"}}))
+      drawnItems.addLayer(L.geoJSON(json.walker.polys[index].center).bindPopup("#: " + (parseInt(index)+1).toString() + "<br>m2: " + json.walker.polys[index].area.toFixed(2).toString()))
     }
 
     /**
