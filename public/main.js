@@ -10,6 +10,31 @@ function closeModal() {
   document.getElementById("myForm").style.display = "none"
 }
 
+function handleOutputPolyline(json) {
+  if (json.status === "error") {
+    alert("Something went wrong:", json.toString())
+    drawnItems.clearLayers()
+  } else {
+    console.log("yay")
+
+    for (const building of json.data.buildings) {
+        // console.log(building.geometry.coordinates)
+        drawnItems.addLayer(L.geoJSON(building))
+    }
+
+    for (const index in json.cameras.polys) {
+      // console.log(building.geometry.coordinates)
+      drawnItems.addLayer(L.geoJSON(json.cameras.polys[index].polygon, {style: {color:"green"}}))
+      drawnItems.addLayer(L.geoJSON(json.cameras.polys[index].center).bindPopup("#: " + (parseInt(index)+1).toString() + "<br>m2: " + json.cameras.polys[index].area.toFixed(2).toString()))
+    }
+
+   
+    // Buffered Line polygon awesome shit
+    // drawnItems.addLayer(L.geoJSON(json.data.boundingBox))
+    
+  }
+}
+
 function handleOutput(json) {
   if (json.status === "error") {
     alert("Something went wrong:", json.message)
@@ -116,6 +141,25 @@ async function startFetch(coords) {
   return json
 }
 
+async function startFetchPolyline(coords) {
+  let response = await fetch('/polyline', {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+          polyline: coords,
+          nrOfCams: parseInt(document.getElementById("nrofcams").value),
+          distance: parseFloat(document.getElementById("distance").value),
+          overlap: parseFloat(document.getElementById("overlap").value)
+      })
+  })
+
+  let json = await response.json()
+
+  return json
+}
+
 const map = L.map('map', {
   center: L.latLng(55.56274294950438, 12.98059344291687),
   zoom: 18,
@@ -143,7 +187,7 @@ let drawControl = new L.Control.Draw({
     },
     draw: {
         polygon: true,
-        polyline: false,
+        polyline: true,
         rectangle: true,
         circle: false,
         marker: false
@@ -164,91 +208,51 @@ map.on("click", function(e) {
 
 
 map.on('draw:created', async function (event) {
+    // Add layer to map as baseline
     baseLine.addLayer(event.layer)
+    
     document.getElementById("myForm").style.display = "block";
+    
+    if (event.layerType === "polyline") {
+        let latlngs = Array.from(new Set(event.layer.getLatLngs().map(JSON.stringify))).map(JSON.parse)
+        let coords = latlngs.map(ll => [ll.lng, ll.lat])
+        let json = {}
 
-    let coords = fixCoords(event)
-    let json = {}
+        okButton.addEventListener("click", async function() {
+            drawnItems.clearLayers()
+            json = await startFetchPolyline(coords)
+    
+            handleOutputPolyline(json)
+        })
 
-    okButton.addEventListener("click", async function() {
-      drawnItems.clearLayers()
-      json = await startFetch(coords)
 
-      handleOutput(json)
-    })
+    } else if (event.layerType === "polygon" || event.layerType === "rectangle") {
+        let coords = fixCoords(event)
+        let json = {}
+
+        okButton.addEventListener("click", async function() {
+          drawnItems.clearLayers()
+          json = await startFetch(coords)
+  
+          handleOutput(json)
+      })
+    }
+
+    
+
+    
+    // let json = {}
+
+    // okButton.addEventListener("click", async function() {
+    //   drawnItems.clearLayers()
+    //   json = await startFetch(coords)
+
+    //   handleOutput(json)
+    // })
 
     cancelButton.onclick = closeModal
 
-    // let nrOfCams = parseInt(prompt("How many cameras?"))
-    // let distance = parseFloat(prompt("Distance?"))
-
-
-
-
-    // let response = await fetch('/init', {
-    //     method: 'POST',
-    //     headers: {
-    //         'Content-Type': 'application/json'
-    //     },
-    //     body: JSON.stringify({
-    //         bbox: coords,
-    //         nrOfCams: nrOfCams,
-    //         distance: distance
-    //     })
-    // })
-
-    // let json = await response.json()
-
-    // if (json.status === "error") {
-    //   alert(json.message)
-    //   drawnItems.clearLayers()
-    // } else {
-
-    //   /**
-    //    * Buildings
-    //    */
-    //   for (const building of json.data.buildings) {
-    //       // console.log(building.geometry.coordinates)
-    //       drawnItems.addLayer(L.geoJSON(building))
-    //   }
-
-    //   /**
-    //    * Coverage area
-    //    */
-
-    //   // for (const poly of json.coverage.polygons) {
-    //   //     // console.log(building.geometry.coordinates)
-    //   //     drawnItems.addLayer(L.geoJSON(poly, {style: {color:"green"}}))
-    //   // }
-
-    //   /**
-    //    * Voronoi diagrams
-    //    */
-    //   for (const poly of json.grid.polys) {
-    //       console.log(poly)
-    //       drawnItems.addLayer(L.geoJSON(poly, {
-    //         style: {
-    //           color: 'black',
-    //           weight: 1,
-    //           // fillColor: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
-    //           // fillOpacity: 0.5
-    //         }
-    //       }).bindPopup(poly.properties.percentage.toString()))
-    //   }
-
-
-    //   /**
-    //    * Voronoi centroids (Center of kmeans clustering)
-    //    */
-    //   // for (const center of json.grid.centroids) {
-
-    //   //     drawnItems.addLayer(L.geoJSON(center))
-    //   // }
-    // }
-
-
-
-    // console.log("Polygon Coordinates:", coords)
+    
 })
 
 

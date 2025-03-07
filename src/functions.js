@@ -41,4 +41,45 @@ async function getIntersectingBuildings(poly) {
     return returnData
 }
 
-export { getIntersectingBuildings }
+async function getIntersectingBuildingsPolyline(polyline, distance) {
+  const client = await mongo.connect()
+  const db = client.db("sweden")
+  const collection = db.collection("buildings")
+  let line = turf.lineString(polyline)
+  let turfPoly = turf.buffer(line, distance/1000, {units: "kilometers"})
+
+  // const turfPoly = turf.cleanCoords(turf.polygon([poly]))
+
+  const query = {
+      geometry: {
+          $geoIntersects: {
+              $geometry: {
+                  type: "Polygon",
+                  coordinates: turfPoly.geometry.coordinates
+              }
+          }
+      }
+  }
+
+  const result = await collection.find(query).toArray()
+
+  // Remove coverage area outside main area
+  const intersections = result.map(feature => turf.intersect(turf.featureCollection([feature, turfPoly])))
+  // console.log(intersections.length)
+  mongo.close()
+
+  // console.log("buildings area:", turf.area(turf.featureCollection(intersections)))
+  // console.log("boundingbox area:", turf.area(turfPoly))
+
+  const returnData = {
+      "boundingBox": turfPoly,
+      "line": line,
+      "buildings": intersections
+      // "boundingBoxArea": turf.area(turfPoly),
+      // "buildingArea": turf.area(turf.featureCollection(intersections))
+  }
+
+  return returnData
+}
+
+export { getIntersectingBuildings, getIntersectingBuildingsPolyline }
