@@ -64,16 +64,20 @@ app.post("/walk", async (req, res) => {
       // let coverage = await generate(data.buildings, req.body.bbox, grid.centroids, req.body.distance)
 
       console.log(`
+        --------------------------------
+        Amount of cameras:      ${walkerResult.polys.length}/${req.body.nrOfCams}
+        --------------------------------
         Areas (m\u00B2)
-        ----------------------
+        --------------------------------
         Boundingbox:            ${data.boundingBoxArea.toFixed(2)}
         Buildings:              ${data.buildingArea.toFixed(2)}
         BBox without buildings: ${(data.boundingBoxArea - data.buildingArea).toFixed(2)}
         Coverage (union):       ${walkerResult.totalArea.toFixed(2)}
 
         Percentage (%)
-        ----------------------
+        --------------------------------
         Coverage:               ${(coverageAreaPercent*100).toFixed(2)}
+        --------------------------------
         `)
 
       // res.json({"status": "Ok", "data": data, "coverage": coverage, "grid": grid})
