@@ -80,11 +80,10 @@ app.post("/walk", async (req, res) => {
 })
 
 app.post("/polyline", async (req, res) => {
-
   // try {
     // let polyline = req.body.polyline
     let data = await getIntersectingBuildingsPolyline(req.body.polyline, req.body.distance)
-    let cameras = await walkAlongBuildingPolyline(data, req.body.distance, req.body.nrOfCams, req.body.overlap)
+    let cameras = await walkAlongBuildingPolyline(data, req.body.distance, req.body.nrOfCams, req.body.overlap, req.body.focusLine)
     // await calculateLineCoverage(data.line, cameras.polys)
     // let walkerResult = await walkAlongBuilding(data, req.body.distance, req.body.nrOfCams, req.body.overlap)
     // let coverageAreaPercent = walkerResult.totalArea / (data.boundingBoxArea - data.buildingArea)

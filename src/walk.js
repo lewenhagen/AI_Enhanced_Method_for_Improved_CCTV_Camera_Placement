@@ -88,44 +88,100 @@ async function walkAlongBuilding(data, distance, nrOfCams, overlap) {
 }
 
 
-async function walkAlongBuildingPolyline(data, distance, nrOfCams, overlap) {
+async function walkAlongBuildingPolyline(data, distance, nrOfCams, overlap, focusLines) {
   let result = []
   let buildings = data.buildings
   let bbox = data.boundingBox
-  // let max = 0
-  // console.log("Building length:", buildings.length)
+  
+  /**
+   * Traverse outer boundary of buildings 
+   */
   for (const building of buildings) {
       if (building.geometry.type === "Polygon") {
-          // console.log(building)
           let boundary = turf.polygonToLine(building)
-
           let offsetBoundary = turf.lineOffset(boundary, 0.0005, {units: 'kilometers'})
-
-          let perimeter = turf.length(offsetBoundary, {units: 'meters'})
-
-          let pointsAlongBoundary = []
-
-          for (let i = 0; i <= perimeter; i += stepSize) {
-              let point = turf.along(offsetBoundary, i, {units: 'meters'})
-
-              if(turf.booleanPointInPolygon(point, turf.cleanCoords(bbox))) {
-                  pointsAlongBoundary.push(point)
-              }
-
+          console.log(offsetBoundary.geometry.type)
+          if (offsetBoundary.geometry.type === "MultiLineString") {
+            const lineStrings = offsetBoundary.geometry.coordinates.map(coords => turf.lineString(coords))
+            offsetBoundary = JSON.stringify(turf.flatten(offsetBoundary).features[0])
+            
           }
-
+          
+          let perimeter = turf.length(offsetBoundary, {units: 'meters'})
+            let pointsAlongBoundary = []
+  
+            for (let i = 0; i <= perimeter; i += stepSize) {
+                let point = turf.along(offsetBoundary, i, {units: 'meters'})
+  
+                if(turf.booleanPointInPolygon(point, turf.cleanCoords(bbox))) {
+                    pointsAlongBoundary.push(point)
+                }
+            }
+          /**
+           * Use generate to calculate coverage area, based on buildings
+           */
           result = result.concat((await generate(buildings, bbox, pointsAlongBoundary, distance)))
       }
 
   }
 
-  result.sort((a, b) => b.area - a.area)
+  /**
+   * Sort by largest coverage area
+   */
+  if (!focusLines) {
+    console.log("Focusing on area")
+    result.sort((a, b) => b.area - a.area)
+  }
   
-  
+  /**
+   * Remove all polygons that dont intersect with the lineString
+   */
+  const totalLineLength = turf.length(data.line, { units: 'meters' });
+
   result = result.filter(function(poly) {
     if (turf.booleanIntersects(data.line, poly.polygon)) {
       
-      // let intersections = turf.lineIntersect(data.line, poly.polygon)
+      let intersections = turf.lineIntersect(data.line, poly.polygon)
+      let splitPoints = intersections.features.map(f => f.geometry.coordinates)
+      let segments = [];
+      if (splitPoints.length > 0) {
+          let prevPoint = data.line.geometry.coordinates[0];
+
+          splitPoints.forEach(point => {
+              let slicedSegment = turf.lineSlice(turf.point(prevPoint), turf.point(point), data.line);
+              segments.push(slicedSegment);
+              prevPoint = point;
+          });
+
+          let lastSegment = turf.lineSlice(turf.point(prevPoint), turf.point(data.line.geometry.coordinates[data.line.geometry.coordinates.length - 1]), data.line);
+          segments.push(lastSegment);
+      } else {
+          segments.push(data.line);
+      }
+
+      let coveredLength = 0;
+      let uncoveredLength = 0;
+      let coveredSegments = [];
+      let uncoveredSegments = [];
+      
+      segments.forEach(segment => {
+          let midpoint = turf.along(segment, turf.length(segment, { units: 'meters' }) / 2, { units: 'meters' });
+          let isCovered = turf.booleanPointInPolygon(midpoint, poly.polygon);
+      
+          let segmentLength = turf.length(segment, { units: 'meters' });
+          if (isCovered) {
+              coveredLength += segmentLength;
+              coveredSegments.push(segment);
+          } else {
+              uncoveredLength += segmentLength;
+              uncoveredSegments.push(segment);
+          }
+      });
+    
+      /**
+       * Calulate the percentage
+       */
+      poly.percentage = (coveredLength / totalLineLength) * 100
       // console.log(intersections)
       // // let clipped = turf.lineSplit(data.line, intersections)
       
@@ -134,6 +190,19 @@ async function walkAlongBuildingPolyline(data, distance, nrOfCams, overlap) {
       return poly
     }
   })
+
+  /**
+   * Sort by largest coverage percentage
+   */
+  if (focusLines) {
+    console.log("Focusing on line")
+    result.sort((a, b) => b.percentage - a.percentage)
+  }
+  
+
+  /**
+   * Remove polygons that dont match percentage coverage
+   */
   
   let n = parseInt(nrOfCams)
   let endResult = []
@@ -141,7 +210,7 @@ async function walkAlongBuildingPolyline(data, distance, nrOfCams, overlap) {
 
   for (let i = 0; i < remainingPolygons.length && endResult.length < n; i++) {
       let currentPolygon = remainingPolygons[i];
-
+      console.log(currentPolygon.polygon)
       endResult.push(currentPolygon);
 
       remainingPolygons = remainingPolygons.filter(function(poly) {

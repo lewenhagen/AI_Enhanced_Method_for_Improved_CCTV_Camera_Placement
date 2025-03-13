@@ -25,7 +25,7 @@ function handleOutputPolyline(json) {
     for (const index in json.cameras.polys) {
       // console.log(building.geometry.coordinates)
       drawnItems.addLayer(L.geoJSON(json.cameras.polys[index].polygon, {style: {color:"green"}}))
-      drawnItems.addLayer(L.geoJSON(json.cameras.polys[index].center).bindPopup("#: " + (parseInt(index)+1).toString() + "<br>m2: " + json.cameras.polys[index].area.toFixed(2).toString()))
+      drawnItems.addLayer(L.geoJSON(json.cameras.polys[index].center).bindPopup("#: " + (parseInt(index)+1).toString() + "<br>m2: " + json.cameras.polys[index].area.toFixed(2).toString() + "<br>Percentage: " + json.cameras.polys[index].percentage.toFixed(2).toString()))
     }
 
    
@@ -151,7 +151,8 @@ async function startFetchPolyline(coords) {
           polyline: coords,
           nrOfCams: parseInt(document.getElementById("nrofcams").value),
           distance: parseFloat(document.getElementById("distance").value),
-          overlap: parseFloat(document.getElementById("overlap").value)
+          overlap: parseFloat(document.getElementById("overlap").value),
+          focusLine: document.getElementById("focusLine").checked
       })
   })
 
@@ -214,6 +215,19 @@ map.on('draw:created', async function (event) {
     document.getElementById("myForm").style.display = "block";
     
     if (event.layerType === "polyline") {
+        let form = document.getElementById("theForm")
+        let input = document.createElement("input")
+        let label = document.createElement("label")
+
+        label.innerHTML = "Focus on line coverage?"
+        input.setAttribute("type", "checkbox")
+        input.setAttribute("id", "focusLine")
+        input.checked = false
+  
+        form.prepend(label)
+        form.prepend(input)
+        // form.innerHTML += 
+
         let latlngs = Array.from(new Set(event.layer.getLatLngs().map(JSON.stringify))).map(JSON.parse)
         let coords = latlngs.map(ll => [ll.lng, ll.lat])
         let json = {}
