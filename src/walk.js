@@ -98,9 +98,10 @@ async function walkAlongBuildingPolyline(data, distance, nrOfCams, overlap, focu
    */
   for (const building of buildings) {
       if (building.geometry.type === "Polygon") {
+          let offsetBoundaries = []
           let boundary = turf.polygonToLine(building)
           let offsetBoundary = turf.lineOffset(boundary, 0.0005, {units: 'kilometers'})
-          console.log(offsetBoundary.geometry.type)
+          // console.log(offsetBoundary.geometry.type)
           if (offsetBoundary.geometry.type === "MultiLineString") {
             const lineStrings = offsetBoundary.geometry.coordinates.map(coords => turf.lineString(coords))
             offsetBoundary = JSON.stringify(turf.flatten(offsetBoundary).features[0])
@@ -108,15 +109,15 @@ async function walkAlongBuildingPolyline(data, distance, nrOfCams, overlap, focu
           }
           
           let perimeter = turf.length(offsetBoundary, {units: 'meters'})
-            let pointsAlongBoundary = []
-  
-            for (let i = 0; i <= perimeter; i += stepSize) {
-                let point = turf.along(offsetBoundary, i, {units: 'meters'})
-  
-                if(turf.booleanPointInPolygon(point, turf.cleanCoords(bbox))) {
-                    pointsAlongBoundary.push(point)
-                }
-            }
+          let pointsAlongBoundary = []
+
+          for (let i = 0; i <= perimeter; i += stepSize) {
+              let point = turf.along(offsetBoundary, i, {units: 'meters'})
+
+              if(turf.booleanPointInPolygon(point, turf.cleanCoords(bbox))) {
+                  pointsAlongBoundary.push(point)
+              }
+          }
           /**
            * Use generate to calculate coverage area, based on buildings
            */
@@ -210,7 +211,7 @@ async function walkAlongBuildingPolyline(data, distance, nrOfCams, overlap, focu
 
   for (let i = 0; i < remainingPolygons.length && endResult.length < n; i++) {
       let currentPolygon = remainingPolygons[i];
-      console.log(currentPolygon.polygon)
+      // console.log(currentPolygon.polygon)
       endResult.push(currentPolygon);
 
       remainingPolygons = remainingPolygons.filter(function(poly) {
