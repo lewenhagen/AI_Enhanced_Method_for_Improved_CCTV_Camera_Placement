@@ -1,5 +1,5 @@
 import express from 'express'
-import { getIntersectingBuildings, getIntersectingBuildingsPolyline } from './src/functions.js'
+import { getIntersectingBuildings, getIntersectingBuildingsPolyline, getIntersectingBuildingsAI } from './src/functions.js'
 import { generate } from './src/generate.js'
 // import { createGrid } from './src/createGrid.js'
 import { polygonDivide } from './src/voronoi.js'
@@ -7,6 +7,7 @@ import { polygonDivide } from './src/voronoi.js'
 
 import { walkAlongBuilding, walkAlongBuildingPolyline } from './src/walk.js'
 import { calculateLineCoverage } from './src/calculateLineCoverage.js'
+import { getCrimesInPolygon } from './src/getCrimesInPolygon.js'
 
 
 const app = express()
@@ -14,10 +15,15 @@ const port = 1337
 
 app.use(express.static("public"))
 app.use(express.json())
+app.set("view engine", "ejs")
 
 app.get("/", (req, res) => {
-    res.send("index.html")
-});
+    res.render("index.ejs")
+})
+
+app.get("/ai", (req, res) => {
+  res.render("ai.ejs")
+})
 
 
 
@@ -47,6 +53,73 @@ app.post("/init", async (req, res) => {
     } catch(e) {
       res.json({"status": "error", "message": e.codeName})
     }
+})
+
+app.post("/getbuildings", async (req, res) => {
+  try {
+    let data = await getIntersectingBuildings(req.body.bbox)
+    
+    res.json({"status": "Ok", "data": data})
+  } catch(e) {
+    res.json({"status": "error", "message": e})
+  }
+})
+
+app.post("/getcrimes", async (req, res) => {
+  try {
+    // console.log(req.body.bbox)
+    let data = await getCrimesInPolygon(req.body.bbox)
+    
+    res.json({"status": "Ok", "data": data})
+  } catch(e) {
+    res.json({"status": "error", "message": e})
+  }
+})
+
+app.post("/load-ai-data", async (req, res) => {
+    // try {
+      let data = await getIntersectingBuildingsAI(req.body.center, req.body.distance)
+      data.crimes = await getCrimesInPolygon(data.boundingBox, data.buildings)
+      console.log(data.crimes[0])
+
+      let crimes = {}
+      for (const crime of data.crimes) {
+        let location = `${crime.longitude},${crime.latitude}`
+        // let temp = {
+        //   crime_code: null,
+        //   count: 0
+        // }
+        
+        if(crimes[location] !== undefined) {
+            crimes[location].count++
+            let temp = {
+              count: 1
+            }
+            if (crimes[location].codes[crime.crime_code] !== undefined) {
+              
+              crimes[location].codes[crime.crime_code].count++
+            } else {
+              crimes[location].codes[crime.crime_code] = {count: 1}
+            }
+            // crimes[location].codes.push(crime.crime_code)
+        } else {
+          crimes[location] = {
+              count: 1,
+              codes: {},
+              feature: crime.location
+          }
+          crimes[location].codes.count = 1
+        }
+        // crimes[location].codes = crimes[location].codes !== undefined ? crime.crime_code 
+      }
+      data.crimes = crimes
+      // console.log(data.crimes[1])
+      
+
+      res.json({"status": "Ok", "data": data})
+    // } catch(e) {
+    //   res.json({"status": "error", "message": e})
+    // }
 })
 
 app.post("/walk", async (req, res) => {

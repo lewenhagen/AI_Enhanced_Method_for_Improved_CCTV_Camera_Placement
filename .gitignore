@@ -2,3 +2,4 @@ node_modules
 *.geojson
 data/*
 *.yml
+db/*.sqlite

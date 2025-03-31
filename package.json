@@ -13,9 +13,11 @@
   "description": "",
   "dependencies": {
     "@turf/turf": "^7.2.0",
+    "ejs": "^3.1.10",
     "express": "^4.21.2",
     "http-server": "^14.1.1",
     "mongodb": "^6.13.0",
+    "sqlite3": "^5.1.7",
     "stream-chain": "^3.3.2",
     "stream-json": "^1.9.1"
   }

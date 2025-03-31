@@ -17,7 +17,22 @@
 </head>
 <body>
     <div id="map"></div>
-
+    <!-- <form> -->
+      <!-- <select name="years" multiple size="6">
+        <option value="2015">2015</option>
+        <option value="2016">2016</option>
+        <option value="2017">2017</option>
+        <option value="2018">2018</option>
+        <option value="2019">2019</option>
+        <option value="2020">2020</option>
+      </select> -->
+      <label for="center">Cluster center</label>
+      <input type="text" value="55.5636, 12.9746" placeholder="55.5636, 12.9746" id="center">
+      <label for="distance">Distance</label>
+      <input type="number" value="100" placeholder="100" id="distance">
+      <button id="loadAiBtn">Load AI data</button>
+    <!-- </form> -->
+    
     <div class="form-popup" id="myForm">
       <form id="theForm" class="form-container">
         <h1>Add data</h1>
@@ -36,6 +51,6 @@
       </form>
     </div>
 
-    <script type="module" src="main.js"></script>
+    <script type="module" src="ai.js"></script>
 </body>
 </html>

@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>AI_Enhanced_Method_for_Improved_CCTV_Camera_Placement</title>
+
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src='https://npmcdn.com/@turf/turf/turf.min.js'></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet.polylinemeasure@3.0.0/Leaflet.PolylineMeasure.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.polylinemeasure@3.0.0/Leaflet.PolylineMeasure.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="map"></div>
+    <!-- <form>
+      <legend>Add crimes</legend>
+      <select name="years" multiple size="6">
+        <option value="2015">2015</option>
+        <option value="2016">2016</option>
+        <option value="2017">2017</option>
+        <option value="2018">2018</option>
+        <option value="2019">2019</option>
+        <option value="2020">2020</option>
+      </select>
+      <input type="button" value="Load">
+    </form> -->
+    <div class="form-popup" id="myForm">
+      <form id="theForm" class="form-container">
+        <h1>Add data</h1>
+
+        <label for="nrofcams"><b>Nr of cams</b></label>
+        <input type="tel" placeholder="How many cameras?" id="nrofcams" required>
+
+        <label for="distance"><b>Distance (m)</b></label>
+        <input type="tel" placeholder="Distance (m)" id="distance" required>
+
+        <label for="overlap"><b>Max overlap (%)</b></label>
+        <input type="tel" placeholder="0 (%)" id="overlap" value="0">
+
+        <button id="okButton" type="button" class="btn ok">Ok</button>
+        <button id="cancelButton" type="button" class="btn cancel">Close</button>
+      </form>
+    </div>
+
+    <script type="module" src="main.js"></script>
+</body>
+</html>

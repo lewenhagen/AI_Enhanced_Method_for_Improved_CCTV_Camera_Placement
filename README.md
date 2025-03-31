@@ -13,3 +13,58 @@
 * Pull and start cli container: `docker compose run mongodb mongosh -u <user> -p <password> mongodb://mongodb/`. Look in docker-compose.yml. On MAC it is `mongo`, not `mongosh`.
 * `use <db>` (sweden)
 * Index on geometry: `db.buildings.createIndex({ "geometry": "2dsphere" })`
+
+
+### Insert more data
+* Install sqlite3: `npm install sqlite3`
+* Migrate data from sqlite3 to mongodb by modifying and running `migrate.js`.
+* Fix location: 
+```console
+db.mycollection.updateMany(
+  {}, 
+  [
+    { 
+      $set: { 
+        location: { 
+          type: "Point", 
+          coordinates: [
+            { $toDouble: "$longitude" }, 
+            { $toDouble: "$latitude" }
+          ] 
+        } 
+      } 
+    }
+  ]
+);
+```
+* Create index: `db.mycollection.createIndex({ location: "2dsphere" });`
+
+* Example on finding data:
+
+```console
+db.crimes.find({
+  location: {
+    $near: {
+      $geometry: { type: "Point", coordinates: [12.9992, 55.6061] }, // [longitude, latitude]
+      $maxDistance: 5 // Distance in meters (5 km)
+    }
+  }
+});
+```
+* Example with polygon:
+
+```console
+db.crimes.find({
+  location: {
+    $geoWithin: {
+      $geometry: {
+        type: "Polygon",
+        coordinates: [[
+          [12.979687303723193, 55.56351954259556], [12.982670213525155, 55.56338606675054], [12.982562914611442, 55.56272474791968], 
+          [12.979381501819033, 55.56284002448031], [12.979687303723193, 55.56351954259556] 
+        ]]
+      }
+    }
+  }
+});
+```
