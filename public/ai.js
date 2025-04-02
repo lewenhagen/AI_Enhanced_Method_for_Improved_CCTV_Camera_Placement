@@ -25,6 +25,66 @@ function setPopupContent(currentCrime) {
   return popup;
 }
 
+
+async function runAI() {
+  let isDone = false;
+  const headers = { 'Content-Type': 'application/json' }
+
+  /**
+   * Generate area to move AI around in
+   * Area without buildings
+   */
+  try {
+    const response = await fetch('/generare-area-without-buildings', {
+        method: 'POST',
+        headers: headers
+    });
+
+    const data = await response.json()
+
+    L.geoJSON(data.area, {color: "#00FF00"}).addTo(map)
+
+    } catch (error) {
+        console.error('Error fetching:', error);
+    }
+
+    /**
+     * Start AI in center
+     * Run and log "points"
+     */
+
+//   while (!isDone) {
+      try {
+          const response = await fetch('/run-ai', {
+              method: 'POST',
+              headers: headers,
+              // body: JSON.stringify({ key: 'value' }) // Modify this as needed
+          });
+
+          const data = await response.json();
+          console.log('Response:', data);
+        //   L.geoJSON(data.area, {color: "#FF0000"}).addTo(map)
+
+        //   if (data.status === 'done') {
+        //       isDone = true;
+        //       console.log('Process completed.');
+        //   } else {
+        //     //   console.log(data.current)
+        //       L.geoJSON(data.current, {color: "#FF0000"}).addTo(map)
+            
+        //     //   isDone = true
+        //       await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retrying
+        //   }
+
+      } catch (error) {
+          console.error('Error fetching:', error);
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Retry after 1 second
+      }
+//   }
+}
+
+
+
 function closeModal() {
   baseLine.clearLayers()
   drawnItems.clearLayers()
@@ -42,22 +102,22 @@ function drawBuildings(buildings) {
   
 }
 
-function drawCrimes([crimes]) {
-
+function drawCrimes(crimes) {
+  const keys = Object.keys(crimes)
   const geojsonPoints = {
     type: "FeatureCollection",
-    features: crimes.map(crime => ({
+    features: keys.map(crime => ({
       type: "Feature",
       geometry: {
         type: "Point",
         coordinates: [
-          parseFloat(crime.features.coordinates[0]),  // Convert to number
-          parseFloat(crime.featurs.coordinates[1])    // Convert to number
+          parseFloat(crimes[crime].feature.coordinates[0]),  // Convert to number
+          parseFloat(crimes[crime].feature.coordinates[1])    // Convert to number
         ]
       },
       properties: {
-        codes: `${crime.codes.toString()}}`, 
-        count: crime.count
+        codes: `${Object.keys(crimes[crime].codes).toString()}}`, 
+        count: crimes[crime].count
       }
     }))
   }
@@ -68,7 +128,7 @@ function drawCrimes([crimes]) {
         color: "red",          // Border color
         fillColor: "red",      // Fill color
         fillOpacity: 1         // Solid fill
-      }).bindPopup(`${feature.properties.name} (Code: ${feature.properties.crime_code})`)
+      }).bindPopup(`Crimes: ${feature.properties.count} Codes: ${feature.properties.codes.split(",").length})`)
   }).addTo(map);
 //   let options = {
 //     radius: 8,
@@ -232,7 +292,7 @@ loadAiBtn.addEventListener("click", async function(event) {
     drawBuildings(json.data.buildings)
     drawCrimes(json.data.crimes)
 
-    console.log(json)
+    await runAI()
 })
 
 

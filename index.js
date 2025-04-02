@@ -8,10 +8,14 @@ import { polygonDivide } from './src/voronoi.js'
 import { walkAlongBuilding, walkAlongBuildingPolyline } from './src/walk.js'
 import { calculateLineCoverage } from './src/calculateLineCoverage.js'
 import { getCrimesInPolygon } from './src/getCrimesInPolygon.js'
+import { getAreaWithoutBuildings } from './src/getAreaWithoutBuildings.js'
+import { runAi } from './src/runAi.js'
 
 
 const app = express()
 const port = 1337
+
+let aiData = null
 
 app.use(express.static("public"))
 app.use(express.json())
@@ -77,18 +81,13 @@ app.post("/getcrimes", async (req, res) => {
 })
 
 app.post("/load-ai-data", async (req, res) => {
-    // try {
+    try {
       let data = await getIntersectingBuildingsAI(req.body.center, req.body.distance)
       data.crimes = await getCrimesInPolygon(data.boundingBox, data.buildings)
-      console.log(data.crimes[0])
 
       let crimes = {}
       for (const crime of data.crimes) {
         let location = `${crime.longitude},${crime.latitude}`
-        // let temp = {
-        //   crime_code: null,
-        //   count: 0
-        // }
         
         if(crimes[location] !== undefined) {
             crimes[location].count++
@@ -101,7 +100,6 @@ app.post("/load-ai-data", async (req, res) => {
             } else {
               crimes[location].codes[crime.crime_code] = {count: 1}
             }
-            // crimes[location].codes.push(crime.crime_code)
         } else {
           crimes[location] = {
               count: 1,
@@ -110,16 +108,37 @@ app.post("/load-ai-data", async (req, res) => {
           }
           crimes[location].codes.count = 1
         }
-        // crimes[location].codes = crimes[location].codes !== undefined ? crime.crime_code 
       }
       data.crimes = crimes
-      // console.log(data.crimes[1])
-      
-
+      aiData = data
+      aiData.start = req.body.center
       res.json({"status": "Ok", "data": data})
-    // } catch(e) {
-    //   res.json({"status": "error", "message": e})
-    // }
+    } catch(e) {
+      res.json({"status": "error", "message": e})
+    }
+})
+
+app.post("/generare-area-without-buildings", async (req, res) => {
+    let response = {}
+    response.status = "error"
+    
+    aiData.areaWithoutBuildings = await getAreaWithoutBuildings(aiData)
+    if (aiData.areaWithoutBuildings !== null) {
+        response.status = "ok"
+        response.area = aiData.areaWithoutBuildings
+    }
+    
+    res.json(response)
+})
+
+app.post("/run-ai", async (req, res) => {
+    let response = {}
+    await runAi(aiData)
+    // areaWithoutBuildings 
+    // aiData.center
+    
+    
+    res.json(response)
 })
 
 app.post("/walk", async (req, res) => {
