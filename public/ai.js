@@ -62,8 +62,8 @@ async function runAI() {
           });
 
           const data = await response.json();
-          drawnItems.addLayer(L.geoJSON(data.current[0].polygon, {style: {color:"red"}}))
-          drawnItems.addLayer(L.geoJSON(data.current[0].center).bindPopup(`Area: ${data.current[0].area.toFixed(2).toString()} <br>Total count: ${data.current[0].totalCount}<br>Total distance (m): ${data.current[0].totalDistance}`))
+          drawnAi.addLayer(L.geoJSON(data.current[0].polygon, {style: {color:"red"}}))
+          drawnAi.addLayer(L.geoJSON(data.current[0].center).bindPopup(`Area: ${data.current[0].area.toFixed(2).toString()} <br>Total count: ${data.current[0].totalCount}<br>Total distance (m): ${data.current[0].totalDistance}`))
           console.log('Response:', data);
         //   L.geoJSON(data.area, {color: "#FF0000"}).addTo(map)
 
@@ -225,8 +225,10 @@ document.getElementById('map').style.cursor = 'crosshair'
 
 let baseLine = new L.FeatureGroup()
 let drawnItems = new L.FeatureGroup()
+let drawnAi = new L.FeatureGroup()
 
 map.addLayer(drawnItems)
+map.addLayer(drawnAi)
 map.addLayer(baseLine)
 
 // let drawControl = new L.Control.Draw({
