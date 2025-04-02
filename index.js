@@ -133,7 +133,7 @@ app.post("/generare-area-without-buildings", async (req, res) => {
 
 app.post("/run-ai", async (req, res) => {
     let response = {}
-    await runAi(aiData)
+    response.current = await runAi(aiData)
     // areaWithoutBuildings 
     // aiData.center
     

@@ -62,6 +62,8 @@ async function runAI() {
           });
 
           const data = await response.json();
+          drawnItems.addLayer(L.geoJSON(data.current[0].polygon, {style: {color:"red"}}))
+          drawnItems.addLayer(L.geoJSON(data.current[0].center).bindPopup(`Area: ${data.current[0].area.toFixed(2).toString()} <br>Total count: ${data.current[0].totalCount}<br>Total distance (m): ${data.current[0].totalDistance}`))
           console.log('Response:', data);
         //   L.geoJSON(data.area, {color: "#FF0000"}).addTo(map)
 
