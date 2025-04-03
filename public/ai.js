@@ -72,8 +72,29 @@ async function runAI() {
                 fillOpacity: 1
               }).bindPopup(feature.properties.name);
             }
-          }).bindPopup(`Area: ${data.result.currentCam.area.toFixed(2).toString()} <br>Total count: ${data.result.currentCam.totalCount}<br>Total distance (m): ${data.result.currentCam.totalDistance} <br>Crime coordinates: ${data.result.currentCam.totalCrimeCount}`))
-          console.log('Response:', data);
+          }).bindPopup(`
+              Area: ${data.result.currentCam.area.toFixed(2).toString()}<br>
+              Total count: ${data.result.currentCam.totalCount}<br>
+              Total distance (m): ${data.result.currentCam.totalDistance}<br>
+              Crime coordinates: ${data.result.currentCam.totalCrimeCount}`))
+          
+          if (data.result.bestCam !== null) {
+            drawnAi.addLayer(L.geoJSON(data.result.bestCam.polygon, {style: {color:"purple"}}))
+            drawnAi.addLayer(L.geoJSON(data.result.bestCam.center, {
+            pointToLayer: (feature, latlng) => {
+              return L.circleMarker(latlng, {
+                radius: 6,
+                color: feature.properties.color || "black", 
+                fillColor: feature.properties.color || "purple",
+                fillOpacity: 1
+              }).bindPopup(feature.properties.name);
+            }
+          }).bindPopup(`
+              Area: ${data.result.bestCam.area.toFixed(2).toString()}<br>
+              Total count: ${data.result.bestCam.totalCount}<br>
+              Total distance (m): ${data.result.bestCam.totalDistance}<br>
+              Crime coordinates: ${data.result.bestCam.totalCrimeCount}`))
+          }
         //   L.geoJSON(data.area, {color: "#FF0000"}).addTo(map)
 
         //   if (data.status === 'done') {

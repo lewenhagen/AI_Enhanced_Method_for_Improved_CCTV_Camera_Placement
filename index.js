@@ -135,7 +135,17 @@ app.post("/run-ai", async (req, res) => {
     // areaWithoutBuildings 
     // aiData.center
     
-    
+    console.log(`
+      Current: 
+      Total count: ${response.result.currentCam.totalCount}
+      Total distance: ${response.result.currentCam.totalDistance}
+      Total crime count: ${response.result.currentCam.totalCrimeCount}
+      -----------------------------------------------------
+      Best:
+      Total count: ${response.result.bestCam.totalCount}
+      Total distance: ${response.result.bestCam.totalDistance}
+      Total crime count: ${response.result.bestCam.totalCrimeCount}
+    `)
     res.json(response)
 })
 

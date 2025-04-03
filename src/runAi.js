@@ -1,12 +1,17 @@
 import * as turf from '@turf/turf'
 import { generate } from './generateCoverageArea.js'
 
-const bearings = [0, 90, 180, 270]
+const bearings = [0, , 45, 90, 135, 180, 225, 270]
 /**
  * Required for generate: buildings, boundingBox, pointsOnBoundary, distance
  */
 
-let currentBest = null
+let currentBest = {
+  totalCount: null,
+  totalDistance: null,
+  totalCrimeCount: null,
+  score: 0
+}
 
 async function runAi(data) {
     // console.log(data)
