@@ -1,10 +1,8 @@
 import express from 'express'
-import { getIntersectingBuildings, getIntersectingBuildingsPolyline, getIntersectingBuildingsAI } from './src/functions.js'
+import { getIntersectingBuildings, getIntersectingBuildingsPolyline, getIntersectingBuildingsAI } from './src/intersectingBuildings.js'
 import { generate } from './src/generate.js'
 // import { createGrid } from './src/createGrid.js'
 import { polygonDivide } from './src/voronoi.js'
-// import { bbox } from '@turf/turf'
-
 import { walkAlongBuilding, walkAlongBuildingPolyline } from './src/walk.js'
 import { calculateLineCoverage } from './src/calculateLineCoverage.js'
 import { getCrimesInPolygon } from './src/getCrimesInPolygon.js'
@@ -118,7 +116,7 @@ app.post("/load-ai-data", async (req, res) => {
     }
 })
 
-app.post("/generare-area-without-buildings", async (req, res) => {
+app.post("/generate-area-without-buildings", async (req, res) => {
     let response = {}
     response.status = "error"
     
@@ -133,7 +131,7 @@ app.post("/generare-area-without-buildings", async (req, res) => {
 
 app.post("/run-ai", async (req, res) => {
     let response = {}
-    response.current = await runAi(aiData)
+    response.result = await runAi(aiData)
     // areaWithoutBuildings 
     // aiData.center
     

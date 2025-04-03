@@ -35,14 +35,14 @@ async function runAI() {
    * Area without buildings
    */
   try {
-    const response = await fetch('/generare-area-without-buildings', {
+    const response = await fetch('/generate-area-without-buildings', {
         method: 'POST',
         headers: headers
     });
 
     const data = await response.json()
 
-    L.geoJSON(data.area, {color: "#00FF00"}).addTo(map)
+    L.geoJSON(data.area, {color: "green"}).addTo(map)
 
     } catch (error) {
         console.error('Error fetching:', error);
@@ -58,12 +58,21 @@ async function runAI() {
           const response = await fetch('/run-ai', {
               method: 'POST',
               headers: headers,
-              // body: JSON.stringify({ key: 'value' }) // Modify this as needed
+              // body: JSON.stringify({ key: 'value' })
           });
 
           const data = await response.json();
-          drawnAi.addLayer(L.geoJSON(data.current[0].polygon, {style: {color:"red"}}))
-          drawnAi.addLayer(L.geoJSON(data.current[0].center).bindPopup(`Area: ${data.current[0].area.toFixed(2).toString()} <br>Total count: ${data.current[0].totalCount}<br>Total distance (m): ${data.current[0].totalDistance}`))
+          drawnAi.addLayer(L.geoJSON(data.result.currentCam.polygon, {style: {color:"purple"}}))
+          drawnAi.addLayer(L.geoJSON(data.result.currentCam.center, {
+            pointToLayer: (feature, latlng) => {
+              return L.circleMarker(latlng, {
+                radius: 6,
+                color: feature.properties.color || "black", 
+                fillColor: feature.properties.color || "purple",
+                fillOpacity: 1
+              }).bindPopup(feature.properties.name);
+            }
+          }).bindPopup(`Area: ${data.result.currentCam.area.toFixed(2).toString()} <br>Total count: ${data.result.currentCam.totalCount}<br>Total distance (m): ${data.result.currentCam.totalDistance} <br>Crime coordinates: ${data.result.currentCam.totalCrimeCount}`))
           console.log('Response:', data);
         //   L.geoJSON(data.area, {color: "#FF0000"}).addTo(map)
 
