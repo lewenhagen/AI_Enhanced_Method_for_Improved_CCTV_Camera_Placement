@@ -84,12 +84,12 @@ async function getIntersectingBuildingsPolyline(polyline, distance) {
 
 async function getIntersectingBuildingsAI(center, distance) {
   const centerPoint = [parseFloat(center.split(",")[1]), parseFloat(center.split(",")[0])]
-  
+  const doubleDistance = parseFloat(distance)*2
   const client = await mongo.connect()
   const db = client.db("sweden")
   const collection = db.collection("buildings")
   const point = turf.point(centerPoint)
-  const buffered = turf.buffer(point, distance, {units:'meters'})
+  const buffered = turf.buffer(point, doubleDistance, {units:'meters'})
   const bbox = turf.bbox(buffered)
   const polygon = turf.bboxPolygon(bbox)
   // const turfPoly = turf.cleanCoords(turf.polygon([poly]))
