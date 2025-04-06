@@ -18,21 +18,21 @@
 ### Insert more data
 * Install sqlite3: `npm install sqlite3`
 * Migrate data from sqlite3 to mongodb by modifying and running `migrate.js`.
-* Fix location: 
+* Fix location:
 ```console
-db.mycollection.updateMany(
-  {}, 
+db.crimes.updateMany(
+  {},
   [
-    { 
-      $set: { 
-        location: { 
-          type: "Point", 
+    {
+      $set: {
+        location: {
+          type: "Point",
           coordinates: [
-            { $toDouble: "$longitude" }, 
+            { $toDouble: "$longitude" },
             { $toDouble: "$latitude" }
-          ] 
-        } 
-      } 
+          ]
+        }
+      }
     }
   ]
 );
@@ -60,8 +60,8 @@ db.crimes.find({
       $geometry: {
         type: "Polygon",
         coordinates: [[
-          [12.979687303723193, 55.56351954259556], [12.982670213525155, 55.56338606675054], [12.982562914611442, 55.56272474791968], 
-          [12.979381501819033, 55.56284002448031], [12.979687303723193, 55.56351954259556] 
+          [12.979687303723193, 55.56351954259556], [12.982670213525155, 55.56338606675054], [12.982562914611442, 55.56272474791968],
+          [12.979381501819033, 55.56284002448031], [12.979687303723193, 55.56351954259556]
         ]]
       }
     }
