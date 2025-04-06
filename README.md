@@ -10,7 +10,7 @@
 * Insert data: `npm run insert`
 
 ### Index on geometry
-* Pull and start cli container: `docker compose run mongodb mongosh -u <user> -p <password> mongodb://mongodb/`. Look in docker-compose.yml. On MAC it is `mongo`, not `mongosh`.
+* Pull and start cli container: `docker compose run mongodb mongosh -u root -p pass mongodb://mongodb/`. Look in docker-compose.yml. On MAC it is `mongo`, not `mongosh`.
 * `use <db>` (sweden)
 * Index on geometry: `db.buildings.createIndex({ "geometry": "2dsphere" })`
 
@@ -37,7 +37,7 @@ db.crimes.updateMany(
   ]
 );
 ```
-* Create index: `db.mycollection.createIndex({ location: "2dsphere" });`
+* Create index: `db.crimes.createIndex({ location: "2dsphere" });`
 
 * Example on finding data:
 
