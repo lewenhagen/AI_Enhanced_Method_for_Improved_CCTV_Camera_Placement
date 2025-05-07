@@ -46,7 +46,7 @@ async function runAi(data) {
     currentCam.totalCount = totalCount
     currentCam.totalDistance = totalDistance.toFixed(4)
     currentCam.totalCrimeCount = crimeCount
-
+    currentCam.score = 1
 
     return {currentCam: currentCam, bestCam: currentBest}
 }
