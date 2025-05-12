@@ -134,18 +134,20 @@ app.post("/run-ai", async (req, res) => {
     response.result = await runAi(aiData)
     // areaWithoutBuildings 
     // aiData.center
-    
-    console.log(`
-      Current: 
-      Total count: ${response.result.currentCam.totalCount}
-      Total distance: ${response.result.currentCam.totalDistance}
-      Total crime count: ${response.result.currentCam.totalCrimeCount}
-      -----------------------------------------------------
-      Best:
-      Total count: ${response.result.bestCam.totalCount}
-      Total distance: ${response.result.bestCam.totalDistance}
-      Total crime count: ${response.result.bestCam.totalCrimeCount}
-    `)
+    console.log("Grid size: " + response.result.gridArea.features.length)
+    console.log("Generated: " + response.result.allPoints.length + " camera points")
+    response.result.allPoints.sort((a, b) => b.totalCrimeCount - a.totalCrimeCount);
+    // console.log(`
+    //   Current: 
+    //   Total count: ${response.result.currentCam.totalCount}
+    //   Total distance: ${response.result.currentCam.totalDistance}
+    //   Total crime coordinate count: ${response.result.currentCam.totalCrimeCount}
+    //   -----------------------------------------------------
+    //   Best:
+    //   Total count: ${response.result.bestCam.totalCount}
+    //   Total distance: ${response.result.bestCam.totalDistance}
+    //   Total crime coordinate count: ${response.result.bestCam.totalCrimeCount}
+    // `)
     res.json(response)
 })
 
