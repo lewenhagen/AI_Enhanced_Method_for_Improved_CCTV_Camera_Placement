@@ -2,6 +2,11 @@ const theForm = document.getElementById("theForm")
 const okButton = document.getElementById("okButton")
 const cancelButton = document.getElementById("cancelButton")
 const loadAiBtn = document.getElementById("loadAiBtn")
+const animate = document.getElementById("animate")
+const theBestBtn = document.getElementById("getBest")
+let bruteForceData = []
+let myInterval = null
+let isPaused = false
 
 function setPopupContent(currentCrime) {
 
@@ -42,7 +47,7 @@ async function runAI() {
 
     const data = await response.json()
 
-    L.geoJSON(data.area, {color: "green"}).addTo(map)
+    L.geoJSON(data.area, {color: "green"}).addTo(drawnAi)
 
     } catch (error) {
         console.error('Error fetching:', error);
@@ -58,10 +63,11 @@ async function runAI() {
           const response = await fetch('/run-ai', {
               method: 'POST',
               headers: headers,
-              // body: JSON.stringify({ key: 'value' })
+              body: JSON.stringify({ center: document.getElementById("center").value })
           });
 
           const data = await response.json();
+          bruteForceData = data
           // drawnAi.addLayer(L.geoJSON(data.result.currentCam.polygon, {style: {color:"purple"}}))
           L.geoJSON(data.result.gridArea, {
             pointToLayer: (feature, latlng) =>
@@ -70,16 +76,39 @@ async function runAI() {
                 color: 'black',
                 fillOpacity: 1
               })
-          }).addTo(map)
+          }).addTo(drawnAi)
 
-          console.log(data.result.allPoints[0])
+          animate.disabled = false
+          theBestBtn.disabled = false
 
-          drawnAi.addLayer(L.geoJSON(data.result.allPoints[0].camInfo.center).bindPopup(`
-              Area: ${data.result.allPoints[0].camInfo.area.toFixed(2).toString()}<br>
-              Total count: ${data.result.allPoints[0].totalCount}<br>
-              Total distance (m): ${data.result.allPoints[0].totalDistance}<br>
-              Crime coordinates: ${data.result.allPoints[0].totalCrimeCount}`))
-          drawnAi.addLayer(L.geoJSON(data.result.allPoints[0].camInfo.polygon, {style: {color:"purple"}}))
+          // console.log(data.result.allPoints[0])
+          // let i = 0
+          // let myInterval = setInterval(function() {
+          //   if (i === data.result.allPoints) {
+          //     clearInterval(myInterval)
+          //   }
+          //   drawnItems.clearLayers()
+          //   let layer = L.geoJSON(data.result.allPoints[i].camInfo.center).bindPopup(`
+          //     Area: ${data.result.allPoints[i].camInfo.area.toFixed(2).toString()}<br>
+          //     Total count: ${data.result.allPoints[i].totalCount}<br>
+          //     Total distance (m): ${data.result.allPoints[i].totalDistance.toFixed(2)}<br>
+          //     Unique crime coordinates: ${data.result.allPoints[i].totalCrimeCount}`)
+            
+          //   drawnItems.addLayer(layer)
+          //   layer.openPopup()
+          //   drawnItems.addLayer(L.geoJSON(data.result.allPoints[i].camInfo.polygon, {style: {color:"purple"}}))
+            
+          //   i++
+          // }, 2000)
+          // drawnAi.addLayer(L.geoJSON(data.result.allPoints[0].camInfo.center).bindPopup(`
+          //     Area: ${data.result.allPoints[0].camInfo.area.toFixed(2).toString()}<br>
+          //     Total count: ${data.result.allPoints[0].totalCount}<br>
+          //     Total distance (m): ${data.result.allPoints[0].totalDistance}<br>
+          //     Crime coordinates: ${data.result.allPoints[0].totalCrimeCount}`))
+          // drawnAi.addLayer(L.geoJSON(data.result.allPoints[0].camInfo.polygon, {style: {color:"purple"}}))
+
+
+
           // if (data.result.bestCam !== null) {
           //   drawnAi.addLayer(L.geoJSON(data.result.bestCam.polygon, {style: {color:"purple"}}))
           //   drawnAi.addLayer(L.geoJSON(data.result.bestCam.center, {
@@ -130,12 +159,12 @@ function closeModal() {
 }
 
 function drawBoundingBox(box) {
-    drawnItems.addLayer(L.geoJSON(box).setStyle({"opacity": 0.9, "width": "2px", "color":"#000", "fill": false}))
+    drawnAi.addLayer(L.geoJSON(box).setStyle({"opacity": 0.9, "width": "2px", "color":"#000", "fill": false}))
 }
 
 function drawBuildings(buildings) {
   for (const building of buildings) {
-      drawnItems.addLayer(L.geoJSON(building))
+      drawnAi.addLayer(L.geoJSON(building))
   }
   
 }
@@ -167,7 +196,7 @@ function drawCrimes(crimes) {
         fillColor: "red",      // Fill color
         fillOpacity: 1         // Solid fill
       }).bindPopup(`Crimes: ${feature.properties.count} Codes: ${feature.properties.codes.split(",").length})`)
-  }).addTo(map);
+  }).addTo(drawnAi);
 //   let options = {
 //     radius: 8,
 //     fillColor: "#ff7800",
@@ -312,8 +341,12 @@ map.on('draw:created', async function (event) {
 })
 
 loadAiBtn.addEventListener("click", async function(event) {
+    drawnAi.clearLayers()
+    drawnItems.clearLayers()
+    clearInterval(myInterval)
     let center = document.getElementById("center").value
     let distance = parseInt(document.getElementById("distance").value)
+    let gridDensity = parseInt(document.getElementById("gridDensity").value)
 
     let response = await fetch('/load-ai-data', {
       method: 'POST',
@@ -322,12 +355,13 @@ loadAiBtn.addEventListener("click", async function(event) {
       },
       body: JSON.stringify({
           center: center,
-          distance: distance
+          distance: distance,
+          gridDensity: gridDensity
       })
     })
 
     let json = await response.json() 
-    console.log(json.data.crimes)
+    // console.log(json.data.crimes)
     drawBoundingBox(json.data.boundingBox)
     drawBuildings(json.data.buildings)
     drawCrimes(json.data.crimes)
@@ -335,7 +369,42 @@ loadAiBtn.addEventListener("click", async function(event) {
     await runAI()
 })
 
+animate.addEventListener("click", function(event) {
+  let i = 0
+  
+  myInterval = setInterval(function() {
+    if (i === bruteForceData.length) {
+      clearInterval(myInterval)
+    }
+    drawnItems.clearLayers()
+    let layer = L.geoJSON(bruteForceData.result.allPoints[i].camInfo.center).bindPopup(`
+      Area: ${bruteForceData.result.allPoints[i].camInfo.area.toFixed(2).toString()}<br>
+      Total count: ${bruteForceData.result.allPoints[i].totalCount}<br>
+      Total distance (m): ${bruteForceData.result.allPoints[i].totalDistance.toFixed(2)}<br>
+      Unique crime coordinates: ${bruteForceData.result.allPoints[i].totalCrimeCount}`)
+    
+    drawnItems.addLayer(layer)
+    layer.openPopup()
+    drawnItems.addLayer(L.geoJSON(bruteForceData.result.allPoints[i].camInfo.polygon, {style: {color:"purple"}}))
+    
+    i++
+  }, 2000)
+})
 
+theBestBtn.addEventListener("click", function(event) {
+    drawnItems.clearLayers()
+    let layer = L.geoJSON(bruteForceData.result.allPoints[0].camInfo.center).bindPopup(`
+      Area: ${bruteForceData.result.allPoints[0].camInfo.area.toFixed(2).toString()}<br>
+      Total count: ${bruteForceData.result.allPoints[0].totalCount}<br>
+      Total distance (m): ${bruteForceData.result.allPoints[0].totalDistance.toFixed(2)}<br>
+      Unique crime coordinates: ${bruteForceData.result.allPoints[0].totalCrimeCount}`)
+    
+    drawnItems.addLayer(layer)
+    layer.openPopup()
+    drawnItems.addLayer(L.geoJSON(bruteForceData.result.allPoints[0].camInfo.polygon, {style: {color:"purple"}}))
+    
+
+})
 // klipp ut areor,
 // bort med byggnader,
 // ranka storlek,
@@ -352,3 +421,7 @@ loadAiBtn.addEventListener("click", async function(event) {
 // 1. sortera på area storlek
 // 2. ta bort alla som nuddar den största
 // 3. ta näst största -||-
+
+
+
+

@@ -110,6 +110,8 @@ app.post("/load-ai-data", async (req, res) => {
       data.crimes = crimes
       aiData = data
       aiData.start = req.body.center
+      aiData.distance = parseFloat(req.body.distance)
+      aiData.gridDensity = parseFloat(req.body.gridDensity)
       res.json({"status": "Ok", "data": data})
     } catch(e) {
       res.json({"status": "error", "message": e})
@@ -131,12 +133,22 @@ app.post("/generate-area-without-buildings", async (req, res) => {
 
 app.post("/run-ai", async (req, res) => {
     let response = {}
+    console.time("Generate grid calculations")
     response.result = await runAi(aiData)
+    console.timeEnd("Generate grid calculations")
+
     // areaWithoutBuildings 
     // aiData.center
     console.log("Grid size: " + response.result.gridArea.features.length)
     console.log("Generated: " + response.result.allPoints.length + " camera points")
-    response.result.allPoints.sort((a, b) => b.totalCrimeCount - a.totalCrimeCount);
+    
+    response.result.allPoints.sort((a, b) => {
+      return (
+        b.totalCrimeCount - a.totalCrimeCount ||
+        b.totalCount - a.totalCount ||
+        a.totalDistance - b.totalDistance
+      )
+    })
     // console.log(`
     //   Current: 
     //   Total count: ${response.result.currentCam.totalCount}

@@ -4,33 +4,31 @@ import { generate } from './generateCoverageArea.js'
 let allPoints = []
 const bearings = [0, , 45, 90, 135, 180, 225, 270]
 
-function createGridOvercaptureArea(centerLong, centerLat, buildings, distance) {
+function createGridOvercaptureArea(centerLong, centerLat, buildings, distance, gridDensity) {
   const buildingsCollection = {
     type: "FeatureCollection",
     features: buildings.map(f => ({
       type: "Feature",
       geometry: f.geometry,
-      properties: f.properties || {} // optional: keep properties
+      properties: f.properties || {}
     }))
   };
-  // Step 1: Create the circle (center, radius in kilometers)
-  const center = [centerLong, centerLat]; // longitude, latitude
+  
+  const center = [centerLong, centerLat]
   const radius = (distance/1000); 
   const circle = turf.circle(center, radius, { steps: 64, units: 'kilometers' });
-
-  // Step 2: Get bounding box of the circle
   const bbox = turf.bbox(circle);
 
-  // Step 3: Create a point grid with 5 meter spacing
-  const grid = turf.pointGrid(bbox, 5, { units: 'meters', mask: circle });
+  // Change rgid density here!
+  const grid = turf.pointGrid(bbox, gridDensity, { units: 'meters', mask: circle });
   const filteredPoints = turf.featureCollection(
     grid.features.filter(point =>
       !buildingsCollection.features.some(building =>
         turf.booleanPointInPolygon(point, building)
       )
     )
-  );
-  // Step 4: Filter points inside the circle
+  )
+
   return filteredPoints //turf.pointsWithinPolygon(grid, circle);
 
 }
@@ -45,10 +43,10 @@ let currentBest = {
   score: 0
 }
 
-async function stepAndCalculate(camPoint, crimes, crimeCoords, bbox, buildings) {
+async function stepAndCalculate(camPoint, crimes, crimeCoords, bbox, buildings, distance) {
   let current = camPoint
 
-  let currentCam = await generate(buildings, bbox, [current], 100)
+  let currentCam = await generate(buildings, bbox, [current], distance)
   currentCam = currentCam[0]
 
   let totalCount = 0
@@ -78,7 +76,7 @@ async function stepAndCalculate(camPoint, crimes, crimeCoords, bbox, buildings) 
 async function runAi(data) {
     // console.log(data)
     let buildings = data.buildings
-    let gridArea = createGridOvercaptureArea(parseFloat(data.start.split(",")[1]), parseFloat(data.start.split(",")[0]), buildings, 100)
+    let gridArea = createGridOvercaptureArea(parseFloat(data.start.split(",")[1]), parseFloat(data.start.split(",")[0]), buildings, data.distance, data.gridDensity)
     
     // let score = 0
     // let availableArea = data.areaWithoutBuildings
@@ -109,7 +107,7 @@ async function runAi(data) {
     allPoints = []
     turf.featureEach(gridArea, async function(current, index) {
       let point = current.geometry
-      await stepAndCalculate(point, crimes, crimeCoords, bbox, buildings)
+      await stepAndCalculate(point, crimes, crimeCoords, bbox, buildings, data.distance)
       // console.log(result)
       // allPoints.push(result)
     })
