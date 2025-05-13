@@ -80,8 +80,12 @@ app.post("/getcrimes", async (req, res) => {
 
 app.post("/load-ai-data", async (req, res) => {
     try {
+      console.time("### Get all intersectiong buildings")
       let data = await getIntersectingBuildingsAI(req.body.center, req.body.distance)
+      console.timeEnd("### Get all intersectiong buildings")
+      console.time("### Get all crimes in r*2 bounding box")
       data.crimes = await getCrimesInPolygon(data.boundingBox, data.buildings)
+      console.timeEnd("### Get all crimes in r*2 bounding box")
 
       let crimes = {}
       for (const crime of data.crimes) {
@@ -89,9 +93,9 @@ app.post("/load-ai-data", async (req, res) => {
         
         if(crimes[location] !== undefined) {
             crimes[location].count++
-            let temp = {
-              count: 1
-            }
+            // let temp = {
+            //   count: 1
+            // }
             if (crimes[location].codes[crime.crime_code] !== undefined) {
               
               crimes[location].codes[crime.crime_code].count++
@@ -112,6 +116,8 @@ app.post("/load-ai-data", async (req, res) => {
       aiData.start = req.body.center
       aiData.distance = parseFloat(req.body.distance)
       aiData.gridDensity = parseFloat(req.body.gridDensity)
+      aiData.useReinforcement = req.body.useReinforcement
+      
       res.json({"status": "Ok", "data": data})
     } catch(e) {
       res.json({"status": "error", "message": e})
@@ -133,20 +139,30 @@ app.post("/generate-area-without-buildings", async (req, res) => {
 
 app.post("/run-ai", async (req, res) => {
     let response = {}
-    console.time("Generate grid calculations")
-    response.result = await runAi(aiData)
-    console.timeEnd("Generate grid calculations")
 
-    // areaWithoutBuildings 
-    // aiData.center
-    console.log("Grid size: " + response.result.gridArea.features.length)
-    console.log("Generated: " + response.result.allPoints.length + " camera points")
+    /** 
+     * aiData contains:
+     * Crimes
+     * Start coordinates
+     * Distance
+     * Grid density
+    **/
+    
+    // Time the execution
+    console.time("### Generate grid calculations")
+    response.result = await runAi(aiData)
+    console.timeEnd("### Generate grid calculations")
+
+    console.log(`
+      Grid size: ${response.result.gridArea.features.length}
+      Generated camera points: ${response.result.allPoints.length}
+    `)
     
     response.result.allPoints.sort((a, b) => {
       return (
-        b.totalCrimeCount - a.totalCrimeCount ||
-        b.totalCount - a.totalCount ||
-        a.totalDistance - b.totalDistance
+        b.totalCrimeCount - a.totalCrimeCount || // Sort first on unique crime coordinates
+        b.totalCount - a.totalCount ||           // Sort second on total crime occurances
+        a.totalDistance - b.totalDistance        // Sort last on the distance
       )
     })
     // console.log(`

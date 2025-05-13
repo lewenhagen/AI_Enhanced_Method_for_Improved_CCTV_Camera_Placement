@@ -2,8 +2,17 @@ import * as turf from '@turf/turf'
 import { generate } from './generateCoverageArea.js'
 
 let allPoints = []
-const bearings = [0, , 45, 90, 135, 180, 225, 270]
+// const bearings = [0, , 45, 90, 135, 180, 225, 270]
 
+/**
+ * 
+ * @param {number} centerLong 
+ * @param {number} centerLat 
+ * @param {Array} buildings 
+ * @param {number} distance 
+ * @param {number} gridDensity 
+ * @returns {FeatureCollection} The points inside capture area
+ */
 function createGridOvercaptureArea(centerLong, centerLat, buildings, distance, gridDensity) {
   const buildingsCollection = {
     type: "FeatureCollection",
@@ -12,15 +21,13 @@ function createGridOvercaptureArea(centerLong, centerLat, buildings, distance, g
       geometry: f.geometry,
       properties: f.properties || {}
     }))
-  };
+  }
   
   const center = [centerLong, centerLat]
-  const radius = (distance/1000); 
-  const circle = turf.circle(center, radius, { steps: 64, units: 'kilometers' });
-  const bbox = turf.bbox(circle);
-
-  // Change rgid density here!
-  const grid = turf.pointGrid(bbox, gridDensity, { units: 'meters', mask: circle });
+  const radius = (distance/1000)
+  const circle = turf.circle(center, radius, { steps: 64, units: 'kilometers' })
+  const bbox = turf.bbox(circle)
+  const grid = turf.pointGrid(bbox, gridDensity, { units: 'meters', mask: circle })
   const filteredPoints = turf.featureCollection(
     grid.features.filter(point =>
       !buildingsCollection.features.some(building =>
@@ -29,26 +36,75 @@ function createGridOvercaptureArea(centerLong, centerLat, buildings, distance, g
     )
   )
 
-  return filteredPoints //turf.pointsWithinPolygon(grid, circle);
+  return filteredPoints //turf.pointsWithinPolygon(grid, circle)
 
 }
 /**
  * Required for generate: buildings, boundingBox, pointsOnBoundary, distance
  */
 
-let currentBest = {
-  totalCount: null,
-  totalDistance: null,
-  totalCrimeCount: null,
-  score: 0
-}
+// let currentBest = {
+//   totalCount: null,
+//   totalDistance: null,
+//   totalCrimeCount: null,
+//   score: 0
+// }
 
-async function stepAndCalculate(camPoint, crimes, crimeCoords, bbox, buildings, distance) {
+
+async function reinforcement(camPoint, crimes, crimeCoords, bbox, buildings, distance) {
+  // score: unique * totalNoCrimes / distance
+  // color the path in the output!
+  let currentBestPosition = {}
+  // while() {
+
+  // }
   let current = camPoint
 
+  // Generate cam coverage based on current coordinates
   let currentCam = await generate(buildings, bbox, [current], distance)
   currentCam = currentCam[0]
+  
+  let totalCount = 0
+  let totalDistance = 0
+  let crimeCount = 0
 
+  for (const coord of crimeCoords) {
+      let crimeAsPoint = turf.point([parseFloat(coord.split(",")[0]), parseFloat(coord.split(",")[1])])
+      
+      if (turf.booleanPointInPolygon(crimeAsPoint, currentCam.polygon)) {
+          let distance = turf.distance(current, crimeAsPoint) * 1000
+
+          crimeCount++
+          totalCount += crimes[coord].count
+          totalDistance += distance
+      }
+  }
+
+  allPoints.push( {
+    "camInfo": currentCam,
+    "totalCrimeCount": crimeCount,
+    "totalCount": totalCount,
+    "totalDistance": totalDistance
+  })
+}
+
+
+
+/**
+ * @param {} camPoint 
+ * @param {*} crimes 
+ * @param {*} crimeCoords 
+ * @param {*} bbox 
+ * @param {*} buildings 
+ * @param {*} distance 
+ */
+async function bruteForce(camPoint, crimes, crimeCoords, bbox, buildings, distance) {
+  let current = camPoint
+
+  // Generate cam coverage based on current coordinates
+  let currentCam = await generate(buildings, bbox, [current], distance)
+  currentCam = currentCam[0]
+  
   let totalCount = 0
   let totalDistance = 0
   let crimeCount = 0
@@ -77,48 +133,23 @@ async function runAi(data) {
     // console.log(data)
     let buildings = data.buildings
     let gridArea = createGridOvercaptureArea(parseFloat(data.start.split(",")[1]), parseFloat(data.start.split(",")[0]), buildings, data.distance, data.gridDensity)
-    
-    // let score = 0
-    // let availableArea = data.areaWithoutBuildings
-    
     let bbox = data.boundingBox
     let crimes = data.crimes
     let crimeCoords = Object.keys(data.crimes)
-    // let current = turf.point([parseFloat(data.start.split(",")[1]), parseFloat(data.start.split(",")[0])])
-
-    // let currentCam = await generate(buildings, bbox, [current], 100)
-    // currentCam = currentCam[0]
-
-    // let totalCount = 0
-    // let totalDistance = 0
-    // let crimeCount = 0
-
-    // for (const coord of crimeCoords) {
-    //     let crimeAsPoint = turf.point([parseFloat(coord.split(",")[0]), parseFloat(coord.split(",")[1])])
-        
-    //     if (turf.booleanPointInPolygon(crimeAsPoint, currentCam.polygon)) {
-    //         let distance = turf.distance(current, crimeAsPoint) * 1000
-
-    //         crimeCount++
-    //         totalCount += crimes[coord].count
-    //         totalDistance += distance
-    //     }
-    // }
+    
     allPoints = []
-    turf.featureEach(gridArea, async function(current, index) {
+    
+    if (data.useReinforcement) {
       let point = current.geometry
-      await stepAndCalculate(point, crimes, crimeCoords, bbox, buildings, data.distance)
-      // console.log(result)
-      // allPoints.push(result)
-    })
+      await reinforcement(point, crimes, crimeCoords, bbox, buildings, data.distance)
+    } else {
+      turf.featureEach(gridArea, async function(current, index) {
+        let point = current.geometry
+        await bruteForce(point, crimes, crimeCoords, bbox, buildings, data.distance)
+      })
+    }
+    
 
-    // Manage properties for score
-    // currentCam.totalCount = totalCount
-    // currentCam.totalDistance = totalDistance.toFixed(4)
-    // currentCam.totalCrimeCount = crimeCount
-
-
-    // return {gridArea: gridArea, currentCam: currentCam, bestCam: currentBest}
     return {gridArea: gridArea, allPoints: allPoints}
 }
 
