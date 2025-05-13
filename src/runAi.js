@@ -5,12 +5,12 @@ let allPoints = []
 // const bearings = [0, , 45, 90, 135, 180, 225, 270]
 
 /**
- * 
- * @param {number} centerLong 
- * @param {number} centerLat 
- * @param {Array} buildings 
- * @param {number} distance 
- * @param {number} gridDensity 
+ *
+ * @param {number} centerLong
+ * @param {number} centerLat
+ * @param {Array} buildings
+ * @param {number} distance
+ * @param {number} gridDensity
  * @returns {FeatureCollection} The points inside capture area
  */
 function createGridOvercaptureArea(centerLong, centerLat, buildings, distance, gridDensity) {
@@ -22,7 +22,7 @@ function createGridOvercaptureArea(centerLong, centerLat, buildings, distance, g
       properties: f.properties || {}
     }))
   }
-  
+
   const center = [centerLong, centerLat]
   const radius = (distance/1000)
   const circle = turf.circle(center, radius, { steps: 64, units: 'kilometers' })
@@ -52,7 +52,7 @@ function createGridOvercaptureArea(centerLong, centerLat, buildings, distance, g
 
 
 async function reinforcement(camPoint, crimes, crimeCoords, bbox, buildings, distance) {
-  // score: unique * totalNoCrimes / distance
+  // score: 1st unique, 2nd totalNoCrimes, 3rd distance
   // color the path in the output!
   let currentBestPosition = {}
   // while() {
@@ -63,14 +63,14 @@ async function reinforcement(camPoint, crimes, crimeCoords, bbox, buildings, dis
   // Generate cam coverage based on current coordinates
   let currentCam = await generate(buildings, bbox, [current], distance)
   currentCam = currentCam[0]
-  
+
   let totalCount = 0
   let totalDistance = 0
   let crimeCount = 0
 
   for (const coord of crimeCoords) {
       let crimeAsPoint = turf.point([parseFloat(coord.split(",")[0]), parseFloat(coord.split(",")[1])])
-      
+
       if (turf.booleanPointInPolygon(crimeAsPoint, currentCam.polygon)) {
           let distance = turf.distance(current, crimeAsPoint) * 1000
 
@@ -91,12 +91,12 @@ async function reinforcement(camPoint, crimes, crimeCoords, bbox, buildings, dis
 
 
 /**
- * @param {} camPoint 
- * @param {*} crimes 
- * @param {*} crimeCoords 
- * @param {*} bbox 
- * @param {*} buildings 
- * @param {*} distance 
+ * @param {} camPoint
+ * @param {*} crimes
+ * @param {*} crimeCoords
+ * @param {*} bbox
+ * @param {*} buildings
+ * @param {*} distance
  */
 async function bruteForce(camPoint, crimes, crimeCoords, bbox, buildings, distance) {
   let current = camPoint
@@ -104,14 +104,14 @@ async function bruteForce(camPoint, crimes, crimeCoords, bbox, buildings, distan
   // Generate cam coverage based on current coordinates
   let currentCam = await generate(buildings, bbox, [current], distance)
   currentCam = currentCam[0]
-  
+
   let totalCount = 0
   let totalDistance = 0
   let crimeCount = 0
 
   for (const coord of crimeCoords) {
       let crimeAsPoint = turf.point([parseFloat(coord.split(",")[0]), parseFloat(coord.split(",")[1])])
-      
+
       if (turf.booleanPointInPolygon(crimeAsPoint, currentCam.polygon)) {
           let distance = turf.distance(current, crimeAsPoint) * 1000
 
@@ -136,9 +136,9 @@ async function runAi(data) {
     let bbox = data.boundingBox
     let crimes = data.crimes
     let crimeCoords = Object.keys(data.crimes)
-    
+
     allPoints = []
-    
+
     if (data.useReinforcement) {
       let point = current.geometry
       await reinforcement(point, crimes, crimeCoords, bbox, buildings, data.distance)
@@ -148,7 +148,7 @@ async function runAi(data) {
         await bruteForce(point, crimes, crimeCoords, bbox, buildings, data.distance)
       })
     }
-    
+
 
     return {gridArea: gridArea, allPoints: allPoints}
 }
