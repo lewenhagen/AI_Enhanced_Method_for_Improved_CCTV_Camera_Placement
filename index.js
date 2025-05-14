@@ -157,14 +157,16 @@ app.post("/run-ai", async (req, res) => {
       Grid size: ${response.result.gridArea.features.length}
       Generated camera points: ${response.result.allPoints.length}
     `)
-
-    response.result.allPoints.sort((a, b) => {
-      return (
-        b.totalCrimeCount - a.totalCrimeCount || // Sort first on unique crime coordinates
-        b.totalCount - a.totalCount ||           // Sort second on total crime occurances
-        a.totalDistance - b.totalDistance        // Sort last on the distance
-      )
-    })
+    if (!aiData.useReinforcement) {
+      response.result.allPoints.sort((a, b) => {
+        return (
+          b.totalCrimeCount - a.totalCrimeCount || // Sort first on unique crime coordinates
+          b.totalCount - a.totalCount ||           // Sort second on total crime occurances
+          a.totalDistance - b.totalDistance        // Sort last on the distance
+        )
+      })
+    }
+    
     console.log(response.result.allPoints[0].camInfo.score)
     // console.log(`
     //   Current:

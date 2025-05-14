@@ -8,7 +8,7 @@ let circleHolder = []
  * Main function.
  */
 async function generate(buildings, boundingBox, pointsOnBoundary, distance) {
-
+  // console.log(pointsOnBoundary)
   let result = []
 //   let checkupFeatureCollection = turf.featureCollection([])
 
