@@ -56,6 +56,37 @@ async function getRandomDirection() {
   return directions[Math.floor(Math.random() * directions.length)]
 }
 
+async function calculateScore(currentCam, currentPoint, crimeCoords, crimes) {
+  let totalCount = 0
+  let totalDistance = 0
+  let crimeCount = 0
+  currentCam.connectedCrimes = []
+
+  for (const coord of crimeCoords) {
+    let crimeAsPoint = turf.point([parseFloat(coord.split(",")[0]), parseFloat(coord.split(",")[1])])
+
+    if (turf.booleanPointInPolygon(crimeAsPoint, currentCam.polygon)) {
+      let distance = turf.distance(currentPoint, crimeAsPoint) * 1000
+      currentCam.connectedCrimes.push({
+        distance: distance,
+        uniqueCount: crimes[coord].count,
+        prescore: crimes[coord].count / distance
+      })
+      
+      crimeCount++
+      totalCount += crimes[coord].count
+      totalDistance += distance
+    }
+  }
+
+  return {
+    "camInfo": currentCam,
+    "totalCrimeCount": crimeCount,
+    "totalCount": totalCount,
+    "totalDistance": totalDistance
+  }
+}
+
 async function reinforcement(grid, crimes, crimeCoords, bbox, buildings, distance, gridDensity) {
   // score per crime location: count / distance
   // score per cam location: crime score / total crimes found
@@ -68,34 +99,31 @@ async function reinforcement(grid, crimes, crimeCoords, bbox, buildings, distanc
     let currentCam = await generate(buildings, bbox, [currentPoint], distance)
     currentCam = currentCam[0]
 
-    let totalCount = 0
-    let totalDistance = 0
-    let crimeCount = 0
-    currentCam.connectedCrimes = []
+    // let totalCount = 0
+    // let totalDistance = 0
+    // let crimeCount = 0
+    // currentCam.connectedCrimes = []
 
-    for (const coord of crimeCoords) {
-      let crimeAsPoint = turf.point([parseFloat(coord.split(",")[0]), parseFloat(coord.split(",")[1])])
+    // for (const coord of crimeCoords) {
+    //   let crimeAsPoint = turf.point([parseFloat(coord.split(",")[0]), parseFloat(coord.split(",")[1])])
 
-      if (turf.booleanPointInPolygon(crimeAsPoint, currentCam.polygon)) {
-        let distance = turf.distance(currentPoint, crimeAsPoint) * 1000
-        currentCam.connectedCrimes.push({
-          distance: distance,
-          uniqueCount: crimes[coord].count,
-          prescore: crimes[coord].count / distance
-        })
+    //   if (turf.booleanPointInPolygon(crimeAsPoint, currentCam.polygon)) {
+    //     let distance = turf.distance(currentPoint, crimeAsPoint) * 1000
+    //     currentCam.connectedCrimes.push({
+    //       distance: distance,
+    //       uniqueCount: crimes[coord].count,
+    //       prescore: crimes[coord].count / distance
+    //     })
        
-        crimeCount++
-        totalCount += crimes[coord].count
-        totalDistance += distance
-      }
-    }
+    //     crimeCount++
+    //     totalCount += crimes[coord].count
+    //     totalDistance += distance
+    //   }
+    // }
     
-    allPoints.push( {
-      "camInfo": currentCam,
-      "totalCrimeCount": crimeCount,
-      "totalCount": totalCount,
-      "totalDistance": totalDistance
-    })
+    let c = await calculateScore(currentCam, currentPoint, crimeCoords, crimes)
+    allPoints.push( c )
+
     let dir = await getRandomDirection()
     console.log(dir)
     currentPoint = await move(currentPoint, dir, gridDensity)
