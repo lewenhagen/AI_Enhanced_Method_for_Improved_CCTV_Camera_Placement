@@ -60,7 +60,7 @@ app.post("/init", async (req, res) => {
 app.post("/getbuildings", async (req, res) => {
   try {
     let data = await getIntersectingBuildings(req.body.bbox)
-    
+
     res.json({"status": "Ok", "data": data})
   } catch(e) {
     res.json({"status": "error", "message": e})
@@ -71,7 +71,7 @@ app.post("/getcrimes", async (req, res) => {
   try {
     // console.log(req.body.bbox)
     let data = await getCrimesInPolygon(req.body.bbox)
-    
+
     res.json({"status": "Ok", "data": data})
   } catch(e) {
     res.json({"status": "error", "message": e})
@@ -90,14 +90,14 @@ app.post("/load-ai-data", async (req, res) => {
       let crimes = {}
       for (const crime of data.crimes) {
         let location = `${crime.longitude},${crime.latitude}`
-        
+
         if(crimes[location] !== undefined) {
             crimes[location].count++
             // let temp = {
             //   count: 1
             // }
             if (crimes[location].codes[crime.crime_code] !== undefined) {
-              
+
               crimes[location].codes[crime.crime_code].count++
             } else {
               crimes[location].codes[crime.crime_code] = {count: 1}
@@ -117,7 +117,7 @@ app.post("/load-ai-data", async (req, res) => {
       aiData.distance = parseFloat(req.body.distance)
       aiData.gridDensity = parseFloat(req.body.gridDensity)
       aiData.useReinforcement = req.body.useReinforcement
-      
+
       res.json({"status": "Ok", "data": data})
     } catch(e) {
       res.json({"status": "error", "message": e})
@@ -127,27 +127,27 @@ app.post("/load-ai-data", async (req, res) => {
 app.post("/generate-area-without-buildings", async (req, res) => {
     let response = {}
     response.status = "error"
-    
+
     aiData.areaWithoutBuildings = await getAreaWithoutBuildings(aiData)
     if (aiData.areaWithoutBuildings !== null) {
         response.status = "ok"
         response.area = aiData.areaWithoutBuildings
     }
-    
+
     res.json(response)
 })
 
 app.post("/run-ai", async (req, res) => {
     let response = {}
 
-    /** 
+    /**
      * aiData contains:
      * Crimes
      * Start coordinates
      * Distance
      * Grid density
     **/
-    
+
     // Time the execution
     console.time("### Generate grid calculations")
     response.result = await runAi(aiData)
@@ -157,7 +157,7 @@ app.post("/run-ai", async (req, res) => {
       Grid size: ${response.result.gridArea.features.length}
       Generated camera points: ${response.result.allPoints.length}
     `)
-    
+
     response.result.allPoints.sort((a, b) => {
       return (
         b.totalCrimeCount - a.totalCrimeCount || // Sort first on unique crime coordinates
@@ -165,8 +165,9 @@ app.post("/run-ai", async (req, res) => {
         a.totalDistance - b.totalDistance        // Sort last on the distance
       )
     })
+    console.log(response.result.allPoints[0].camInfo.score)
     // console.log(`
-    //   Current: 
+    //   Current:
     //   Total count: ${response.result.currentCam.totalCount}
     //   Total distance: ${response.result.currentCam.totalDistance}
     //   Total crime coordinate count: ${response.result.currentCam.totalCrimeCount}
