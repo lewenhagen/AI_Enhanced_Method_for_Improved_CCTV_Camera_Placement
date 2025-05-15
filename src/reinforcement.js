@@ -31,7 +31,7 @@ function isPointInGrid(point) {
 }
 
 function isPointInBuilding(point) {
-  
+
   return gridBuildings.features.some(building =>
     turf.booleanPointInPolygon(point, building)
   );
@@ -40,44 +40,45 @@ function isPointInBuilding(point) {
 
 async function move(currentPoint, direction, stepSizeMeters) {
   const bearing = directionBearings[direction];
-  // let candidate = currentPoint; // Start from current position
+  let candidate = currentPoint; // Start from current position
 
-  // while (true) {
+  while (true) {
     // Step once from the current candidate in the given bearing
-  const next = turf.destination(currentPoint, stepSizeMeters, bearing, { units: 'meters' });
+    const next = turf.destination(candidate, stepSizeMeters, bearing, { units: 'meters' });
 
     // Get the coordinates of the next point and format them
-  const nextCoords = next.geometry.coordinates.map(c => c.toFixed(6)).join(',');
+    const nextCoords = next.geometry.coordinates.map(c => c.toFixed(6)).join(',');
 
     // Check if the next point is outside the grid
-    
+
 
     // Check if the next point is inside a building
-    // if (isPointInBuilding(next)) {
-    //   console.log("In building, stepping over to the next point...");
+    if (isPointInBuilding(next)) {
+      console.log("In building, stepping over to the next point...");
 
-    //   // Continue stepping in the same direction without changing direction
-    //   candidate = next;  // Update the candidate to the next point
-    //   continue;  // Skip the rest of the loop and try the next step
-    // }
+      // Continue stepping in the same direction without changing direction
+      candidate = next;  // Update the candidate to the next point
+      continue;  // Skip the rest of the loop and try the next step
+    }
 
-  if (!isPointInGrid(next)) {
-    return { success: false, message: "Outside the grid boundary or hit a building." };
-  }
+    if (!isPointInGrid(next)) {
+      return { success: false, message: "Outside the grid boundary or hit a building." };
+    }
 
-  // If the point is valid and within the grid and not in a building, return it
-  if (gridMap.has(nextCoords)) {
-    const currentPoint = gridMap.get(nextCoords);
-    return {
-      success: true,
-      point: currentPoint,
-      coords: currentPoint.geometry.coordinates,
-      message: "Move ok"
-    };
-  }
+    // If the point is valid and within the grid and not in a building, return it
+    if (gridMap.has(nextCoords)) {
+      const currentPoint = gridMap.get(nextCoords);
+      return {
+        success: true,
+        point: currentPoint,
+        coords: currentPoint.geometry.coordinates,
+        message: "Move ok"
+      };
+    }
 
+    // console.log("Point in buldings")
     // candidate = next
-  // }
+  }
 }
 
 
@@ -100,7 +101,7 @@ async function move(currentPoint, direction, stepSizeMeters) {
 
 
 // async function convertGrid(grid) {
-  
+
 
 //   grid.features.forEach(point => {
 //     const [lng, lat] = point.geometry.coordinates;
@@ -121,7 +122,7 @@ async function setupGridAndBuildings(grid, buildings) {
   gridMap = new Map()
   await setupBuildings(buildings)
   // gridBuildings.features = []
-  
+
   // console.log()
   for (const point of grid.features) {
     const key = point.geometry.coordinates.map(c => c.toFixed(6)).join(',');

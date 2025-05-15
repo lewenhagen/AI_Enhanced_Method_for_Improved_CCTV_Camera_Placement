@@ -72,7 +72,7 @@ async function calculateScore(currentCam, currentPoint, crimeCoords, crimes) {
         uniqueCount: crimes[coord].count,
         prescore: crimes[coord].count / distance
       })
-      
+
       crimeCount++
       totalCount += crimes[coord].count
       totalDistance += distance
@@ -114,26 +114,26 @@ async function reinforcement(grid, crimes, crimeCoords, bbox, buildings, distanc
     //       uniqueCount: crimes[coord].count,
     //       prescore: crimes[coord].count / distance
     //     })
-       
+
     //     crimeCount++
     //     totalCount += crimes[coord].count
     //     totalDistance += distance
     //   }
     // }
-    
+
     let c = await calculateScore(currentCam, currentPoint, crimeCoords, crimes)
     allPoints.push( c )
 
     let dir = await getRandomDirection()
-    console.log(dir)
-    currentPoint = await move(currentPoint, dir, gridDensity)
-    
+    // console.log(dir)
+    currentPoint = await move(currentPoint, "right", gridDensity)
+
     if (!currentPoint.success) {
       break
     } else {
       currentPoint = currentPoint.point.geometry
-    } 
-  }  
+    }
+  }
 }
 
 
