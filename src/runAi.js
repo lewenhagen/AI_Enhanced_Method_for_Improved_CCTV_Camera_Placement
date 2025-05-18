@@ -68,6 +68,7 @@ async function calculateScore(currentCam, currentPoint, crimeCoords, crimes) {
     if (turf.booleanPointInPolygon(crimeAsPoint, currentCam.polygon)) {
       let distance = turf.distance(currentPoint, crimeAsPoint) * 1000
       currentCam.connectedCrimes.push({
+        crimeInfo: crimes[coord],
         distance: distance,
         uniqueCount: crimes[coord].count,
         prescore: crimes[coord].count / distance
@@ -121,12 +122,12 @@ async function reinforcement(grid, crimes, crimeCoords, bbox, buildings, distanc
     //   }
     // }
 
-    let c = await calculateScore(currentCam, currentPoint, crimeCoords, crimes)
-    allPoints.push( c )
+    let camObject = await calculateScore(currentCam, currentPoint, crimeCoords, crimes)
+    allPoints.push( camObject )
 
     let dir = await getRandomDirection()
-    // console.log(dir)
-    currentPoint = await move(currentPoint, "right", gridDensity)
+    console.log(dir)
+    currentPoint = await move(currentPoint, dir, gridDensity)
 
     if (!currentPoint.success) {
       break
