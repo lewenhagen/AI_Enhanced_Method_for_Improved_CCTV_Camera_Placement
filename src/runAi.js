@@ -1,6 +1,7 @@
 import * as turf from '@turf/turf'
 import { Worker } from 'worker_threads'
 import os from 'os'
+import * as path from 'path'
 import { generate } from './generateCoverageArea.js'
 import { setupGridAndBuildings, move, getRandomPointFromGrid } from './reinforcement.js'
 
@@ -105,6 +106,25 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
   return {point: nextPoint, score: scoreObject}
 }
 
+function runWorker() {
+  return new Promise((resolve, reject) => {
+    const worker = new Worker(path.resolve(__dirname, './aiWorker.js'));
+
+    worker.postMessage({ buildings, bbox, distance, crimes, crimeCoords, gridDensity});
+
+    worker.on('message', (result) => {
+      resolve(result);
+    });
+
+    worker.on('error', reject);
+    worker.on('exit', (code) => {
+      if (code !== 0) {
+        reject(new Error(`Worker exited with code ${code}`));
+      }
+    });
+  });
+}
+
 async function calculateScore(currentCam, currentPoint) {
   let totalCount = 0
   let totalDistance = 0
@@ -136,7 +156,7 @@ async function calculateScore(currentCam, currentPoint) {
     }
 
     currentCam.score = parseFloat((allPreScore / totalCount).toFixed(4)) || 0
-    
+
   }
 
   return {
@@ -148,22 +168,12 @@ async function calculateScore(currentCam, currentPoint) {
 }
 
 async function reinforcement(grid) {
-  // score per crime location: count / distance
-  // score per cam location: crime score / total crimes found
-  // color the path in the output!
-  // crimes = inputCrimes
-  // crimeCoords = inputCrimeCoords
-  // bbox = inputBbox
-  // buildings = inputBuildings
-  // distance = inputDistance
-  // gridDensity = inputGridDensity
-  let result = []
 
   await setupGridAndBuildings(grid, buildings, gridDensity)
 
+
   let startPoint = await (await getRandomPointFromGrid()).geometry
   let lastPoint = {}
-  // let nextCam = {}
   let currentCam = {}
   let i = 0
 
@@ -179,14 +189,14 @@ async function reinforcement(grid) {
   while (i < 100) {
     // let dir = await getRandomDirection()
     let stepObject = await takeStepInGridCalculateScore(dir, lastPoint)
-    
+
     if (stepObject !== false) {
       if (stepObject.score.camInfo.score > lastScore.camInfo.score) {
         // dir = await getRandomDirection()
         allPoints.push( stepObject.score )
         lastPoint = stepObject.point.point.geometry
         lastScore = stepObject.score
-        
+
       } else {
         dir = await getRandomDirection()
       }
@@ -194,7 +204,7 @@ async function reinforcement(grid) {
       // console.log("Hitting building or outside")
       // console.log("Moving on")
     }
-    
+
     i++
   }
 
@@ -208,7 +218,7 @@ async function reinforcement(grid) {
   //       `)
   //   }
   //   console.log("###########################")
-    
+
   // }
 }
 

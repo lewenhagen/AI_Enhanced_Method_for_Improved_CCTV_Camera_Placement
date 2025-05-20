@@ -32,7 +32,6 @@ function isPointInGrid(point) {
 }
 
 function isPointInBuilding(point) {
-
   return gridBuildings.features.some(building =>
     turf.booleanPointInPolygon(point, building)
   )
