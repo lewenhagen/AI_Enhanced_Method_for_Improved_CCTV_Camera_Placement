@@ -1,6 +1,7 @@
 import * as turf from '@turf/turf'
 import { generate } from './generateCoverageArea.js'
 
+let stepSizeMeters = -1
 let gridMap = new Map()
 let gridBuildings = {
   type: "FeatureCollection",
@@ -38,7 +39,7 @@ function isPointInBuilding(point) {
 }
 
 
-async function move(currentPoint, direction, stepSizeMeters) {
+async function move(currentPoint, direction) {
   const bearing = directionBearings[direction]
   let candidate = currentPoint
 
@@ -47,7 +48,7 @@ async function move(currentPoint, direction, stepSizeMeters) {
     const nextCoords = next.geometry.coordinates.map(c => c.toFixed(6)).join(',')
 
     if (isPointInBuilding(next)) {
-      console.log("In building, stepping over to the next point...")
+      // console.log("In building, stepping over to the next point...")
 
       candidate = next
       continue
@@ -80,15 +81,16 @@ async function setupBuildings(buildings) {
     }
   })
 }
-async function setupGridAndBuildings(grid, buildings) {
+async function setupGridAndBuildings(grid, buildings, gridDensity) {
   gridMap = new Map()
+  stepSizeMeters = gridDensity
   await setupBuildings(buildings)
 
   for (const point of grid.features) {
     const key = point.geometry.coordinates.map(c => c.toFixed(6)).join(',')
     gridMap.set(key, point)
   }
-  console.log(gridMap)
+  // console.log(gridMap)
 }
 
 export { setupGridAndBuildings, move, getRandomPointFromGrid }

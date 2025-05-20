@@ -1,9 +1,38 @@
 import * as turf from '@turf/turf'
+import { Worker } from 'worker_threads'
+import os from 'os'
 import { generate } from './generateCoverageArea.js'
 import { setupGridAndBuildings, move, getRandomPointFromGrid } from './reinforcement.js'
 
+const THREAD_COUNT = os.cpus().length
 let allPoints = []
+let bbox = []
+let buildings = []
+let crimes = []
+let crimeCoords = {}
+let gridDensity = -1
+let distance = -1
 // const bearings = [0, , 45, 90, 135, 180, 225, 270]
+
+/**
+ * Create a worker.
+ * @param {array} chunk The array to work on.
+ * @returns {Promise} The resulting Promise.
+ */
+function createWorker(chunk, boundingBox) {
+  return new Promise(function (resolve, reject) {
+      const worker = new Worker(`./src/worker.js`, {
+          workerData: {chunk, boundingBox}
+      })
+      worker.on("message", (data) => {
+          worker.terminate()
+          resolve(data)
+      })
+      worker.on("error", (msg) => {
+          reject(`An error ocurred: ${msg}`)
+      })
+  })
+}
 
 /**
  *
@@ -52,11 +81,31 @@ function createGridOvercaptureArea(centerLong, centerLat, buildings, distance, g
 // }
 async function getRandomDirection() {
   let directions = ["up", "down", "left", "right"]
+  if (directions.length === 0) {
+    directions = ["up", "down", "left", "right"]
+  }
+  const randomIndex = Math.floor(Math.random() * directions.length)
+  const poppedDirection = directions.splice(randomIndex, 1)[0]
 
-  return directions[Math.floor(Math.random() * directions.length)]
+  return poppedDirection
 }
 
-async function calculateScore(currentCam, currentPoint, crimeCoords, crimes) {
+async function takeStepInGridCalculateScore(dir, currentPoint) {
+  let currentCam = await generate(buildings, bbox, [currentPoint], distance)
+  currentCam = currentCam[0]
+  let nextPoint = await move(currentPoint, dir)
+  if (!nextPoint.success) {
+    return false
+  }
+  // let camCoverage = await generate(buildings, bbox, [nextPoint.point.geometry], distance)
+  // camCoverage = camCoverage[0]
+
+  let scoreObject = await calculateScore(currentCam, nextPoint.point.geometry, crimeCoords, crimes)
+
+  return {point: nextPoint, score: scoreObject}
+}
+
+async function calculateScore(currentCam, currentPoint) {
   let totalCount = 0
   let totalDistance = 0
   let crimeCount = 0
@@ -67,6 +116,7 @@ async function calculateScore(currentCam, currentPoint, crimeCoords, crimes) {
 
     if (turf.booleanPointInPolygon(crimeAsPoint, currentCam.polygon)) {
       let distance = turf.distance(currentPoint, crimeAsPoint) * 1000
+
       currentCam.connectedCrimes.push({
         crimeInfo: crimes[coord],
         distance: distance,
@@ -85,7 +135,8 @@ async function calculateScore(currentCam, currentPoint, crimeCoords, crimes) {
       allPreScore += crime.prescore
     }
 
-    currentCam.score = allPreScore / totalDistance
+    currentCam.score = parseFloat((allPreScore / totalCount).toFixed(4)) || 0
+    
   }
 
   return {
@@ -96,49 +147,69 @@ async function calculateScore(currentCam, currentPoint, crimeCoords, crimes) {
   }
 }
 
-async function reinforcement(grid, crimes, crimeCoords, bbox, buildings, distance, gridDensity) {
+async function reinforcement(grid) {
   // score per crime location: count / distance
   // score per cam location: crime score / total crimes found
   // color the path in the output!
-  await setupGridAndBuildings(grid, buildings)
-  let currentPoint = await (await getRandomPointFromGrid()).geometry
+  // crimes = inputCrimes
+  // crimeCoords = inputCrimeCoords
+  // bbox = inputBbox
+  // buildings = inputBuildings
+  // distance = inputDistance
+  // gridDensity = inputGridDensity
+  let result = []
+
+  await setupGridAndBuildings(grid, buildings, gridDensity)
+
+  let startPoint = await (await getRandomPointFromGrid()).geometry
   let lastPoint = {}
-  let bestCam = {}
+  // let nextCam = {}
+  let currentCam = {}
   let i = 0
 
-  let currentCam = await generate(buildings, bbox, [currentPoint], distance)
-  currentCam = currentCam[0]
+  let startCam = await generate(buildings, bbox, [startPoint], distance)
+  startCam = startCam[0]
+  currentCam = startCam
+  lastPoint = startPoint
+  let lastScore = await calculateScore(startCam, startPoint)
+  allPoints.push( lastScore )
 
-  let camObject = await calculateScore(currentCam, currentPoint, crimeCoords, crimes)
-  allPoints.push( camObject )
-
-  bestCam = camObject
+  // console.log("start score: " + lastScore.camInfo.score)
+  let dir = await getRandomDirection()
   while (i < 100) {
-    lastPoint = currentPoint
-    let currentCam = await generate(buildings, bbox, [currentPoint], distance)
-    currentCam = currentCam[0]
-
-    let camObject = await calculateScore(currentCam, currentPoint, crimeCoords, crimes)
-    allPoints.push( camObject )
-
-    if (camObject.camInfo.score > bestCam.camInfo.score) {
-      bestCam = camObject
-    }
-
-
-    let dir = await getRandomDirection()
-    // console.log(dir)
-    currentPoint = await move(currentPoint, dir, gridDensity)
-
-    // HERE!!!!
-
-    if (!currentPoint.success) {
-      currentPoint = lastPoint
-      // break
+    // let dir = await getRandomDirection()
+    let stepObject = await takeStepInGridCalculateScore(dir, lastPoint)
+    
+    if (stepObject !== false) {
+      if (stepObject.score.camInfo.score > lastScore.camInfo.score) {
+        // dir = await getRandomDirection()
+        allPoints.push( stepObject.score )
+        lastPoint = stepObject.point.point.geometry
+        lastScore = stepObject.score
+        
+      } else {
+        dir = await getRandomDirection()
+      }
     } else {
-      currentPoint = currentPoint.point.geometry
+      // console.log("Hitting building or outside")
+      // console.log("Moving on")
     }
+    
+    i++
   }
+
+  // for (const item of allPoints) {
+  //   console.log("###########################")
+  //   for (const c of item.camInfo.connectedCrimes) {
+  //     console.log(`
+  //       Distance: ${c.distance}
+  //       Unique count: ${c.uniqueCount}
+  //       Pre score: ${c.prescore}
+  //       `)
+  //   }
+  //   console.log("###########################")
+    
+  // }
 }
 
 
@@ -186,17 +257,19 @@ async function bruteForce(camPoint, crimes, crimeCoords, bbox, buildings, distan
 
 async function runAi(data) {
     // console.log(data)
-    let buildings = data.buildings
+    buildings = data.buildings
     let gridArea = createGridOvercaptureArea(parseFloat(data.start.split(",")[1]), parseFloat(data.start.split(",")[0]), buildings, data.distance, data.gridDensity)
-    let bbox = data.boundingBox
-    let crimes = data.crimes
-    let crimeCoords = Object.keys(data.crimes)
+    bbox = data.boundingBox
+    crimes = data.crimes
+    crimeCoords = Object.keys(data.crimes)
+    distance = data.distance
+    gridDensity = data.gridDensity
     // console.log(crimes)
     allPoints = []
 
     if (data.useReinforcement) {
       // let point = turf.point([parseFloat(data.start.split(",")[1]), parseFloat(data.start.split(",")[0])])
-      await reinforcement(gridArea, crimes, crimeCoords, bbox, buildings, data.distance, data.gridDensity)
+      await reinforcement(gridArea)
       console.log("Number of steps: " + allPoints.length)
 
     } else {

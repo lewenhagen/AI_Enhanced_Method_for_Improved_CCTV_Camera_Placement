@@ -191,7 +191,7 @@ animate.addEventListener("click", function(event) {
   let i = 0
 
   myInterval = setInterval(function() {
-    if (i === bruteForceData.length) {
+    if (i === bruteForceData.length-1) {
       clearInterval(myInterval)
     }
     drawnItems.clearLayers()
@@ -212,16 +212,23 @@ animate.addEventListener("click", function(event) {
 
 theBestBtn.addEventListener("click", function(event) {
     drawnItems.clearLayers()
-    let layer = L.geoJSON(bruteForceData.result.allPoints[0].camInfo.center).bindPopup(`
-      Score: ${bruteForceData.result.allPoints[0].camInfo.score}<br>
-      Area: ${bruteForceData.result.allPoints[0].camInfo.area.toFixed(2).toString()}<br>
-      Total count: ${bruteForceData.result.allPoints[0].totalCount}<br>
-      Total distance (m): ${bruteForceData.result.allPoints[0].totalDistance.toFixed(2)}<br>
-      Unique crime coordinates: ${bruteForceData.result.allPoints[0].totalCrimeCount}`)
+    clearInterval(myInterval)
+    let useThis = {}
+    if (document.getElementById("reinforcement").checked) {
+      useThis = bruteForceData.result.allPoints[bruteForceData.result.allPoints.length-1]
+    } else {
+      useThis = bruteForceData.result.allPoints[0]
+    }
+    let layer = L.geoJSON(useThis.camInfo.center).bindPopup(`
+      Score: ${useThis.camInfo.score}<br>
+      Area: ${useThis.camInfo.area.toFixed(2).toString()}<br>
+      Total count: ${useThis.totalCount}<br>
+      Total distance (m): ${useThis.totalDistance.toFixed(2)}<br>
+      Unique crime coordinates: ${useThis.totalCrimeCount}`)
 
     drawnItems.addLayer(layer)
     layer.openPopup()
-    drawnItems.addLayer(L.geoJSON(bruteForceData.result.allPoints[0].camInfo.polygon, {style: {color:"purple"}}))
+    drawnItems.addLayer(L.geoJSON(useThis.camInfo.polygon, {style: {color:"purple"}}))
 
 
 })
