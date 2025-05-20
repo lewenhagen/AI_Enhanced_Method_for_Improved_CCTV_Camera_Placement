@@ -154,8 +154,8 @@ app.post("/run-ai", async (req, res) => {
     console.timeEnd("### Generate grid calculations")
 
     console.log(`
-      Grid size: ${response.result.gridArea.features.length}
-      Generated camera points: ${response.result.allPoints.length}
+Grid size: ${response.result.gridArea.features.length}
+Generated camera points: ${response.result.allPoints.length}
     `)
     if (!aiData.useReinforcement) {
       response.result.allPoints.sort((a, b) => {
@@ -166,8 +166,9 @@ app.post("/run-ai", async (req, res) => {
         )
       })
     }
-    
-    console.log(response.result.allPoints[0].camInfo.score)
+
+    // console.log(response.result.allPoints[0].camInfo.score)
+
     // console.log(`
     //   Current:
     //   Total count: ${response.result.currentCam.totalCount}

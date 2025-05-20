@@ -61,7 +61,7 @@ async function calculateScore(currentCam, currentPoint, crimeCoords, crimes) {
   let totalDistance = 0
   let crimeCount = 0
   currentCam.connectedCrimes = []
-
+  currentCam.score = 0
   for (const coord of crimeCoords) {
     let crimeAsPoint = turf.point([parseFloat(coord.split(",")[0]), parseFloat(coord.split(",")[1])])
 
@@ -75,9 +75,17 @@ async function calculateScore(currentCam, currentPoint, crimeCoords, crimes) {
       })
 
       crimeCount++
-      totalCount += crimes[coord].count
+      totalCount += crimes[coord].count // denna sist
       totalDistance += distance
     }
+    // calculate score here!!
+    // currentCam.score = 0
+    let allPreScore = 0
+    for (const crime of currentCam.connectedCrimes) {
+      allPreScore += crime.prescore
+    }
+
+    currentCam.score = allPreScore / totalDistance
   }
 
   return {
@@ -94,43 +102,39 @@ async function reinforcement(grid, crimes, crimeCoords, bbox, buildings, distanc
   // color the path in the output!
   await setupGridAndBuildings(grid, buildings)
   let currentPoint = await (await getRandomPointFromGrid()).geometry
-  // console.log("BEFORE:", currentPoint)
+  let lastPoint = {}
+  let bestCam = {}
+  let i = 0
 
-  for (let i = 0; i < 10; i++) {
+  let currentCam = await generate(buildings, bbox, [currentPoint], distance)
+  currentCam = currentCam[0]
+
+  let camObject = await calculateScore(currentCam, currentPoint, crimeCoords, crimes)
+  allPoints.push( camObject )
+
+  bestCam = camObject
+  while (i < 100) {
+    lastPoint = currentPoint
     let currentCam = await generate(buildings, bbox, [currentPoint], distance)
     currentCam = currentCam[0]
-
-    // let totalCount = 0
-    // let totalDistance = 0
-    // let crimeCount = 0
-    // currentCam.connectedCrimes = []
-
-    // for (const coord of crimeCoords) {
-    //   let crimeAsPoint = turf.point([parseFloat(coord.split(",")[0]), parseFloat(coord.split(",")[1])])
-
-    //   if (turf.booleanPointInPolygon(crimeAsPoint, currentCam.polygon)) {
-    //     let distance = turf.distance(currentPoint, crimeAsPoint) * 1000
-    //     currentCam.connectedCrimes.push({
-    //       distance: distance,
-    //       uniqueCount: crimes[coord].count,
-    //       prescore: crimes[coord].count / distance
-    //     })
-
-    //     crimeCount++
-    //     totalCount += crimes[coord].count
-    //     totalDistance += distance
-    //   }
-    // }
 
     let camObject = await calculateScore(currentCam, currentPoint, crimeCoords, crimes)
     allPoints.push( camObject )
 
+    if (camObject.camInfo.score > bestCam.camInfo.score) {
+      bestCam = camObject
+    }
+
+
     let dir = await getRandomDirection()
-    console.log(dir)
+    // console.log(dir)
     currentPoint = await move(currentPoint, dir, gridDensity)
 
+    // HERE!!!!
+
     if (!currentPoint.success) {
-      break
+      currentPoint = lastPoint
+      // break
     } else {
       currentPoint = currentPoint.point.geometry
     }
@@ -153,29 +157,31 @@ async function bruteForce(camPoint, crimes, crimeCoords, bbox, buildings, distan
   // Generate cam coverage based on current coordinates
   let currentCam = await generate(buildings, bbox, [current], distance)
   currentCam = currentCam[0]
+  let camObject = await calculateScore(currentCam, camPoint, crimeCoords, crimes)
+  allPoints.push( camObject )
+  // console.log(camObject)
+  // let totalCount = 0
+  // let totalDistance = 0
+  // let crimeCount = 0
 
-  let totalCount = 0
-  let totalDistance = 0
-  let crimeCount = 0
+  // for (const coord of crimeCoords) {
+  //     let crimeAsPoint = turf.point([parseFloat(coord.split(",")[0]), parseFloat(coord.split(",")[1])])
 
-  for (const coord of crimeCoords) {
-      let crimeAsPoint = turf.point([parseFloat(coord.split(",")[0]), parseFloat(coord.split(",")[1])])
+  //     if (turf.booleanPointInPolygon(crimeAsPoint, currentCam.polygon)) {
+  //         let distance = turf.distance(current, crimeAsPoint) * 1000
 
-      if (turf.booleanPointInPolygon(crimeAsPoint, currentCam.polygon)) {
-          let distance = turf.distance(current, crimeAsPoint) * 1000
+  //         crimeCount++
+  //         totalCount += crimes[coord].count
+  //         totalDistance += distance
+  //     }
+  // }
 
-          crimeCount++
-          totalCount += crimes[coord].count
-          totalDistance += distance
-      }
-  }
-
-  allPoints.push( {
-    "camInfo": currentCam,
-    "totalCrimeCount": crimeCount,
-    "totalCount": totalCount,
-    "totalDistance": totalDistance
-  })
+  // allPoints.push( {
+  //   "camInfo": currentCam,
+  //   "totalCrimeCount": crimeCount,
+  //   "totalCount": totalCount,
+  //   "totalDistance": totalDistance
+  // })
 }
 
 async function runAi(data) {
@@ -192,21 +198,25 @@ async function runAi(data) {
       // let point = turf.point([parseFloat(data.start.split(",")[1]), parseFloat(data.start.split(",")[0])])
       await reinforcement(gridArea, crimes, crimeCoords, bbox, buildings, data.distance, data.gridDensity)
       console.log("Number of steps: " + allPoints.length)
-      // for (const item of allPoints) {
-      //   console.log(item)
-      //   item.camInfo.score = 1
-      //   for(const crime of item.camInfo.connectedCrimes) {
-      //     console.log(crime)
-      //     item.camInfo.score = (crime.prescore / item.camInfo.totalCount)
-      //   }
-      // }
-    } else {
-      turf.featureEach(gridArea, async function(current, index) {
-        let point = current.geometry
-        await bruteForce(point, crimes, crimeCoords, bbox, buildings, data.distance)
-      })
-    }
 
+    } else {
+      let features = gridArea.features
+      await Promise.all(
+        features.map(async (current) => {
+          let point = current.geometry;
+          await bruteForce(point, crimes, crimeCoords, bbox, buildings, data.distance);
+        })
+      )
+
+      // turf.featureEach(gridArea, async function(current, index) {
+      //   let point = current.geometry
+      //   // console.log(allPoints)
+      //   let result = await bruteForce(point, crimes, crimeCoords, bbox, buildings, data.distance)
+      //   allPoints.push(result)
+      //   // console.log(allPoints)
+      // })
+    }
+    // console.log(allPoints)
     return {gridArea: gridArea, allPoints: allPoints}
 }
 
@@ -215,4 +225,4 @@ export { runAi }
 
 // totalt brott inom CA
 // vikta  antal brott / distance
-// summera alla per position och dela med totalt antal brot fångade
+// summera alla per position och dela med totalt antal brott fångade

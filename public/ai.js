@@ -41,7 +41,7 @@ async function runAI() {
 
       const data = await response.json();
       bruteForceData = data
-      
+      console.log(bruteForceData)
       L.geoJSON(data.result.gridArea, {
         pointToLayer: (feature, latlng) =>
           L.circleMarker(latlng, {
@@ -87,13 +87,13 @@ function drawCrimes(crimes) {
         ]
       },
       properties: {
-        codes: `${Object.keys(crimes[crime].codes).toString()}}`, 
+        codes: `${Object.keys(crimes[crime].codes).toString()}}`,
         count: crimes[crime].count
       }
     }))
   }
   L.geoJSON(geojsonPoints, {
-    pointToLayer: (feature, latlng) => 
+    pointToLayer: (feature, latlng) =>
       L.circleMarker(latlng, {
         radius: 5,             // Adjust size
         color: "red",          // Border color
@@ -101,7 +101,7 @@ function drawCrimes(crimes) {
         fillOpacity: 1         // Solid fill
       }).bindPopup(`Crimes: ${feature.properties.count} Codes: ${feature.properties.codes.split(",").length})`)
   }).addTo(drawnAi)
- 
+
 }
 
 const map = L.map('map', {
@@ -177,8 +177,8 @@ loadAiBtn.addEventListener("click", async function(event) {
       })
     })
 
-    let json = await response.json() 
-    
+    let json = await response.json()
+
     drawBoundingBox(json.data.boundingBox)
     drawBoundingBoxWithoutBuildings()
     drawBuildings(json.data.buildings)
@@ -189,22 +189,23 @@ loadAiBtn.addEventListener("click", async function(event) {
 
 animate.addEventListener("click", function(event) {
   let i = 0
-  
+
   myInterval = setInterval(function() {
     if (i === bruteForceData.length) {
       clearInterval(myInterval)
     }
     drawnItems.clearLayers()
     let layer = L.geoJSON(bruteForceData.result.allPoints[i].camInfo.center).bindPopup(`
+      Score: ${bruteForceData.result.allPoints[i].camInfo.score}<br>
       Area: ${bruteForceData.result.allPoints[i].camInfo.area.toFixed(2).toString()}<br>
       Total count: ${bruteForceData.result.allPoints[i].totalCount}<br>
       Total distance (m): ${bruteForceData.result.allPoints[i].totalDistance.toFixed(2)}<br>
       Unique crime coordinates: ${bruteForceData.result.allPoints[i].totalCrimeCount}`)
-    
+
     drawnItems.addLayer(layer)
     layer.openPopup()
     drawnItems.addLayer(L.geoJSON(bruteForceData.result.allPoints[i].camInfo.polygon, {style: {color:"purple"}}))
-    
+
     i++
   }, 2000)
 })
@@ -212,18 +213,15 @@ animate.addEventListener("click", function(event) {
 theBestBtn.addEventListener("click", function(event) {
     drawnItems.clearLayers()
     let layer = L.geoJSON(bruteForceData.result.allPoints[0].camInfo.center).bindPopup(`
+      Score: ${bruteForceData.result.allPoints[0].camInfo.score}<br>
       Area: ${bruteForceData.result.allPoints[0].camInfo.area.toFixed(2).toString()}<br>
       Total count: ${bruteForceData.result.allPoints[0].totalCount}<br>
       Total distance (m): ${bruteForceData.result.allPoints[0].totalDistance.toFixed(2)}<br>
       Unique crime coordinates: ${bruteForceData.result.allPoints[0].totalCrimeCount}`)
-    
+
     drawnItems.addLayer(layer)
     layer.openPopup()
     drawnItems.addLayer(L.geoJSON(bruteForceData.result.allPoints[0].camInfo.polygon, {style: {color:"purple"}}))
-    
+
 
 })
-
-
-
-
