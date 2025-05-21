@@ -1,9 +1,13 @@
 import * as turf from '@turf/turf'
 import { Worker } from 'worker_threads'
 import os from 'os'
-import * as path from 'path'
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 import { generate } from './generateCoverageArea.js'
-import { setupGridAndBuildings, move, getRandomPointFromGrid } from './reinforcement.js'
+import { move, getRandomPointFromGrid, setupGridAndBuildings } from './reinforcement.js'
+// import { setupGridAndBuildings } from './aiWorker.js'
 
 const THREAD_COUNT = os.cpus().length
 let allPoints = []
@@ -13,27 +17,12 @@ let crimes = []
 let crimeCoords = {}
 let gridDensity = -1
 let distance = -1
+let fixedGrid = null
+let gridBuildings = []
+let gridMap = new Map()
 // const bearings = [0, , 45, 90, 135, 180, 225, 270]
 
-/**
- * Create a worker.
- * @param {array} chunk The array to work on.
- * @returns {Promise} The resulting Promise.
- */
-function createWorker(chunk, boundingBox) {
-  return new Promise(function (resolve, reject) {
-      const worker = new Worker(`./src/worker.js`, {
-          workerData: {chunk, boundingBox}
-      })
-      worker.on("message", (data) => {
-          worker.terminate()
-          resolve(data)
-      })
-      worker.on("error", (msg) => {
-          reject(`An error ocurred: ${msg}`)
-      })
-  })
-}
+
 
 /**
  *
@@ -108,9 +97,20 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
 
 function runWorker() {
   return new Promise((resolve, reject) => {
-    const worker = new Worker(path.resolve(__dirname, './aiWorker.js'));
+    const worker = new Worker(new URL('./aiWorker.js', import.meta.url), {
+      workerData: {
+        gridMap,
+        buildings,
+        gridBuildings,
+        bbox,
+        distance,
+        crimes,
+        crimeCoords,
+        gridDensity
+      }
+    });
 
-    worker.postMessage({ buildings, bbox, distance, crimes, crimeCoords, gridDensity});
+    // worker.postMessage({ buildings, bbox, distance, crimes, crimeCoords, gridDensity});
 
     worker.on('message', (result) => {
       resolve(result);
@@ -169,44 +169,66 @@ async function calculateScore(currentCam, currentPoint) {
 
 async function reinforcement(grid) {
 
-  await setupGridAndBuildings(grid, buildings, gridDensity)
-
-
-  let startPoint = await (await getRandomPointFromGrid()).geometry
-  let lastPoint = {}
-  let currentCam = {}
-  let i = 0
-
-  let startCam = await generate(buildings, bbox, [startPoint], distance)
-  startCam = startCam[0]
-  currentCam = startCam
-  lastPoint = startPoint
-  let lastScore = await calculateScore(startCam, startPoint)
-  allPoints.push( lastScore )
-
-  // console.log("start score: " + lastScore.camInfo.score)
-  let dir = await getRandomDirection()
-  while (i < 100) {
-    // let dir = await getRandomDirection()
-    let stepObject = await takeStepInGridCalculateScore(dir, lastPoint)
-
-    if (stepObject !== false) {
-      if (stepObject.score.camInfo.score > lastScore.camInfo.score) {
-        // dir = await getRandomDirection()
-        allPoints.push( stepObject.score )
-        lastPoint = stepObject.point.point.geometry
-        lastScore = stepObject.score
-
-      } else {
-        dir = await getRandomDirection()
-      }
-    } else {
-      // console.log("Hitting building or outside")
-      // console.log("Moving on")
-    }
-
-    i++
+  let data = await setupGridAndBuildings(grid, buildings, gridDensity)
+  gridMap = data.gridMap
+  gridBuildings = data.gridBuildings
+  // console.log(fixedGrid)
+  let results = await Promise.all(Array(THREAD_COUNT).fill().map(runWorker))
+  // let max = 0
+  // let sim = []
+  for (const simulation of results) {
+  //   console.log("Simulation lengths: " + simulation.length)
+  //   let temp = simulation[simulation.length-1].camInfo.score
+    console.log("Scores: " + simulation[simulation.length-1].camInfo.score)
+  //   if (temp > max) {
+  //     sim = simulation
+  //   }
+  //   max = temp > max ? temp : max
   }
+  // console.log("Best score found: " + sim[sim.length-1].camInfo.score)
+  // allPoints = sim
+  results.sort((a, b) => {
+    const scoreA = a[a.length - 1]?.camInfo?.score ?? 0;
+    const scoreB = b[b.length - 1]?.camInfo?.score ?? 0;
+    return scoreB - scoreA; // ascending order
+  })
+  console.log("Best score after sort: " + results[0][results[0].length-1].camInfo.score)
+
+  allPoints = results[0]
+  // let startPoint = await (await getRandomPointFromGrid()).geometry
+  // let lastPoint = {}
+  // let currentCam = {}
+  // let i = 0
+  // let startCam = await generate(buildings, bbox, [startPoint], distance)
+  // startCam = startCam[0]
+  // currentCam = startCam
+  // lastPoint = startPoint
+  // let lastScore = await calculateScore(startCam, startPoint)
+  // allPoints.push( lastScore )
+
+  // // console.log("start score: " + lastScore.camInfo.score)
+  // let dir = await getRandomDirection()
+  // while (i < 100) {
+  //   // let dir = await getRandomDirection()
+  //   let stepObject = await takeStepInGridCalculateScore(dir, lastPoint)
+
+  //   if (stepObject !== false) {
+  //     if (stepObject.score.camInfo.score > lastScore.camInfo.score) {
+  //       // dir = await getRandomDirection()
+  //       allPoints.push( stepObject.score )
+  //       lastPoint = stepObject.point.point.geometry
+  //       lastScore = stepObject.score
+
+  //     } else {
+  //       dir = await getRandomDirection()
+  //     }
+  //   } else {
+  //     // console.log("Hitting building or outside")
+  //     // console.log("Moving on")
+  //   }
+
+  //   i++
+  // }
 
   // for (const item of allPoints) {
   //   console.log("###########################")

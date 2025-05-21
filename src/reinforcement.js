@@ -79,16 +79,18 @@ async function setupBuildings(buildings) {
       geometry: building.geometry
     }
   })
+  return gridBuildings
 }
 async function setupGridAndBuildings(grid, buildings, gridDensity) {
   gridMap = new Map()
   stepSizeMeters = gridDensity
-  await setupBuildings(buildings)
+  gridBuildings = await setupBuildings(buildings)
 
   for (const point of grid.features) {
     const key = point.geometry.coordinates.map(c => c.toFixed(6)).join(',')
     gridMap.set(key, point)
   }
+  return {gridMap: gridMap, gridBuildings: gridBuildings}
   // console.log(gridMap)
 }
 

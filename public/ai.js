@@ -41,7 +41,7 @@ async function runAI() {
 
       const data = await response.json();
       bruteForceData = data
-      console.log(bruteForceData)
+      // console.log(bruteForceData)
       L.geoJSON(data.result.gridArea, {
         pointToLayer: (feature, latlng) =>
           L.circleMarker(latlng, {

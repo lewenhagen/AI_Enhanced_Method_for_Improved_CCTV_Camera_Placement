@@ -153,10 +153,16 @@ app.post("/run-ai", async (req, res) => {
     response.result = await runAi(aiData)
     console.timeEnd("### Generate grid calculations")
 
-    console.log(`
-Grid size: ${response.result.gridArea.features.length}
-Generated camera points: ${response.result.allPoints.length}
-    `)
+    console.log(`Grid size: ${response.result.gridArea.features.length}`)
+
+    // for (const index in response.result.allPoints) {
+    //   console.log(`Simulation ${index+1} steps: ${response.result.allPoints[index].length}`)
+    // }
+
+    // if (aiData.useReinforcement) {
+    //   let max = []
+    // }
+
     if (!aiData.useReinforcement) {
       response.result.allPoints.sort((a, b) => {
         return (

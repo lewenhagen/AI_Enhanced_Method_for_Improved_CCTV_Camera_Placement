@@ -1,4 +1,4 @@
-async function calculateScore(currentCam, currentPoint) {
+async function calculateScore(currentCam, currentPoint, crimeCoords, crimes) {
   let totalCount = 0
   let totalDistance = 0
   let crimeCount = 0
@@ -51,7 +51,7 @@ async function getRandomDirection() {
   return poppedDirection
 }
 
-async function takeStepInGridCalculateScore(dir, currentPoint) {
+async function takeStepInGridCalculateScore(dir, currentPoint, buildings, bbox, distance) {
   let currentCam = await generate(buildings, bbox, [currentPoint], distance)
   currentCam = currentCam[0]
   let nextPoint = await move(currentPoint, dir)
