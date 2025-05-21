@@ -153,7 +153,7 @@ app.post("/run-ai", async (req, res) => {
     response.result = await runAi(aiData)
     console.timeEnd("### Generate grid calculations")
 
-    console.log(`Grid size: ${response.result.gridArea.features.length}`)
+    console.log(`Grid size: ${response.result.gridArea.features.length} points`)
 
     // for (const index in response.result.allPoints) {
     //   console.log(`Simulation ${index+1} steps: ${response.result.allPoints[index].length}`)

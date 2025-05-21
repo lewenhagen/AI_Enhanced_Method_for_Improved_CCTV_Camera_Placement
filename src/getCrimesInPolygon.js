@@ -14,7 +14,7 @@ async function getCrimesInPolygon(boundingBox, buildings) {
 
   try {
       await client.connect()
-      console.log("Connected to MongoDB")
+      console.log("Connected to database")
 
       try {
           const crimesInPolygon = await collection.find({
@@ -28,7 +28,7 @@ async function getCrimesInPolygon(boundingBox, buildings) {
             }
           }).toArray()
 
-          console.log("Finished getting batch")
+          // console.log("Finished getting batch")
           
           await client.close()
           
