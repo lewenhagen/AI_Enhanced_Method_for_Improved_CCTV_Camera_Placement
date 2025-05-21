@@ -171,9 +171,10 @@ app.post("/run-ai", async (req, res) => {
           a.totalDistance - b.totalDistance        // Sort last on the distance
         )
       })
+      console.log("Bruteforce best score: " + response.result.allPoints[0].camInfo.score)
     }
 
-    // console.log(response.result.allPoints[0].camInfo.score)
+    
 
     // console.log(`
     //   Current:

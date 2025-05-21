@@ -172,19 +172,20 @@ async function reinforcement(grid) {
   let results = await Promise.all(Array(THREAD_COUNT).fill().map(runWorker))
   console.timeEnd("### Worker time")
   
-  for (const i in results) {
-    let index = parseInt(i) + 1 
-    console.log(`End score for simulation: ${index}: ${results[i][results[i].length-1].camInfo.score}`)
-  }
+  
   
   results.sort((a, b) => {
     const scoreA = a[a.length - 1]?.camInfo?.score ?? 0
     const scoreB = b[b.length - 1]?.camInfo?.score ?? 0
     return scoreB - scoreA
   })
+  for (const i in results) {
+    let index = parseInt(i) + 1 
+    console.log(`Simulation ${index}: Score ${results[i][results[i].length-1].camInfo.score}, steps taken ${results[i].length}`)
+  }
   console.log("Best score after sort: " + results[0][results[0].length-1].camInfo.score)
 
-  allPoints = results[0]
+  allPoints = results
 }
 
 
@@ -217,7 +218,7 @@ async function runAi(data) {
 
     if (data.useReinforcement) {
       await reinforcement(gridArea)
-      console.log("Number of steps: " + allPoints.length)
+      // console.log("Number of steps: " + THREAD_COUNT)
 
     } else {
       let features = gridArea.features

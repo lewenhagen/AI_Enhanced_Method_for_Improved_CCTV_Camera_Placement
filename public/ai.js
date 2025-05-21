@@ -4,6 +4,8 @@ const cancelButton = document.getElementById("cancelButton")
 const loadAiBtn = document.getElementById("loadAiBtn")
 const animate = document.getElementById("animate")
 const theBestBtn = document.getElementById("getBest")
+const simulations = document.getElementById("simulations")
+let allCrimes = null
 
 let bruteForceData = []
 let myInterval = null
@@ -47,18 +49,21 @@ async function runAI() {
           L.circleMarker(latlng, {
             radius: 0.05,
             color: 'black',
-            fillOpacity: 1
+            fillOpacity: 1,
+            interactive: false
           })
       }).addTo(drawnAi)
 
       animate.disabled = false
       theBestBtn.disabled = false
+      simulations.disabled = false
+      simulations.max = bruteForceData.result.allPoints.length
 
   } catch (error) {
       console.error('Error fetching:', error);
       await new Promise(resolve => setTimeout(resolve, 1000)); // Retry after 1 second
   }
-
+  drawCrimes(allCrimes)
 }
 
 
@@ -82,12 +87,12 @@ function drawCrimes(crimes) {
       geometry: {
         type: "Point",
         coordinates: [
-          parseFloat(crimes[crime].feature.coordinates[0]),  // Convert to number
-          parseFloat(crimes[crime].feature.coordinates[1])    // Convert to number
+          parseFloat(crimes[crime].feature.coordinates[0]), 
+          parseFloat(crimes[crime].feature.coordinates[1])
         ]
       },
       properties: {
-        codes: `${Object.keys(crimes[crime].codes).toString()}}`,
+        // codes: `${Object.keys(crimes[crime].codes).toString()}}`,
         count: crimes[crime].count
       }
     }))
@@ -95,11 +100,19 @@ function drawCrimes(crimes) {
   L.geoJSON(geojsonPoints, {
     pointToLayer: (feature, latlng) =>
       L.circleMarker(latlng, {
-        radius: 5,             // Adjust size
-        color: "red",          // Border color
-        fillColor: "red",      // Fill color
-        fillOpacity: 1         // Solid fill
-      }).bindPopup(`Crimes: ${feature.properties.count} Codes: ${feature.properties.codes.split(",").length})`)
+        radius: 5,             
+        color: "red",          
+        fillColor: "red",      
+        fillOpacity: 1,     
+        interactive: true    
+      }),
+      onEachFeature: (feature, layer) => {
+        const crimeCount = feature.properties.count;
+        layer.on('click', () => console.log('clicked:', feature));
+        // const codeCount = feature.properties.codes.split(",").length;
+        layer.bindPopup(`Crimes: ${crimeCount}`);
+        layer.bringToFront()
+      }
   }).addTo(drawnAi)
 
 }
@@ -124,8 +137,8 @@ let drawnItems = new L.FeatureGroup()
 let drawnAi = new L.FeatureGroup()
 
 map.addLayer(drawnItems)
-map.addLayer(drawnAi)
 map.addLayer(baseLine)
+map.addLayer(drawnAi)
 
 // let drawControl = new L.Control.Draw({
 //     edit: {
@@ -145,9 +158,9 @@ L.control.polylineMeasure({
 }).addTo(map)
 
 
-map.on("click", function(e) {
-  console.log(e.latlng.lng, e.latlng.lat)
-})
+// map.on("click", function(e) {
+//   console.log(e.latlng.lng, e.latlng.lat)
+// })
 
 
 
@@ -182,42 +195,62 @@ loadAiBtn.addEventListener("click", async function(event) {
     drawBoundingBox(json.data.boundingBox)
     drawBoundingBoxWithoutBuildings()
     drawBuildings(json.data.buildings)
-    drawCrimes(json.data.crimes)
+    allCrimes = json.data.crimes
+    // drawCrimes(json.data.crimes)
 
     await runAI()
 })
 
 animate.addEventListener("click", function(event) {
   let i = 0
-
+  let max = null
+  let simulation = parseInt(simulations.value) - 1
   myInterval = setInterval(function() {
-    if (i === bruteForceData.length-1) {
-      clearInterval(myInterval)
-    }
+    
     drawnItems.clearLayers()
-    let layer = L.geoJSON(bruteForceData.result.allPoints[i].camInfo.center).bindPopup(`
-      Score: ${bruteForceData.result.allPoints[i].camInfo.score}<br>
-      Area: ${bruteForceData.result.allPoints[i].camInfo.area.toFixed(2).toString()}<br>
-      Total count: ${bruteForceData.result.allPoints[i].totalCount}<br>
-      Total distance (m): ${bruteForceData.result.allPoints[i].totalDistance.toFixed(2)}<br>
-      Unique crime coordinates: ${bruteForceData.result.allPoints[i].totalCrimeCount}`)
+
+    let pointData;
+    if (!document.getElementById("reinforcement").checked) {
+      pointData = bruteForceData.result.allPoints[i]
+      max = bruteForceData.result.allPoints.length
+    } else {
+      pointData = bruteForceData.result.allPoints[simulation][i]
+      max = bruteForceData.result.allPoints[simulation].length
+    }
+    // console.log("here:", pointData)
+    let layer = L.geoJSON(pointData.camInfo.center).bindPopup(`
+      Score: ${pointData.camInfo.score}<br>
+      Area: ${pointData.camInfo.area.toFixed(2).toString()}<br>
+      Total count: ${pointData.totalCount}<br>
+      Total distance (m): ${pointData.totalDistance.toFixed(2)}<br>
+      Unique crime coordinates: ${pointData.totalCrimeCount}`)
 
     drawnItems.addLayer(layer)
+    drawnItems.bringToBack()
     layer.openPopup()
-    drawnItems.addLayer(L.geoJSON(bruteForceData.result.allPoints[i].camInfo.polygon, {style: {color:"purple"}}))
+    drawnItems.addLayer(L.geoJSON(pointData.camInfo.polygon, {style: {color:"purple"}, interactive: false}))
+    // drawnAi.bringToFront()
+    if (i === max-1) {
+      clearInterval(myInterval)
+      // myInterval = null
+      return
+    }
 
     i++
-  }, 2000)
+  }, 1500)
 })
 
 theBestBtn.addEventListener("click", function(event) {
+    let simulation = parseInt(simulations.value)-1
+    let chosenSimulation = bruteForceData.result.allPoints[simulation]
     drawnItems.clearLayers()
     clearInterval(myInterval)
+    myInterval = null
     let useThis = {}
     if (document.getElementById("reinforcement").checked) {
-      useThis = bruteForceData.result.allPoints[bruteForceData.result.allPoints.length-1]
+      useThis = chosenSimulation[chosenSimulation.length-1]
     } else {
-      useThis = bruteForceData.result.allPoints[0]
+      useThis = chosenSimulation
     }
     let layer = L.geoJSON(useThis.camInfo.center).bindPopup(`
       Score: ${useThis.camInfo.score}<br>
@@ -229,6 +262,6 @@ theBestBtn.addEventListener("click", function(event) {
     drawnItems.addLayer(layer)
     layer.openPopup()
     drawnItems.addLayer(L.geoJSON(useThis.camInfo.polygon, {style: {color:"purple"}}))
-
+    drawnItems.bringToBack()  
 
 })

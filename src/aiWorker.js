@@ -51,9 +51,14 @@ function isPointInBuilding(point) {
 async function move(currentPoint, direction) {
   const bearing = directionBearings[direction]
   let candidate = currentPoint
+  const isDiagonal = direction.includes("upRight") ||
+                   direction.includes("upLeft") ||
+                   direction.includes("downRight") ||
+                   direction.includes("downLeft")
 
+  const stepDistance = isDiagonal ? gridDensity * Math.SQRT2 : gridDensity
   while (true) {
-    const next = turf.destination(candidate, gridDensity, bearing, { units: 'meters' })
+    const next = turf.destination(candidate, stepDistance, bearing, { units: 'meters' })
     const nextCoords = next.geometry.coordinates.map(c => c.toFixed(6)).join(',')
 
     if (isPointInBuilding(next)) {
@@ -62,7 +67,7 @@ async function move(currentPoint, direction) {
     }
 
     if (!isPointInGrid(next)) {
-      return { success: false, message: "Outside the grid boundary or hit a building." }
+      return { success: false, message: "Outside the grid boundary." }
     }
 
     // In grid
@@ -111,7 +116,8 @@ async function calculateScore(currentCam, currentPoint, crimeCoords, crimes) {
 
     if (turf.booleanPointInPolygon(crimeAsPoint, currentCam.polygon)) {
       let distance = turf.distance(currentPoint, crimeAsPoint) * 1000
-
+      // console.log(distance)
+      
       currentCam.connectedCrimes.push({
         crimeInfo: crimes[coord],
         distance: distance,
@@ -128,7 +134,11 @@ async function calculateScore(currentCam, currentPoint, crimeCoords, crimes) {
     for (const crime of currentCam.connectedCrimes) {
       allPreScore += crime.prescore
     }
-
+    if ((allPreScore / totalCount) > 1) {
+      console.log("allPreScore: " + allPreScore)
+      console.log("totalCount: " + totalCount)
+      console.log("divided: " + allPreScore / totalCount)
+    }
     currentCam.score = parseFloat((allPreScore / totalCount).toFixed(4)) || 0
   }
 
@@ -141,9 +151,9 @@ async function calculateScore(currentCam, currentPoint, crimeCoords, crimes) {
 }
 
 async function getRandomDirection() {
-  let directions = ["up", "down", "left", "right"]
+  let directions = ["up", "down", "left", "right", "upLeft", "downLeft", "upRight", "downRight"]
   if (directions.length === 0) {
-    directions = ["up", "down", "left", "right"]
+    directions = ["up", "down", "left", "right", "upLeft", "downLeft", "upRight", "downRight"]
   }
   const randomIndex = Math.floor(Math.random() * directions.length)
   const poppedDirection = directions.splice(randomIndex, 1)[0]
@@ -161,8 +171,8 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
   if (!nextPoint.success) {
     return false
   }
-  
-  let scoreObject = await calculateScore(currentCam, nextPoint.point.geometry, crimeCoords, crimes)
+  let scoreObject = {}
+  scoreObject = await calculateScore(currentCam, nextPoint.point.geometry, crimeCoords, crimes)
     return {
       point: nextPoint,
       score: scoreObject
@@ -178,31 +188,37 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
     startCam = startCam[0]
 
     let lastScore = await calculateScore(startCam, startPoint, crimeCoords, crimes)
-    simulationPoints.push(lastScore);
+    simulationPoints.push(lastScore)
 
     let dir = await getRandomDirection()
 
     let i = 0;
-    while (i < 10) {
-
+    while (i < 100) {
+        dir = await getRandomDirection()        
         let stepObject = await takeStepInGridCalculateScore(dir, lastPoint)
 
+        // If correct move
         if (stepObject !== false) {
+            // If score is higher
             if (stepObject.score.camInfo.score > lastScore.camInfo.score) {
                 simulationPoints.push(stepObject.score)
                 lastPoint = stepObject.point.point.geometry
                 lastScore = stepObject.score
 
             } else {
-                let oldDir = dir;
+                // If score is lower
+                // let oldDir = dir;
                 dir = await getRandomDirection()
-                while (dir !== oldDir) {
-                  dir = await getRandomDirection()
-                }
+                // while (dir !== oldDir) {
+                //   dir = await getRandomDirection()
+                // }
             }
+            i++;
+        } else {
+          // If outside or in building
         }
 
-        i++;
+        // i++
     }
     // console.log(simulationPoints)
     parentPort.postMessage(simulationPoints)
