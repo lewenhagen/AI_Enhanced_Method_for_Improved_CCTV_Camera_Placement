@@ -17,12 +17,6 @@ const {
     gridDensity
 } = workerData
 
-let stepSizeMeters = -1
-// let gridMap = new Map()
-// let gridBuildings = {
-//   type: "FeatureCollection",
-//   features: []
-// }
 
 const directionBearings = {
   up: 0,
@@ -63,8 +57,6 @@ async function move(currentPoint, direction) {
     const nextCoords = next.geometry.coordinates.map(c => c.toFixed(6)).join(',')
 
     if (isPointInBuilding(next)) {
-      // console.log("In building, stepping over to the next point...")
-
       candidate = next
       continue
     }
@@ -128,18 +120,16 @@ async function calculateScore(currentCam, currentPoint, crimeCoords, crimes) {
       })
 
       crimeCount++
-      totalCount += crimes[coord].count // denna sist
+      totalCount += crimes[coord].count
       totalDistance += distance
     }
-    // calculate score here!!
-    // currentCam.score = 0
+    
     let allPreScore = 0
     for (const crime of currentCam.connectedCrimes) {
       allPreScore += crime.prescore
     }
 
     currentCam.score = parseFloat((allPreScore / totalCount).toFixed(4)) || 0
-
   }
 
   return {
@@ -165,55 +155,57 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
 
   let currentCam = await generate(buildings, bbox, [currentPoint], distance)
   currentCam = currentCam[0]
-//   console.log(currentCam)
+
   let nextPoint = await move(currentPoint, dir)
-  // console.log(nextPoint.success)
+ 
   if (!nextPoint.success) {
     return false
   }
-  // let camCoverage = await generate(buildings, bbox, [nextPoint.point.geometry], distance)
-  // camCoverage = camCoverage[0]
-
+  
   let scoreObject = await calculateScore(currentCam, nextPoint.point.geometry, crimeCoords, crimes)
-
-  return {point: nextPoint, score: scoreObject}
-}
+    return {
+      point: nextPoint,
+      score: scoreObject
+    }
+  }
 
 (async () => {
-    let startPoint = (await getRandomPointFromGrid()).geometry;
-    let lastPoint = startPoint;
-    let allPoints = [];
+    let startPoint = (await getRandomPointFromGrid()).geometry
+    let lastPoint = startPoint
+    let simulationPoints = []
 
-    let startCam = await generate(buildings, bbox, [startPoint], distance);
-    startCam = startCam[0];
+    let startCam = await generate(buildings, bbox, [startPoint], distance)
+    startCam = startCam[0]
 
-    let lastScore = await calculateScore(startCam, startPoint, crimeCoords, crimes);
-    allPoints.push(lastScore);
+    let lastScore = await calculateScore(startCam, startPoint, crimeCoords, crimes)
+    simulationPoints.push(lastScore);
 
-    let dir = await getRandomDirection();
+    let dir = await getRandomDirection()
 
     let i = 0;
-    while (i < 100) {
+    while (i < 10) {
 
-        let stepObject = await takeStepInGridCalculateScore(dir, lastPoint);
+        let stepObject = await takeStepInGridCalculateScore(dir, lastPoint)
 
         if (stepObject !== false) {
             if (stepObject.score.camInfo.score > lastScore.camInfo.score) {
-                allPoints.push(stepObject.score);
-                lastPoint = stepObject.point.point.geometry;
-                lastScore = stepObject.score;
-                // console.log("stepping")
+                simulationPoints.push(stepObject.score)
+                lastPoint = stepObject.point.point.geometry
+                lastScore = stepObject.score
 
             } else {
-                dir = await getRandomDirection();
-                // console.log("changing direction")
+                let oldDir = dir;
+                dir = await getRandomDirection()
+                while (dir !== oldDir) {
+                  dir = await getRandomDirection()
+                }
             }
         }
 
         i++;
     }
-    // console.log(allPoints)
-    parentPort.postMessage(allPoints)
+    // console.log(simulationPoints)
+    parentPort.postMessage(simulationPoints)
 })()
 // parentPort.on('message', async ({ buildings, bbox, distance, crimes, crimeCoords }) => {
 //   console.log(await getRandomPointFromGrid())

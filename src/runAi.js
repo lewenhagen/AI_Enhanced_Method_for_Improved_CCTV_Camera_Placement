@@ -1,7 +1,7 @@
 import * as turf from '@turf/turf'
 import { Worker } from 'worker_threads'
 import os from 'os'
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from 'url'
 
 
 import { generate } from './generateCoverageArea.js'
@@ -106,19 +106,19 @@ function runWorker() {
         crimeCoords,
         gridDensity
       }
-    });
+    })
 
     worker.on('message', (result) => {
-      resolve(result);
-    });
+      resolve(result)
+    })
 
-    worker.on('error', reject);
+    worker.on('error', reject)
     worker.on('exit', (code) => {
       if (code !== 0) {
-        reject(new Error(`Worker exited with code ${code}`));
+        reject(new Error(`Worker exited with code ${code}`))
       }
-    });
-  });
+    })
+  })
 }
 
 async function calculateScore(currentCam, currentPoint) {
@@ -172,14 +172,15 @@ async function reinforcement(grid) {
   let results = await Promise.all(Array(THREAD_COUNT).fill().map(runWorker))
   console.timeEnd("### Worker time")
   
-  for (const index in results) {
-    console.log(`End score for simulation: ${index+1}: ${results[index][results[index].length-1].camInfo.score}`)
+  for (const i in results) {
+    let index = parseInt(i) + 1 
+    console.log(`End score for simulation: ${index}: ${results[i][results[i].length-1].camInfo.score}`)
   }
   
   results.sort((a, b) => {
-    const scoreA = a[a.length - 1]?.camInfo?.score ?? 0;
-    const scoreB = b[b.length - 1]?.camInfo?.score ?? 0;
-    return scoreB - scoreA; // ascending order
+    const scoreA = a[a.length - 1]?.camInfo?.score ?? 0
+    const scoreB = b[b.length - 1]?.camInfo?.score ?? 0
+    return scoreB - scoreA
   })
   console.log("Best score after sort: " + results[0][results[0].length-1].camInfo.score)
 
@@ -222,8 +223,8 @@ async function runAi(data) {
       let features = gridArea.features
       await Promise.all(
         features.map(async (current) => {
-          let point = current.geometry;
-          await bruteForce(point, crimes, crimeCoords, bbox, buildings, data.distance);
+          let point = current.geometry
+          await bruteForce(point, crimes, crimeCoords, bbox, buildings, data.distance)
         })
       )
     }
