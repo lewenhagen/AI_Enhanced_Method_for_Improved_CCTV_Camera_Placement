@@ -117,7 +117,7 @@ async function calculateScore(currentCam, currentPoint, crimeCoords, crimes) {
     if (turf.booleanPointInPolygon(crimeAsPoint, currentCam.polygon)) {
       let distance = turf.distance(currentPoint, crimeAsPoint) * 1000
       // console.log(distance)
-      
+
       currentCam.connectedCrimes.push({
         crimeInfo: crimes[coord],
         distance: distance,
@@ -129,7 +129,7 @@ async function calculateScore(currentCam, currentPoint, crimeCoords, crimes) {
       totalCount += crimes[coord].count
       totalDistance += distance
     }
-    
+
     let allPreScore = 0
     for (const crime of currentCam.connectedCrimes) {
       allPreScore += crime.prescore
@@ -157,20 +157,23 @@ async function getRandomDirection() {
   }
   const randomIndex = Math.floor(Math.random() * directions.length)
   const poppedDirection = directions.splice(randomIndex, 1)[0]
-
-  return poppedDirection
+  // console.log(directions[randomIndex])
+  return directions[Math.floor(Math.random() * directions.length)]//poppedDirection
 }
 
 async function takeStepInGridCalculateScore(dir, currentPoint) {
 
-  let currentCam = await generate(buildings, bbox, [currentPoint], distance)
-  currentCam = currentCam[0]
+  // let currentCam = await generate(buildings, bbox, [currentPoint], distance)
+  // currentCam = currentCam[0]
 
   let nextPoint = await move(currentPoint, dir)
- 
+
   if (!nextPoint.success) {
     return false
   }
+
+  let currentCam = await generate(buildings, bbox, [nextPoint.point.geometry], distance)
+  currentCam = currentCam[0]
   let scoreObject = {}
   scoreObject = await calculateScore(currentCam, nextPoint.point.geometry, crimeCoords, crimes)
     return {
@@ -194,11 +197,12 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
 
     let i = 0;
     while (i < 100) {
-        dir = await getRandomDirection()        
+        dir = await getRandomDirection()
         let stepObject = await takeStepInGridCalculateScore(dir, lastPoint)
 
         // If correct move
         if (stepObject !== false) {
+
             // If score is higher
             if (stepObject.score.camInfo.score > lastScore.camInfo.score) {
                 simulationPoints.push(stepObject.score)
