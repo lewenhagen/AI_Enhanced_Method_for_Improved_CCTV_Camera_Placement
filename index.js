@@ -166,8 +166,10 @@ app.post("/run-ai", async (req, res) => {
     if (!aiData.useReinforcement) {
       response.result.allPoints.sort((a, b) => {
         return (
+          // b.camInfo.score - a.camInfo.score
+          b.totalCount - a.totalCount ||
           b.totalCrimeCount - a.totalCrimeCount || // Sort first on unique crime coordinates
-          b.totalCount - a.totalCount ||           // Sort second on total crime occurances
+                     // Sort second on total crime occurances
           a.totalDistance - b.totalDistance        // Sort last on the distance
         )
       })

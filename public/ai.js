@@ -223,7 +223,8 @@ animate.addEventListener("click", function(event) {
       Area: ${pointData.camInfo.area.toFixed(2).toString()}<br>
       Total count: ${pointData.totalCount}<br>
       Total distance (m): ${pointData.totalDistance.toFixed(2)}<br>
-      Unique crime coordinates: ${pointData.totalCrimeCount}`)
+      Unique crime coordinates: ${pointData.totalCrimeCount}<br>
+      Point: ${i+1}/${max}`)
 
     drawnItems.addLayer(layer)
     drawnItems.bringToBack()

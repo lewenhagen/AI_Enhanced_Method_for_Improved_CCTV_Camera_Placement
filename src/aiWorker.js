@@ -116,6 +116,7 @@ async function calculateScore(currentCam, currentPoint, crimeCoords, crimes) {
 
     if (turf.booleanPointInPolygon(crimeAsPoint, currentCam.polygon)) {
       let distance = turf.distance(currentPoint, crimeAsPoint) * 1000
+      distance = distance < 1 ? 1 : distance
       // console.log(distance)
 
       currentCam.connectedCrimes.push({
@@ -134,11 +135,11 @@ async function calculateScore(currentCam, currentPoint, crimeCoords, crimes) {
     for (const crime of currentCam.connectedCrimes) {
       allPreScore += crime.prescore
     }
-    if ((allPreScore / totalCount) > 1) {
-      console.log("allPreScore: " + allPreScore)
-      console.log("totalCount: " + totalCount)
-      console.log("divided: " + allPreScore / totalCount)
-    }
+    // if ((allPreScore / totalCount) > 1) {
+    //   console.log("allPreScore: " + allPreScore)
+    //   console.log("totalCount: " + totalCount)
+    //   console.log("divided: " + allPreScore / totalCount)
+    // }
     currentCam.score = parseFloat((allPreScore / totalCount).toFixed(4)) || 0
   }
 
