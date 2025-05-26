@@ -224,6 +224,7 @@ animate.addEventListener("click", function(event) {
       Total count: ${pointData.totalCount}<br>
       Total distance (m): ${pointData.totalDistance.toFixed(2)}<br>
       Unique crime coordinates: ${pointData.totalCrimeCount}<br>
+      Coordinates (lat/lng): ${pointData.camInfo.center.coordinates[1].toFixed(4)}, ${pointData.camInfo.center.coordinates[0].toFixed(4)}<br>
       Point: ${i+1}/${max}`)
 
     drawnItems.addLayer(layer)
@@ -258,8 +259,9 @@ theBestBtn.addEventListener("click", function(event) {
       Area: ${useThis.camInfo.area.toFixed(2).toString()}<br>
       Total count: ${useThis.totalCount}<br>
       Total distance (m): ${useThis.totalDistance.toFixed(2)}<br>
-      Unique crime coordinates: ${useThis.totalCrimeCount}`)
-
+      Unique crime coordinates: ${useThis.totalCrimeCount}<br>
+      Coordinates (lat/lng): ${useThis.camInfo.center.coordinates[1].toFixed(4)}, ${useThis.camInfo.center.coordinates[0].toFixed(4)}`)
+    console.log(useThis)
     drawnItems.addLayer(layer)
     layer.openPopup()
     drawnItems.addLayer(L.geoJSON(useThis.camInfo.polygon, {style: {color:"purple"}}))
