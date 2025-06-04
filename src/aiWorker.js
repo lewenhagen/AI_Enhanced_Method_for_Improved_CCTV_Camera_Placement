@@ -62,6 +62,7 @@ async function move(currentPoint, direction) {
     const nextCoords = next.geometry.coordinates.map(c => c.toFixed(6)).join(',')
 
     if (isPointInBuilding(next)) {
+      // return { success: false, message: "Inside building." }
       candidate = next
       continue
     }
