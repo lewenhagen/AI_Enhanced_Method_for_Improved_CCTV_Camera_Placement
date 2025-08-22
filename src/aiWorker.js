@@ -6,6 +6,12 @@ import * as turf from '@turf/turf'
 import { generate } from "./generateCoverageArea.js"
 // import { getRandomDirection, calculateScore } from "./aiWorkerFunctions.js";
 
+let startPositions = []
+
+
+
+// startPositions.sort()
+
 const {
     gridMap,
     buildings,
@@ -14,9 +20,9 @@ const {
     distance,
     crimes,
     crimeCoords,
-    gridDensity
+    gridDensity,
+    workerId
 } = workerData
-
 
 const directionBearings = {
   up: 0,
@@ -28,6 +34,25 @@ const directionBearings = {
   left: 270,
   upLeft: 315
 }
+
+for (let i = 0; i < 100; i++) {
+  let point = (await getRandomPointFromGrid()).geometry
+  let temp = await generate(buildings, bbox, [point], distance)
+  temp = temp[0]
+  let scoreObject = await calculateScore(temp, point, crimeCoords, crimes)
+  startPositions.push(scoreObject)
+}
+
+startPositions.sort((a, b) => {
+  return (
+    b.camInfo.score - a.camInfo.score
+  )
+})
+
+let top20 = startPositions.slice(0, 10)
+// console.log(top20)
+// console.log(startPositions[0].camInfo)
+// console.log(startPositions[startPositions.length-1].camInfo.score)
 
 async function getRandomPointFromGrid() {
   const values = Array.from(gridMap.values())
@@ -62,9 +87,9 @@ async function move(currentPoint, direction) {
     const nextCoords = next.geometry.coordinates.map(c => c.toFixed(6)).join(',')
 
     if (isPointInBuilding(next)) {
-      // return { success: false, message: "Inside building." }
-      candidate = next
-      continue
+      return { success: false, message: "Inside building." }
+      // candidate = next
+      // continue
     }
 
     if (!isPointInGrid(next)) {
@@ -124,7 +149,7 @@ async function calculateScore(currentCam, currentPoint, crimeCoords, crimes) {
         crimeInfo: crimes[coord],
         distance: distance,
         uniqueCount: crimes[coord].count,
-        prescore: crimes[coord].count / distance
+        prescore: crimes[coord].count / Math.max(1, distance*0)
       })
 
       crimeCount++
@@ -185,7 +210,9 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
   }
 
 (async () => {
-    let startPoint = (await getRandomPointFromGrid()).geometry
+    console.time(`Worker: ${workerId}`)
+    // let startPoint = (await getRandomPointFromGrid()).geometry
+    let startPoint = top20[Math.floor(Math.random() * top20.length)].camInfo.center  //startPositions[0].camInfo.center
     let lastPoint = startPoint
     let simulationPoints = []
 
@@ -198,23 +225,31 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
     let dir = await getRandomDirection()
 
     let i = 0;
-    while (i < 100) {
+    while (i < 30) {
+        // console.log(i)
         dir = await getRandomDirection()
         let stepObject = await takeStepInGridCalculateScore(dir, lastPoint)
-
+        // console.log(stepObject)
         // If correct move
         if (stepObject !== false) {
-
+            let temp = 0
             // If score is higher
             if (stepObject.score.camInfo.score > lastScore.camInfo.score) {
                 simulationPoints.push(stepObject.score)
                 lastPoint = stepObject.point.point.geometry
                 lastScore = stepObject.score
+                // i++;
 
             } else {
+              // temp++
+              // if (temp === 6) {
+              //   i++
+              //   temp = 0
+              // }
                 // If score is lower
                 // let oldDir = dir;
                 dir = await getRandomDirection()
+                // continue
                 // while (dir !== oldDir) {
                 //   dir = await getRandomDirection()
                 // }
@@ -227,6 +262,7 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
         // i++
     }
     // console.log(simulationPoints)
+    console.timeEnd(`Worker: ${workerId}`)
     parentPort.postMessage(simulationPoints)
 })()
 // parentPort.on('message', async ({ buildings, bbox, distance, crimes, crimeCoords }) => {

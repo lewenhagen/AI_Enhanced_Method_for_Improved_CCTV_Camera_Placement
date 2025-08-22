@@ -8,6 +8,7 @@ import { generate } from './generateCoverageArea.js'
 import { setupGridAndBuildings } from './reinforcement.js'
 // import { setupGridAndBuildings } from './aiWorker.js'
 
+let workerId = 0
 const THREAD_COUNT = os.cpus().length
 let allPoints = []
 let bbox = []
@@ -94,6 +95,7 @@ function createGridOvercaptureArea(centerLong, centerLat, buildings, distance, g
 // }
 
 function runWorker() {
+  workerId++
   return new Promise((resolve, reject) => {
     const worker = new Worker(new URL('./aiWorker.js', import.meta.url), {
       workerData: {
@@ -104,7 +106,8 @@ function runWorker() {
         distance,
         crimes,
         crimeCoords,
-        gridDensity
+        gridDensity,
+        workerId
       }
     })
 
@@ -144,7 +147,7 @@ async function calculateScore(currentCam, currentPoint) {
       totalCount += crimes[coord].count
       totalDistance += distance
     }
-    
+
     let allPreScore = 0
     for (const crime of currentCam.connectedCrimes) {
       allPreScore += crime.prescore
@@ -171,16 +174,16 @@ async function reinforcement(grid) {
   console.time("### Worker time")
   let results = await Promise.all(Array(THREAD_COUNT).fill().map(runWorker))
   console.timeEnd("### Worker time")
-  
-  
-  
+
+
+
   results.sort((a, b) => {
     const scoreA = a[a.length - 1]?.camInfo?.score ?? 0
     const scoreB = b[b.length - 1]?.camInfo?.score ?? 0
     return scoreB - scoreA
   })
   for (const i in results) {
-    let index = parseInt(i) + 1 
+    let index = parseInt(i) + 1
     console.log(`Simulation ${index}: Score ${results[i][results[i].length-1].camInfo.score}, steps taken ${results[i].length}`)
   }
   console.log("Best score after sort: " + results[0][results[0].length-1].camInfo.score)
@@ -229,7 +232,7 @@ async function runAi(data) {
         })
       )
     }
-  
+
     return {gridArea: gridArea, allPoints: allPoints}
 }
 

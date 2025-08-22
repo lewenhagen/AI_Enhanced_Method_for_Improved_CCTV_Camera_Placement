@@ -166,7 +166,7 @@ app.post("/run-ai", async (req, res) => {
     if (!aiData.useReinforcement) {
       response.result.allPoints.sort((a, b) => {
         return (
-          // b.camInfo.score - a.camInfo.score
+          b.camInfo.score - a.camInfo.score ||
           b.totalCount - a.totalCount ||
           b.totalCrimeCount - a.totalCrimeCount || // Sort first on unique crime coordinates
                      // Sort second on total crime occurances
@@ -176,7 +176,7 @@ app.post("/run-ai", async (req, res) => {
       console.log("Bruteforce best score: " + response.result.allPoints[0].camInfo.score)
     }
 
-    
+
 
     // console.log(`
     //   Current:
