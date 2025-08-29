@@ -11,6 +11,19 @@ let bruteForceData = []
 let myInterval = null
 let isPaused = false
 
+function getGrayFromOpacity(opacityScore) {
+  console.log(opacityScore)
+  const gray = Math.round((1 - opacityScore) * 255); // Invert to make higher score = darker
+  return `rgb(${gray}, ${gray}, ${gray})`;
+}
+
+function getColorFromScore(score) {
+
+  // Simple blue-to-red gradient
+  const r = Math.round(score * 255);
+  const b = Math.round((1 - score) * 255);
+  return `rgb(${r}, 0, ${b})`; // red to blue
+}
 
 
 async function drawBoundingBoxWithoutBuildings() {
@@ -41,18 +54,25 @@ async function runAI() {
           // body: JSON.stringify({ })
       });
 
-      const data = await response.json();
+      const data = await response.json()
       bruteForceData = data
-      // console.log(bruteForceData)
+      // console.log(data.result.gridArea)
+
       L.geoJSON(data.result.gridArea, {
         pointToLayer: (feature, latlng) =>
           L.circleMarker(latlng, {
-            radius: 0.05,
-            color: 'black',
+            radius: 3,
+            color: "black",
+
+            fillColor: getGrayFromOpacity(feature.properties.opacityScore),
             fillOpacity: 1,
+            opacity: 1,
             interactive: false
           })
+
       }).addTo(drawnAi)
+
+
 
       animate.disabled = false
       theBestBtn.disabled = false
@@ -87,7 +107,7 @@ function drawCrimes(crimes) {
       geometry: {
         type: "Point",
         coordinates: [
-          parseFloat(crimes[crime].feature.coordinates[0]), 
+          parseFloat(crimes[crime].feature.coordinates[0]),
           parseFloat(crimes[crime].feature.coordinates[1])
         ]
       },
@@ -100,11 +120,11 @@ function drawCrimes(crimes) {
   L.geoJSON(geojsonPoints, {
     pointToLayer: (feature, latlng) =>
       L.circleMarker(latlng, {
-        radius: 5,             
-        color: "red",          
-        fillColor: "red",      
-        fillOpacity: 1,     
-        interactive: true    
+        radius: 5,
+        color: "red",
+        fillColor: "red",
+        fillOpacity: 1,
+        interactive: true
       }),
       onEachFeature: (feature, layer) => {
         const crimeCount = feature.properties.count;
@@ -206,7 +226,7 @@ animate.addEventListener("click", function(event) {
   let max = null
   let simulation = parseInt(simulations.value) - 1
   myInterval = setInterval(function() {
-    
+
     drawnItems.clearLayers()
 
     let pointData;
@@ -265,6 +285,6 @@ theBestBtn.addEventListener("click", function(event) {
     drawnItems.addLayer(layer)
     layer.openPopup()
     drawnItems.addLayer(L.geoJSON(useThis.camInfo.polygon, {style: {color:"purple"}}))
-    drawnItems.bringToBack()  
+    drawnItems.bringToBack()
 
 })

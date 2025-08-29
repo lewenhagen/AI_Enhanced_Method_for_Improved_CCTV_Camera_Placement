@@ -19,6 +19,7 @@ let gridDensity = -1
 let distance = -1
 let gridBuildings = []
 let gridMap = new Map()
+let gridCounter = 0
 // const bearings = [0, , 45, 90, 135, 180, 225, 270]
 
 
@@ -153,7 +154,10 @@ async function calculateScore(currentCam, currentPoint) {
       allPreScore += crime.prescore
     }
 
-    currentCam.score = parseFloat((allPreScore / totalCount).toFixed(4))
+    let tempScore = parseFloat((allPreScore / totalCount).toFixed(4))
+    // console.log(tempScore || 0)
+
+    currentCam.score = tempScore || 0
 
   }
 
@@ -202,8 +206,11 @@ async function reinforcement(grid) {
  * @param {*} distance
  */
 async function bruteForce(camPoint, crimes, crimeCoords, bbox, buildings, distance) {
-  let current = camPoint
-  let currentCam = await generate(buildings, bbox, [current], distance)
+
+  // let current = camPoint
+  // camPoint.properties.id = gridCounter
+  gridCounter++
+  let currentCam = await generate(buildings, bbox, [camPoint], distance)
   currentCam = currentCam[0]
   let camObject = await calculateScore(currentCam, camPoint, crimeCoords, crimes)
   allPoints.push( camObject )

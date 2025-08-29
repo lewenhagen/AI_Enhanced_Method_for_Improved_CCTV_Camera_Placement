@@ -166,6 +166,7 @@ async function calculateScore(currentCam, currentPoint, crimeCoords, crimes) {
     //   console.log("totalCount: " + totalCount)
     //   console.log("divided: " + allPreScore / totalCount)
     // }
+
     currentCam.score = parseFloat((allPreScore / totalCount).toFixed(4)) || 0
   }
 
