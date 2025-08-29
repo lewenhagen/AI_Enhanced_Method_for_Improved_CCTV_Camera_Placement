@@ -137,14 +137,24 @@ async function calculateScore(currentCam, currentPoint, crimeCoords, crimes) {
   let crimeCount = 0
   currentCam.connectedCrimes = []
   currentCam.score = 0
+  // console.log(crimeCoords)
   for (const coord of crimeCoords) {
     let crimeAsPoint = turf.point([parseFloat(coord.split(",")[0]), parseFloat(coord.split(",")[1])])
 
+    // If the crime coordinate is inside the coverage area
     if (turf.booleanPointInPolygon(crimeAsPoint, currentCam.polygon)) {
+
+      // Distance from the camera to the crime (m)
       let distance = turf.distance(currentPoint, crimeAsPoint) * 1000
       distance = distance < 1 ? 1 : distance
       // console.log(distance)
-
+      
+      /**
+       * Adds the crime position to the cameras pool of "hits"
+       * crimeInfo = info about a crime
+       * distance = distance in meters
+       * uniqueCount (crimes[coord].count) = amount of crimes at the same coordinate, i.e. 3000 
+       */
       currentCam.connectedCrimes.push({
         crimeInfo: crimes[coord],
         distance: distance,
@@ -152,7 +162,12 @@ async function calculateScore(currentCam, currentPoint, crimeCoords, crimes) {
         prescore: crimes[coord].count / Math.max(1, distance*0)
       })
 
+      // Adds to the camera positions amount of crimes in coverage area
       crimeCount++
+
+      /** 
+       * totalCount holds the crimes reported, i.e. 3000
+       */
       totalCount += crimes[coord].count
       totalDistance += distance
     }

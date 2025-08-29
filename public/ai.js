@@ -11,18 +11,12 @@ let bruteForceData = []
 let myInterval = null
 let isPaused = false
 
-function getGrayFromOpacity(opacityScore) {
-  console.log(opacityScore)
-  const gray = Math.round((1 - opacityScore) * 255); // Invert to make higher score = darker
-  return `rgb(${gray}, ${gray}, ${gray})`;
+function getHeatmapColor(value) {
+  return chroma.scale(['red', 'yellow', 'green'])(value).hex();
 }
 
-function getColorFromScore(score) {
-
-  // Simple blue-to-red gradient
-  const r = Math.round(score * 255);
-  const b = Math.round((1 - score) * 255);
-  return `rgb(${r}, 0, ${b})`; // red to blue
+function scale (value) {
+  return chroma.scale(["#ffffffff", "#525151ff", "#000"])(value).hex()
 }
 
 
@@ -61,10 +55,12 @@ async function runAI() {
       L.geoJSON(data.result.gridArea, {
         pointToLayer: (feature, latlng) =>
           L.circleMarker(latlng, {
-            radius: 3,
-            color: "black",
-
-            fillColor: getGrayFromOpacity(feature.properties.opacityScore),
+            radius: 5,
+            // color: "black",
+            // color: getHeatmapColor(feature.properties.opacityScore),
+            // fillColor: getHeatmapColor(feature.properties.opacityScore),
+            color: scale(feature.properties.opacityScore),
+            fillColor: scale(feature.properties.opacityScore),
             fillOpacity: 1,
             opacity: 1,
             interactive: false
@@ -120,7 +116,7 @@ function drawCrimes(crimes) {
   L.geoJSON(geojsonPoints, {
     pointToLayer: (feature, latlng) =>
       L.circleMarker(latlng, {
-        radius: 5,
+        radius: 2,
         color: "red",
         fillColor: "red",
         fillOpacity: 1,
