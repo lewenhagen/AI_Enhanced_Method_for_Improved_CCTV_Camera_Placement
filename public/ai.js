@@ -12,7 +12,7 @@ let myInterval = null
 let isPaused = false
 
 function getHeatmapColor(value) {
-  return chroma.scale(['red', 'yellow', 'green'])(value).hex();
+  return chroma.scale(['red', 'yellow', '#006a02ff'])(value).hex();
 }
 
 function scale (value) {
@@ -59,8 +59,8 @@ async function runAI() {
             // color: "black",
             // color: getHeatmapColor(feature.properties.opacityScore),
             // fillColor: getHeatmapColor(feature.properties.opacityScore),
-            color: scale(feature.properties.opacityScore),
-            fillColor: scale(feature.properties.opacityScore),
+            color: getHeatmapColor(feature.properties.opacityScore),
+            fillColor: getHeatmapColor(feature.properties.opacityScore),
             fillOpacity: 1,
             opacity: 1,
             interactive: false

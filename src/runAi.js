@@ -127,11 +127,14 @@ function runWorker() {
 
 /**
  * This calculates score for Brute force.
- * @param {*} currentCam 
- * @param {*} currentPoint 
- * @returns 
+ * @param {*} currentCam
+ * @param {*} currentPoint
+ * @returns
  */
 async function calculateScore(currentCam, currentPoint) {
+  const PRESCORE_WEIGHT = 0.6
+  const CRIMECOUNT_WEIGHT = 1
+
   let totalCount = 0
   let totalDistance = 0
   let crimeCount = 0
@@ -147,31 +150,34 @@ async function calculateScore(currentCam, currentPoint) {
     if (turf.booleanPointInPolygon(crimeAsPoint, currentCam.polygon)) {
       let distance = turf.distance(currentPoint, crimeAsPoint) * 1000 // In meters
       distance = distance < 1 ? 1 : distance
-      
+
       /**
        * Adds the crime position to the cameras pool of "hits"
        * crimes[coord] = Crime info with amount of crimes at the same coordinate
        * crimeInfo = ^
        * distance = distance in meters
-       * uniqueCount (crimes[coord].count) = amount of crimes at the same coordinate, i.e. 3000 
+       * uniqueCount (crimes[coord].count) = the amount of crimes at the same coordinate, i.e. 500
        */
       let scoreObject = {
         crimeInfo: crimes[coord],
         distance: distance,
         uniqueCount: crimes[coord].count,
-        prescore: crimes[coord].count / distance
+        prescore: crimes[coord].count / Math.pow(distance, 0.3)
       }
+
+      /**
+       * Holds the camera positions summed prescore
+       */
+      allPreScore += scoreObject.prescore
 
       currentCam.connectedCrimes.push(scoreObject)
 
-      allPreScore += scoreObject.prescore
-      
       /**
        * Increase the camera positions pool of "hits"
        */
       crimeCount++
 
-      /** 
+      /**
        * totalCount holds the total crimes reported, i.e. 3000 for the camera position
        */
       totalCount += crimes[coord].count
@@ -185,15 +191,26 @@ async function calculateScore(currentCam, currentPoint) {
 
     let tempScore = parseFloat((allPreScore / totalCount).toFixed(4))
 
+    /**
+     * Set the score for the camera position, if not NaN
+     */
     currentCam.score = tempScore || 0
 
   }
-  console.log(crimes)
+  // console.log(crimes)
+
   /**
    * Work with crimeCount?
    */
-  currentCam.score = crimeCount / Object.keys(crimes).length
-  
+  // currentCam.score = crimeCount / Object.keys(crimes).length
+  const normalizedPreScore = allPreScore / totalCount || 0; // existing score base
+  const normalizedCrimeCount = crimeCount / Object.keys(crimes).length || 0; // % of total coords this camera covers
+
+  currentCam.score = parseFloat((
+    (PRESCORE_WEIGHT * normalizedPreScore) +
+    (CRIMECOUNT_WEIGHT * normalizedCrimeCount)
+  ).toFixed(4));
+
   return {
     "camInfo": currentCam,
     "totalCrimeCount": crimeCount, // unique crime coordinates
