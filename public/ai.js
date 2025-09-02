@@ -12,7 +12,12 @@ let myInterval = null
 let isPaused = false
 
 function getHeatmapColor(value) {
-  return chroma.scale(['red', 'yellow', '#006a02ff'])(value).hex();
+  if (value === undefined) {
+    return "#000"
+  } else {
+    return chroma.scale(['red', 'yellow', '#006a02ff'])(value).hex();
+  }
+  
 }
 
 function scale (value) {
@@ -55,7 +60,7 @@ async function runAI() {
       L.geoJSON(data.result.gridArea, {
         pointToLayer: (feature, latlng) =>
           L.circleMarker(latlng, {
-            radius: 5,
+            radius: 2,
             // color: "black",
             // color: getHeatmapColor(feature.properties.opacityScore),
             // fillColor: getHeatmapColor(feature.properties.opacityScore),

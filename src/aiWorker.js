@@ -4,6 +4,7 @@ import * as turf from '@turf/turf'
 
 // import { getRandomPointFromGrid } from "./reinforcement.js"
 import { generate } from "./generateCoverageArea.js"
+import { scoreCalculation } from "./scoreCalculation.js"
 // import { getRandomDirection, calculateScore } from "./aiWorkerFunctions.js";
 
 let startPositions = []
@@ -132,65 +133,66 @@ async function move(currentPoint, direction) {
 // }
 
 async function calculateScore(currentCam, currentPoint, crimeCoords, crimes) {
-  let totalCount = 0
-  let totalDistance = 0
-  let crimeCount = 0
-  currentCam.connectedCrimes = []
-  currentCam.score = 0
-  // console.log(crimeCoords)
-  for (const coord of crimeCoords) {
-    let crimeAsPoint = turf.point([parseFloat(coord.split(",")[0]), parseFloat(coord.split(",")[1])])
+  // let totalCount = 0
+  // let totalDistance = 0
+  // let crimeCount = 0
+  // currentCam.connectedCrimes = []
+  // currentCam.score = 0
+  // // console.log(crimeCoords)
+  // for (const coord of crimeCoords) {
+  //   let crimeAsPoint = turf.point([parseFloat(coord.split(",")[0]), parseFloat(coord.split(",")[1])])
 
-    // If the crime coordinate is inside the coverage area
-    if (turf.booleanPointInPolygon(crimeAsPoint, currentCam.polygon)) {
+  //   // If the crime coordinate is inside the coverage area
+  //   if (turf.booleanPointInPolygon(crimeAsPoint, currentCam.polygon)) {
 
-      // Distance from the camera to the crime (m)
-      let distance = turf.distance(currentPoint, crimeAsPoint) * 1000
-      distance = distance < 1 ? 1 : distance
-      // console.log(distance)
+  //     // Distance from the camera to the crime (m)
+  //     let distance = turf.distance(currentPoint, crimeAsPoint) * 1000
+  //     distance = distance < 1 ? 1 : distance
+  //     // console.log(distance)
       
-      /**
-       * Adds the crime position to the cameras pool of "hits"
-       * crimeInfo = info about a crime
-       * distance = distance in meters
-       * uniqueCount (crimes[coord].count) = amount of crimes at the same coordinate, i.e. 3000 
-       */
-      currentCam.connectedCrimes.push({
-        crimeInfo: crimes[coord],
-        distance: distance,
-        uniqueCount: crimes[coord].count,
-        prescore: crimes[coord].count / Math.max(1, distance*0)
-      })
+  //     /**
+  //      * Adds the crime position to the cameras pool of "hits"
+  //      * crimeInfo = info about a crime
+  //      * distance = distance in meters
+  //      * uniqueCount (crimes[coord].count) = amount of crimes at the same coordinate, i.e. 3000 
+  //      */
+  //     currentCam.connectedCrimes.push({
+  //       crimeInfo: crimes[coord],
+  //       distance: distance,
+  //       uniqueCount: crimes[coord].count,
+  //       prescore: crimes[coord].count / Math.max(1, distance*0)
+  //     })
 
-      // Adds to the camera positions amount of crimes in coverage area
-      crimeCount++
+  //     // Adds to the camera positions amount of crimes in coverage area
+  //     crimeCount++
 
-      /** 
-       * totalCount holds the crimes reported, i.e. 3000
-       */
-      totalCount += crimes[coord].count
-      totalDistance += distance
-    }
+  //     /** 
+  //      * totalCount holds the crimes reported, i.e. 3000
+  //      */
+  //     totalCount += crimes[coord].count
+  //     totalDistance += distance
+  //   }
 
-    let allPreScore = 0
-    for (const crime of currentCam.connectedCrimes) {
-      allPreScore += crime.prescore
-    }
-    // if ((allPreScore / totalCount) > 1) {
-    //   console.log("allPreScore: " + allPreScore)
-    //   console.log("totalCount: " + totalCount)
-    //   console.log("divided: " + allPreScore / totalCount)
-    // }
+  //   let allPreScore = 0
+  //   for (const crime of currentCam.connectedCrimes) {
+  //     allPreScore += crime.prescore
+  //   }
+  //   // if ((allPreScore / totalCount) > 1) {
+  //   //   console.log("allPreScore: " + allPreScore)
+  //   //   console.log("totalCount: " + totalCount)
+  //   //   console.log("divided: " + allPreScore / totalCount)
+  //   // }
 
-    currentCam.score = parseFloat((allPreScore / totalCount).toFixed(4)) || 0
-  }
+  //   currentCam.score = parseFloat((allPreScore / totalCount).toFixed(4)) || 0
+  // }
 
-  return {
-    "camInfo": currentCam,
-    "totalCrimeCount": crimeCount,
-    "totalCount": totalCount,
-    "totalDistance": totalDistance
-  }
+  // return {
+  //   "camInfo": currentCam,
+  //   "totalCrimeCount": crimeCount,
+  //   "totalCount": totalCount,
+  //   "totalDistance": totalDistance
+  // }
+  return await scoreCalculation(currentCam, currentPoint, crimes, crimeCoords)
 }
 
 async function getRandomDirection() {

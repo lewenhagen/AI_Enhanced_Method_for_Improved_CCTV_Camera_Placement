@@ -179,52 +179,93 @@ app.post("/run-ai", async (req, res) => {
           // a.totalDistance - b.totalDistance        // Sort last on the distance
         )
       })
+      // const allPoints = response.result.allPoints
+      // const features = response.result.gridArea.features
+
+      // const scores = allPoints.map(p => p.camInfo.score)
+      // // const scores = allPoints.map(p => p.totalCrimeCount)
+
+
+      // const max = Math.max(...scores)
+      // // const min = Math.min(...scores)
+
+      // // Normalize the scores
+      // // const normalized = scores.map(v => (v - min) / (max - min))
+      // // const normalized = scores.map(v => Math.log(v + 1) / Math.log(max + 1))
+      // const normalized = scores.map(v => Math.pow(Math.log(v + 1) / Math.log(max + 1), 0.5))
+      // // Create a key from coordinates
+      // const coordKey = coords => coords.join(',')
+
+      // const scoreMap = new Map()
+      // allPoints.forEach((point, i) => {
+      //   const key = coordKey(point.camInfo.center.coordinates)
+      //   // console.log(normalized[i])
+      //   scoreMap.set(key, normalized[i])
+      // })
+
+      // features.forEach(feature => {
+      //   const key = coordKey(feature.geometry.coordinates)
+      //   const normScore = scoreMap.get(key)
+      //   // console.log(normScore)
+      //   feature.properties.opacityScore = normScore ?? 0 
+      // })
+      // // console.log(features)
+      // response.result.gridArea.features = features
+      // const scores = response.result.allPoints.map(obj => obj.camInfo.score)
+      // const max = Math.max(...scores)
+      // const min = Math.min(...scores)
+
+      // const normalized = scores.map(v => (v - min) / (max - min))
+
+      // for (const index in response.result.gridArea.features) {
+      //   console.log(response.result.gridArea.features[index].geometry.coordinates)
+      //   console.log(response.result.allPoints[index].camInfo.center.coordinates)
+      //   response.result.gridArea.features[index].properties.opacityScore = normalized[index]
+      // }
+      const allPoints = response.result.allPoints
+      const features = response.result.gridArea.features
+      // for (const item of allPoints) {
+      //   console.log(item)
+      // }
+      let scores = []
+      
+      scores = allPoints.map(p => p.camInfo.score)
+      
+      // const scores = allPoints.map(p => p.totalCrimeCount)
+
+
+      const max = Math.max(...scores)
+      // const min = Math.min(...scores)
+
+      // Normalize the scores
+      // const normalized = scores.map(v => (v - min) / (max - min))
+      // const normalized = scores.map(v => Math.log(v + 1) / Math.log(max + 1))
+      const normalized = scores.map(v => Math.pow(Math.log(v + 1) / Math.log(max + 1), 0.5))
+      // Create a key from coordinates
+      const coordKey = coords => coords.join(',')
+
+      const scoreMap = new Map()
+      
+      allPoints.forEach((point, i) => {
+        const key = coordKey(point.camInfo.center.coordinates)
+        // console.log(normalized[i])
+        scoreMap.set(key, normalized[i])
+      })
+      
+
+      features.forEach(feature => {
+        const key = coordKey(feature.geometry.coordinates)
+        const normScore = scoreMap.get(key)
+        // console.log(normScore)
+        feature.properties.opacityScore = normScore ?? 0 
+      })
+      // console.log(features)
+      response.result.gridArea.features = features
+
       console.log("Bruteforce best score: " + response.result.allPoints[0].camInfo.score)
     }
 
-    const allPoints = response.result.allPoints
-    const features = response.result.gridArea.features
 
-    const scores = allPoints.map(p => p.camInfo.score)
-    // const scores = allPoints.map(p => p.totalCrimeCount)
-
-
-    const max = Math.max(...scores)
-    const min = Math.min(...scores)
-
-    // Normalize the scores
-    // const normalized = scores.map(v => (v - min) / (max - min))
-    // const normalized = scores.map(v => Math.log(v + 1) / Math.log(max + 1))
-    const normalized = scores.map(v => Math.pow(Math.log(v + 1) / Math.log(max + 1), 0.5))
-    // Create a key from coordinates
-    const coordKey = coords => coords.join(',')
-
-    const scoreMap = new Map()
-    allPoints.forEach((point, i) => {
-      const key = coordKey(point.camInfo.center.coordinates)
-      // console.log(normalized[i])
-      scoreMap.set(key, normalized[i])
-    })
-
-    features.forEach(feature => {
-      const key = coordKey(feature.geometry.coordinates)
-      const normScore = scoreMap.get(key)
-      // console.log(normScore)
-      feature.properties.opacityScore = normScore ?? 0 
-    })
-    // console.log(features)
-    response.result.gridArea.features = features
-    // const scores = response.result.allPoints.map(obj => obj.camInfo.score)
-    // const max = Math.max(...scores)
-    // const min = Math.min(...scores)
-
-    // const normalized = scores.map(v => (v - min) / (max - min))
-
-    // for (const index in response.result.gridArea.features) {
-    //   console.log(response.result.gridArea.features[index].geometry.coordinates)
-    //   console.log(response.result.allPoints[index].camInfo.center.coordinates)
-    //   response.result.gridArea.features[index].properties.opacityScore = normalized[index]
-    // }
 
 
     // console.log(response.result.gridArea.features[0].properties.opacityScore)
