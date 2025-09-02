@@ -134,6 +134,7 @@ function runWorker() {
 async function calculateScore(currentCam, currentPoint) {
   const PRESCORE_WEIGHT = 0.6
   const CRIMECOUNT_WEIGHT = 1
+  const DISTANCE_WEIGHT = 0.3
 
   let totalCount = 0
   let totalDistance = 0
@@ -162,7 +163,7 @@ async function calculateScore(currentCam, currentPoint) {
         crimeInfo: crimes[coord],
         distance: distance,
         uniqueCount: crimes[coord].count,
-        prescore: crimes[coord].count / Math.pow(distance, 0.3)
+        prescore: crimes[coord].count / Math.pow(distance, DISTANCE_WEIGHT) // distance upphöjt i DISTANCE_WEIGHT
       }
 
       /**
