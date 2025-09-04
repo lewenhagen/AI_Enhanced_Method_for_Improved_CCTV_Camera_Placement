@@ -1,9 +1,9 @@
 import * as turf from '@turf/turf'
 
-async function scoreCalculation(currentCam, currentPoint, crimes, crimeCoords) {
-  const PRESCORE_WEIGHT = 0.6
-  const CRIMECOUNT_WEIGHT = 1
-  const DISTANCE_WEIGHT = 0.3
+async function scoreCalculation(PRESCORE_WEIGHT, CRIMECOUNT_WEIGHT, DISTANCE_WEIGHT, currentCam, currentPoint, crimes, crimeCoords) {
+  // const PRESCORE_WEIGHT = 0.6
+  // const CRIMECOUNT_WEIGHT = 1
+  // const DISTANCE_WEIGHT = 0.3
 
   let totalCount = 0
   let totalDistance = 0
@@ -28,7 +28,7 @@ async function scoreCalculation(currentCam, currentPoint, crimes, crimeCoords) {
        * distance = distance in meters
        * uniqueCount (crimes[coord].count) = the amount of crimes at the same coordinate, i.e. 500
        */
-     
+
       let scoreObject = {
         crimeInfo: crimes[coord],
         distance: distance,

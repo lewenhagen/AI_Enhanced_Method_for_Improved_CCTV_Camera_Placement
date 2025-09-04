@@ -17,7 +17,7 @@ function getHeatmapColor(value) {
   } else {
     return chroma.scale(['red', 'yellow', '#006a02ff'])(value).hex();
   }
-  
+
 }
 
 function scale (value) {
@@ -196,6 +196,9 @@ loadAiBtn.addEventListener("click", async function(event) {
     let center = document.getElementById("center").value
     let distance = parseInt(document.getElementById("distance").value)
     let gridDensity = parseInt(document.getElementById("gridDensity").value)
+    let prescoreWeight = parseFloat(document.getElementById("prescoreWeight").value)
+    let crimecountWeight = parseFloat(document.getElementById("crimecountWeight").value)
+    let distanceWeight = parseFloat(document.getElementById("distanceWeight").value)
     let useReinforcement = document.getElementById("reinforcement").checked
 
     let response = await fetch('/load-ai-data', {
@@ -207,7 +210,10 @@ loadAiBtn.addEventListener("click", async function(event) {
           center: center,
           distance: distance,
           gridDensity: gridDensity,
-          useReinforcement: useReinforcement
+          useReinforcement: useReinforcement,
+          prescoreWeight: prescoreWeight,
+          crimecountWeight: crimecountWeight,
+          distanceWeight: distanceWeight
       })
     })
 

@@ -22,7 +22,10 @@ const {
     crimes,
     crimeCoords,
     gridDensity,
-    workerId
+    workerId,
+    PRESCORE_WEIGHT,
+    CRIMECOUNT_WEIGHT,
+    DISTANCE_WEIGHT
 } = workerData
 
 const directionBearings = {
@@ -149,12 +152,12 @@ async function calculateScore(currentCam, currentPoint, crimeCoords, crimes) {
   //     let distance = turf.distance(currentPoint, crimeAsPoint) * 1000
   //     distance = distance < 1 ? 1 : distance
   //     // console.log(distance)
-      
+
   //     /**
   //      * Adds the crime position to the cameras pool of "hits"
   //      * crimeInfo = info about a crime
   //      * distance = distance in meters
-  //      * uniqueCount (crimes[coord].count) = amount of crimes at the same coordinate, i.e. 3000 
+  //      * uniqueCount (crimes[coord].count) = amount of crimes at the same coordinate, i.e. 3000
   //      */
   //     currentCam.connectedCrimes.push({
   //       crimeInfo: crimes[coord],
@@ -166,7 +169,7 @@ async function calculateScore(currentCam, currentPoint, crimeCoords, crimes) {
   //     // Adds to the camera positions amount of crimes in coverage area
   //     crimeCount++
 
-  //     /** 
+  //     /**
   //      * totalCount holds the crimes reported, i.e. 3000
   //      */
   //     totalCount += crimes[coord].count
@@ -192,7 +195,7 @@ async function calculateScore(currentCam, currentPoint, crimeCoords, crimes) {
   //   "totalCount": totalCount,
   //   "totalDistance": totalDistance
   // }
-  return await scoreCalculation(currentCam, currentPoint, crimes, crimeCoords)
+  return await scoreCalculation(PRESCORE_WEIGHT, CRIMECOUNT_WEIGHT, DISTANCE_WEIGHT, currentCam, currentPoint, crimes, crimeCoords)
 }
 
 async function getRandomDirection() {
@@ -236,7 +239,7 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
 
     let startCam = await generate(buildings, bbox, [startPoint], distance)
     startCam = startCam[0]
-
+    console.log(DISTANCE_WEIGHT)
     let lastScore = await calculateScore(startCam, startPoint, crimeCoords, crimes)
     simulationPoints.push(lastScore)
 

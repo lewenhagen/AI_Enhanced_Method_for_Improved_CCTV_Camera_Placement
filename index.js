@@ -117,7 +117,10 @@ app.post("/load-ai-data", async (req, res) => {
       aiData.distance = parseFloat(req.body.distance)
       aiData.gridDensity = parseFloat(req.body.gridDensity)
       aiData.useReinforcement = req.body.useReinforcement
-
+      aiData.prescoreWeight = req.body.prescoreWeight
+      aiData.crimecountWeight = req.body.crimecountWeight
+      aiData.distanceWeight = req.body.distanceWeight
+      // console.log(req.body.prescoreWeight)
       res.json({"status": "Ok", "data": data})
     } catch(e) {
       res.json({"status": "error", "message": e})
@@ -207,7 +210,7 @@ app.post("/run-ai", async (req, res) => {
       //   const key = coordKey(feature.geometry.coordinates)
       //   const normScore = scoreMap.get(key)
       //   // console.log(normScore)
-      //   feature.properties.opacityScore = normScore ?? 0 
+      //   feature.properties.opacityScore = normScore ?? 0
       // })
       // // console.log(features)
       // response.result.gridArea.features = features
@@ -228,9 +231,9 @@ app.post("/run-ai", async (req, res) => {
       //   console.log(item)
       // }
       let scores = []
-      
+
       scores = allPoints.map(p => p.camInfo.score)
-      
+
       // const scores = allPoints.map(p => p.totalCrimeCount)
 
 
@@ -245,19 +248,19 @@ app.post("/run-ai", async (req, res) => {
       const coordKey = coords => coords.join(',')
 
       const scoreMap = new Map()
-      
+
       allPoints.forEach((point, i) => {
         const key = coordKey(point.camInfo.center.coordinates)
         // console.log(normalized[i])
         scoreMap.set(key, normalized[i])
       })
-      
+
 
       features.forEach(feature => {
         const key = coordKey(feature.geometry.coordinates)
         const normScore = scoreMap.get(key)
         // console.log(normScore)
-        feature.properties.opacityScore = normScore ?? 0 
+        feature.properties.opacityScore = normScore ?? 0
       })
       // console.log(features)
       response.result.gridArea.features = features

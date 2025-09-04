@@ -21,6 +21,7 @@ let distance = -1
 let gridBuildings = []
 let gridMap = new Map()
 let gridCounter = 0
+let PRESCORE_WEIGHT, CRIMECOUNT_WEIGHT, DISTANCE_WEIGHT
 // const bearings = [0, , 45, 90, 135, 180, 225, 270]
 
 
@@ -109,7 +110,10 @@ function runWorker() {
         crimes,
         crimeCoords,
         gridDensity,
-        workerId
+        workerId,
+        PRESCORE_WEIGHT,
+        CRIMECOUNT_WEIGHT,
+        DISTANCE_WEIGHT
       }
     })
 
@@ -160,7 +164,7 @@ async function calculateScore(currentCam, currentPoint) {
   //      * distance = distance in meters
   //      * uniqueCount (crimes[coord].count) = the amount of crimes at the same coordinate, i.e. 500
   //      */
-     
+
   //     let scoreObject = {
   //       crimeInfo: crimes[coord],
   //       distance: distance,
@@ -220,7 +224,7 @@ async function calculateScore(currentCam, currentPoint) {
   //   "totalCount": totalCount, // all reported crimes
   //   "totalDistance": totalDistance
   // }
-  return await scoreCalculation(currentCam, currentPoint, crimes, crimeCoords)
+  return await scoreCalculation(PRESCORE_WEIGHT, CRIMECOUNT_WEIGHT, DISTANCE_WEIGHT, currentCam, currentPoint, crimes, crimeCoords)
 }
 
 async function reinforcement(grid) {
@@ -271,6 +275,7 @@ async function bruteForce(camPoint, crimes, crimeCoords, bbox, buildings, distan
 }
 
 async function runAi(data) {
+    console.log(data.prescoreWeight)
     buildings = data.buildings
     let gridArea = createGridOvercaptureArea(parseFloat(data.start.split(",")[1]), parseFloat(data.start.split(",")[0]), buildings, data.distance, data.gridDensity)
     bbox = data.boundingBox
@@ -279,6 +284,9 @@ async function runAi(data) {
     distance = data.distance
     gridDensity = data.gridDensity
     allPoints = []
+    PRESCORE_WEIGHT = data.prescoreWeight
+    CRIMECOUNT_WEIGHT = data.crimecountWeight
+    DISTANCE_WEIGHT = data.distanceWeight
 
     if (data.useReinforcement) {
       await reinforcement(gridArea)
