@@ -239,7 +239,7 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
 
     let startCam = await generate(buildings, bbox, [startPoint], distance)
     startCam = startCam[0]
-    console.log(DISTANCE_WEIGHT)
+
     let lastScore = await calculateScore(startCam, startPoint, crimeCoords, crimes)
     simulationPoints.push(lastScore)
 
