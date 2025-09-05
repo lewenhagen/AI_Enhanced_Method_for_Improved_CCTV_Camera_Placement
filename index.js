@@ -158,14 +158,6 @@ app.post("/run-ai", async (req, res) => {
 
     console.log(`Grid size: ${response.result.gridArea.features.length} points`)
 
-    // for (const index in response.result.allPoints) {
-    //   console.log(`Simulation ${index+1} steps: ${response.result.allPoints[index].length}`)
-    // }
-
-    // if (aiData.useReinforcement) {
-    //   let max = []
-    // }
-
     if (!aiData.useReinforcement) {
       // score = calculated score
       // totalCount = Total crimes
@@ -182,71 +174,20 @@ app.post("/run-ai", async (req, res) => {
           // a.totalDistance - b.totalDistance        // Sort last on the distance
         )
       })
-      // const allPoints = response.result.allPoints
-      // const features = response.result.gridArea.features
 
-      // const scores = allPoints.map(p => p.camInfo.score)
-      // // const scores = allPoints.map(p => p.totalCrimeCount)
-
-
-      // const max = Math.max(...scores)
-      // // const min = Math.min(...scores)
-
-      // // Normalize the scores
-      // // const normalized = scores.map(v => (v - min) / (max - min))
-      // // const normalized = scores.map(v => Math.log(v + 1) / Math.log(max + 1))
-      // const normalized = scores.map(v => Math.pow(Math.log(v + 1) / Math.log(max + 1), 0.5))
-      // // Create a key from coordinates
-      // const coordKey = coords => coords.join(',')
-
-      // const scoreMap = new Map()
-      // allPoints.forEach((point, i) => {
-      //   const key = coordKey(point.camInfo.center.coordinates)
-      //   // console.log(normalized[i])
-      //   scoreMap.set(key, normalized[i])
-      // })
-
-      // features.forEach(feature => {
-      //   const key = coordKey(feature.geometry.coordinates)
-      //   const normScore = scoreMap.get(key)
-      //   // console.log(normScore)
-      //   feature.properties.opacityScore = normScore ?? 0
-      // })
-      // // console.log(features)
-      // response.result.gridArea.features = features
-      // const scores = response.result.allPoints.map(obj => obj.camInfo.score)
-      // const max = Math.max(...scores)
-      // const min = Math.min(...scores)
-
-      // const normalized = scores.map(v => (v - min) / (max - min))
-
-      // for (const index in response.result.gridArea.features) {
-      //   console.log(response.result.gridArea.features[index].geometry.coordinates)
-      //   console.log(response.result.allPoints[index].camInfo.center.coordinates)
-      //   response.result.gridArea.features[index].properties.opacityScore = normalized[index]
-      // }
       const allPoints = response.result.allPoints
       const features = response.result.gridArea.features
-      // for (const item of allPoints) {
-      //   console.log(item)
-      // }
       let scores = []
 
       scores = allPoints.map(p => p.camInfo.score)
 
-      // const scores = allPoints.map(p => p.totalCrimeCount)
-
-
       const max = Math.max(...scores)
-      // const min = Math.min(...scores)
 
       // Normalize the scores
-      // const normalized = scores.map(v => (v - min) / (max - min))
-      // const normalized = scores.map(v => Math.log(v + 1) / Math.log(max + 1))
       const normalized = scores.map(v => Math.pow(Math.log(v + 1) / Math.log(max + 1), 0.5))
       // Create a key from coordinates
       const coordKey = coords => coords.join(',')
-
+      console.log(coordKey)
       const scoreMap = new Map()
 
       allPoints.forEach((point, i) => {
