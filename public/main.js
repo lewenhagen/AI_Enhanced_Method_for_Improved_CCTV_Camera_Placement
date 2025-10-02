@@ -198,9 +198,9 @@ L.control.polylineMeasure({
 }).addTo(map)
 
 
-// map.on("click", function(e) {
-//   console.log(e.latlng.lng, e.latlng.lat)
-// })
+map.on("click", function(e) {
+  alert(`${e.latlng.lat}, ${e.latlng.lng}`)
+})
 
 
 
