@@ -1,172 +1,168 @@
 const theForm = document.getElementById("theForm")
 const okButton = document.getElementById("okButton")
 const cancelButton = document.getElementById("cancelButton")
+const loadAiBtn = document.getElementById("loadAiBtn")
+const animate = document.getElementById("animate")
+const theBestBtn = document.getElementById("getBest")
+const simulations = document.getElementById("simulations")
+let allCrimes = null
 
+let bruteForceData = []
+let myInterval = null
+let isPaused = false
 
+let starMarker = L.AwesomeMarkers.icon({
+    icon: 'star',
+    prefix: 'fa',         // use 'fa' for FontAwesome
+    markerColor: 'green',   // marker color
+    iconColor: 'white'    // icon color
+})
 
-function closeModal() {
-  baseLine.clearLayers()
-  drawnItems.clearLayers()
-  document.getElementById("myForm").style.display = "none"
+const starOnlyIcon = L.divIcon({
+  html: '<i class="fa fa-star" style="color: #ff6404ff; font-size: 20px;"></i>',
+  className: '', // prevents default divIcon styling
+  iconSize: [20, 20],
+  iconAnchor: [12, 12] // center the star
+});
+
+function getHeatmapColor(value) {
+  if (value === undefined) {
+    return "#000"
+  } else {
+    return chroma.scale(['red', 'yellow', '#006a02ff'])(value).hex();
+  }
+
 }
 
-function handleOutputPolyline(json) {
-  if (json.status === "error") {
-    alert("Something went wrong:", json.toString())
-    drawnItems.clearLayers()
+function scale (value) {
+  if (value === undefined) {
+    return "#000"
   } else {
-    console.log("yay")
-
-    for (const building of json.data.buildings) {
-        // console.log(building.geometry.coordinates)
-        drawnItems.addLayer(L.geoJSON(building))
-    }
-
-    for (const index in json.cameras.polys) {
-      // console.log(building.geometry.coordinates)
-      drawnItems.addLayer(L.geoJSON(json.cameras.polys[index].polygon, {style: {color:"green"}}))
-      drawnItems.addLayer(L.geoJSON(json.cameras.polys[index].center).bindPopup("#: " + (parseInt(index)+1).toString() + "<br>m2: " + json.cameras.polys[index].area.toFixed(2).toString() + "<br>Percentage: " + json.cameras.polys[index].percentage.toFixed(2).toString()))
-    }
-
-   
-    // Buffered Line polygon awesome shit
-    // drawnItems.addLayer(L.geoJSON(json.data.boundingBox))
-    
+    return chroma.scale(["#ffffffff", "#e4e1e1ff", "#aaa9a9ff","#000"])(value).hex()
   }
 }
 
-function handleOutput(json) {
-  if (json.status === "error") {
-    alert("Something went wrong:", json.message)
-    drawnItems.clearLayers()
-  } else {
 
-    /**
-     * Buildings
-     */
-    for (const building of json.data.buildings) {
-        // console.log(building.geometry.coordinates)
-        drawnItems.addLayer(L.geoJSON(building))
+async function drawBoundingBoxWithoutBuildings() {
+  const headers = { 'Content-Type': 'application/json' }
+
+  try {
+    const response = await fetch('/generate-area-without-buildings', {
+        method: 'POST',
+        headers: headers
+    });
+
+    const data = await response.json()
+
+    L.geoJSON(data.area, {fill: false}).addTo(drawnAi)
+
+    } catch (error) {
+        console.error('Error fetching:', error);
     }
+}
 
-    /**
-     * Coverage area
-     */
+async function runAI() {
+  const headers = { 'Content-Type': 'application/json' }
 
-    // for (const poly of json.coverage.polygons) {
-    //     // console.log(building.geometry.coordinates)
-    //     drawnItems.addLayer(L.geoJSON(poly, {style: {color:"green"}}))
-    // }
+  try {
+      const response = await fetch('/run-ai', {
+          method: 'POST',
+          headers: headers,
+          // body: JSON.stringify({ })
+      });
 
-    /**
-     * Walker area
-     */
-    // drawnItems.addLayer(L.geoJSON(json.walker[0].polygon, {style: {color:"green"}}))
-    // drawnItems.addLayer(L.geoJSON(json.walker[0].center))
+      const data = await response.json()
+      bruteForceData = data
+      // console.log(data.result.gridArea)
 
-    // drawnItems.addLayer(L.geoJSON(json.walker[1].polygon, {style: {color:"yellow"}}))
-    // drawnItems.addLayer(L.geoJSON(json.walker[1].center))
+      L.geoJSON(data.result.gridArea, {
+        pointToLayer: (feature, latlng) =>
+          L.circleMarker(latlng, {
+            radius: 3,
+            // color: "black",
+            // color: getHeatmapColor(feature.properties.opacityScore),
+            // fillColor: getHeatmapColor(feature.properties.opacityScore),
+            color: scale(feature.properties.opacityScore),
+            fillColor: scale(feature.properties.opacityScore),
+            fillOpacity: 1,
+            opacity: 1,
+            interactive: false
+          })
 
-    // drawnItems.addLayer(L.geoJSON(json.walker[2].polygon, {style: {color:"orange"}}))
-    // drawnItems.addLayer(L.geoJSON(json.walker[2].center))
-    for (const index in json.walker.polys) {
-      // console.log(building.geometry.coordinates)
-      drawnItems.addLayer(L.geoJSON(json.walker.polys[index].polygon, {style: {color:"green"}}))
-      drawnItems.addLayer(L.geoJSON(json.walker.polys[index].center).bindPopup("#: " + (parseInt(index)+1).toString() + "<br>m2: " + json.walker.polys[index].area.toFixed(2).toString()))
-    }
-
-    /**
-     * Voronoi diagrams
-     */
-    // for (const poly of json.grid.polys) {
-    //     console.log(poly)
-    //     drawnItems.addLayer(L.geoJSON(poly, {
-    //       style: {
-    //         color: 'black',
-    //         weight: 1,
-    //         // fillColor: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
-    //         // fillOpacity: 0.5
-    //       }
-    //     }).bindPopup(poly.properties.percentage.toString()))
-    // }
+      }).addTo(drawnAi)
 
 
-    /**
-     * Voronoi centroids (Center of kmeans clustering)
-     */
-    // for (const center of json.grid.centroids) {
 
-    //     drawnItems.addLayer(L.geoJSON(center))
-    // }
+      animate.disabled = false
+      theBestBtn.disabled = false
+      simulations.disabled = false
+      simulations.max = bruteForceData.result.allPoints.length
+
+  } catch (error) {
+      console.error('Error fetching:', error);
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Retry after 1 second
+  }
+  drawCrimes(allCrimes)
+}
+
+
+
+function drawBoundingBox(box) {
+    drawnAi.addLayer(L.geoJSON(box).setStyle({"opacity": 0.9, "width": "2px", "color":"#000", "fill": false}))
+}
+
+function drawBuildings(buildings) {
+  for (const building of buildings) {
+      drawnAi.addLayer(L.geoJSON(building))
   }
 }
 
-function fixCoords(event) {
-    let layer = event.layer
-
-    // drawnItems.addLayer(layer)
-
-    let latlngs = layer.getLatLngs()[0]
-
-    // Convert Leaflet LatLng objects to GeoJSON-style coordinates (lon, lat)
-    let coords = latlngs.map(ll => [ll.lng, ll.lat])
-
-    // Ensure the polygon is closed by repeating the first coordinate at the end
-    if (coords.length > 0 &&
-        (coords[0][0] !== coords[coords.length - 1][0] ||
-        coords[0][1] !== coords[coords.length - 1][1])) {
-        coords.push(coords[0])  // Close the ring
-    }
-
-    return coords
-
-}
-
-async function startFetch(coords) {
-  let response = await fetch('/walk', {
-      method: 'POST',
-      headers: {
-          'Content-Type': 'application/json'
+function drawCrimes(crimes) {
+  const keys = Object.keys(crimes)
+  const geojsonPoints = {
+    type: "FeatureCollection",
+    features: keys.map(crime => ({
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [
+          parseFloat(crimes[crime].feature.coordinates[0]),
+          parseFloat(crimes[crime].feature.coordinates[1])
+        ]
       },
-      body: JSON.stringify({
-          bbox: coords,
-          nrOfCams: parseInt(document.getElementById("nrofcams").value),
-          distance: parseFloat(document.getElementById("distance").value),
-          overlap: parseFloat(document.getElementById("overlap").value)
-      })
-  })
+      properties: {
+        // codes: `${Object.keys(crimes[crime].codes).toString()}}`,
+        count: crimes[crime].count
+      }
+    }))
+  }
+  L.geoJSON(geojsonPoints, {
+    pointToLayer: (feature, latlng) =>
+      L.marker(latlng, {
+        // icon: starMarker,
+        icon: starOnlyIcon,
+        interactive: true
+      }),
+      onEachFeature: (feature, layer) => {
+        const crimeCount = feature.properties.count;
 
-  let json = await response.json()
+        layer.on('click', () => {
+          console.log('clicked:', feature);
+        });
 
-  return json
-}
+        layer.bindPopup(`Crimes: ${crimeCount}`);
+        // layer.bringToFront();
+      }
+  }).addTo(drawnAi)
 
-async function startFetchPolyline(coords) {
-  let response = await fetch('/polyline', {
-      method: 'POST',
-      headers: {
-          'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-          polyline: coords,
-          nrOfCams: parseInt(document.getElementById("nrofcams").value),
-          distance: parseFloat(document.getElementById("distance").value),
-          overlap: parseFloat(document.getElementById("overlap").value),
-          focusLine: document.getElementById("focusLine").checked
-      })
-  })
-
-  let json = await response.json()
-
-  return json
 }
 
 const map = L.map('map', {
-  center: L.latLng(55.56274294950438, 12.98059344291687),
+  center: L.latLng(55.5636, 12.9746),
   zoom: 18,
 })
 
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
   attribution: `&copy
   <a href="https://www.openstreetmap.org/copyright">
   OpenStreetMap</a> contributors`,
@@ -178,114 +174,143 @@ document.getElementById('map').style.cursor = 'crosshair'
 
 let baseLine = new L.FeatureGroup()
 let drawnItems = new L.FeatureGroup()
+let drawnAi = new L.FeatureGroup()
 
 map.addLayer(drawnItems)
 map.addLayer(baseLine)
+map.addLayer(drawnAi)
 
-let drawControl = new L.Control.Draw({
-    edit: {
-        featureGroup: drawnItems
-    },
-    draw: {
-        polygon: true,
-        polyline: true,
-        rectangle: true,
-        circle: false,
-        marker: false
-    }
-})
+// let drawControl = new L.Control.Draw({
+//     edit: {
+//         featureGroup: drawnItems
+//     },
+//     draw: {
+//         polygon: true,
+//         polyline: true,
+//         rectangle: true,
+//         circle: false,
+//         marker: false
+//     }
+// })
 
-map.addControl(drawControl)
+// map.addControl(drawControl)
 L.control.polylineMeasure({
-  // measureControlTitleOn: "Turn on measurement.",
-  // measureControlTitleoff: "Turn off measurement."
 }).addTo(map)
 
 
-map.on("click", function(e) {
-  console.log(e.latlng.lng, e.latlng.lat)
+// map.on("click", function(e) {
+//   console.log(e.latlng.lng, e.latlng.lat)
+// })
+
+
+
+loadAiBtn.addEventListener("click", async function(event) {
+    drawnAi.clearLayers()
+    drawnItems.clearLayers()
+    clearInterval(myInterval)
+
+    animate.disabled = true
+    theBestBtn.disabled = true
+
+    let center = document.getElementById("center").value
+    let distance = parseInt(document.getElementById("distance").value)
+    let gridDensity = parseInt(document.getElementById("gridDensity").value)
+    let prescoreWeight = parseFloat(document.getElementById("prescoreWeight").value)
+    let crimecountWeight = parseFloat(document.getElementById("crimecountWeight").value)
+    let distanceWeight = parseFloat(document.getElementById("distanceWeight").value)
+    let useReinforcement = document.getElementById("reinforcement").checked
+
+    let response = await fetch('/load-ai-data', {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+          center: center,
+          distance: distance,
+          gridDensity: gridDensity,
+          useReinforcement: useReinforcement,
+          prescoreWeight: prescoreWeight,
+          crimecountWeight: crimecountWeight,
+          distanceWeight: distanceWeight
+      })
+    })
+
+    let json = await response.json()
+
+    drawBoundingBox(json.data.boundingBox)
+    drawBoundingBoxWithoutBuildings()
+    drawBuildings(json.data.buildings)
+    allCrimes = json.data.crimes
+    // drawCrimes(json.data.crimes)
+
+    await runAI()
 })
 
+animate.addEventListener("click", function(event) {
+  let i = 0
+  let max = null
+  let simulation = parseInt(simulations.value) - 1
+  myInterval = setInterval(function() {
 
+    drawnItems.clearLayers()
 
-map.on('draw:created', async function (event) {
-    // Add layer to map as baseline
-    baseLine.addLayer(event.layer)
-    
-    document.getElementById("myForm").style.display = "block";
-    
-    if (event.layerType === "polyline") {
-        let form = document.getElementById("theForm")
-        let input = document.createElement("input")
-        let label = document.createElement("label")
+    let pointData;
+    if (!document.getElementById("reinforcement").checked) {
+      pointData = bruteForceData.result.allPoints[i]
+      max = bruteForceData.result.allPoints.length
+    } else {
+      pointData = bruteForceData.result.allPoints[simulation][i]
+      max = bruteForceData.result.allPoints[simulation].length
+    }
+    // console.log("here:", pointData)
+    let layer = L.geoJSON(pointData.camInfo.center).bindPopup(`
+      Score: ${pointData.camInfo.score}<br>
+      Area: ${pointData.camInfo.area.toFixed(2).toString()}<br>
+      Total count: ${pointData.totalCount}<br>
+      Total distance (m): ${pointData.totalDistance.toFixed(2)}<br>
+      Unique crime coordinates: ${pointData.totalCrimeCount}<br>
+      Coordinates (lat/lng): ${pointData.camInfo.center.coordinates[1].toFixed(4)}, ${pointData.camInfo.center.coordinates[0].toFixed(4)}<br>
+      Point: ${i+1}/${max}`)
 
-        label.innerHTML = "Focus on line coverage?"
-        input.setAttribute("type", "checkbox")
-        input.setAttribute("id", "focusLine")
-        input.checked = false
-  
-        form.prepend(label)
-        form.prepend(input)
-        // form.innerHTML += 
-
-        let latlngs = Array.from(new Set(event.layer.getLatLngs().map(JSON.stringify))).map(JSON.parse)
-        let coords = latlngs.map(ll => [ll.lng, ll.lat])
-        let json = {}
-
-        okButton.addEventListener("click", async function() {
-            drawnItems.clearLayers()
-            json = await startFetchPolyline(coords)
-    
-            handleOutputPolyline(json)
-        })
-
-
-    } else if (event.layerType === "polygon" || event.layerType === "rectangle") {
-        let coords = fixCoords(event)
-        let json = {}
-
-        okButton.addEventListener("click", async function() {
-          drawnItems.clearLayers()
-          json = await startFetch(coords)
-  
-          handleOutput(json)
-      })
+    drawnItems.addLayer(layer)
+    drawnItems.bringToBack()
+    layer.openPopup()
+    drawnItems.addLayer(L.geoJSON(pointData.camInfo.polygon, {style: {color:"purple"}, interactive: false}))
+    // drawnAi.bringToFront()
+    if (i === max-1) {
+      clearInterval(myInterval)
+      // myInterval = null
+      return
     }
 
-    
-
-    
-    // let json = {}
-
-    // okButton.addEventListener("click", async function() {
-    //   drawnItems.clearLayers()
-    //   json = await startFetch(coords)
-
-    //   handleOutput(json)
-    // })
-
-    cancelButton.onclick = closeModal
-
-    
+    i++
+  }, 1500)
 })
 
+theBestBtn.addEventListener("click", function(event) {
+    let simulation = parseInt(simulations.value)-1
+    let chosenSimulation = bruteForceData.result.allPoints[simulation]
+    drawnItems.clearLayers()
+    clearInterval(myInterval)
+    myInterval = null
+    let useThis = {}
+    if (document.getElementById("reinforcement").checked) {
+      useThis = chosenSimulation[chosenSimulation.length-1]
+    } else {
+      useThis = chosenSimulation
+    }
+    let layer = L.geoJSON(useThis.camInfo.center).bindPopup(`
+      Score: ${useThis.camInfo.score}<br>
+      Area: ${useThis.camInfo.area.toFixed(2).toString()}<br>
+      Total count: ${useThis.totalCount}<br>
+      Total distance (m): ${useThis.totalDistance.toFixed(2)}<br>
+      Unique crime coordinates: ${useThis.totalCrimeCount}<br>
+      Coordinates (lat/lng): ${useThis.camInfo.center.coordinates[1].toFixed(4)}, ${useThis.camInfo.center.coordinates[0].toFixed(4)}`)
+    console.log(useThis)
+    drawnItems.addLayer(layer)
+    layer.openPopup()
+    drawnItems.addLayer(L.geoJSON(useThis.camInfo.polygon, {style: {color:"purple"}}))
+    drawnItems.bringToBack()
 
-
-
-
-// klipp ut areor,
-// bort med byggnader,
-// ranka storlek,
-// hitta mitten
-// hitta närmaste hus
-
-
-// för varje voronoi
-// hitta center utan byggnader,
-
-
-
-// SISTA varianten
-// 1. sortera på area storlek
-// 2. ta bort alla som nuddar den största
-// 3. ta näst största -||-
+})

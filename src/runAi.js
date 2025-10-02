@@ -22,7 +22,6 @@ let gridBuildings = []
 let gridMap = new Map()
 let gridCounter = 0
 let PRESCORE_WEIGHT, CRIMECOUNT_WEIGHT, DISTANCE_WEIGHT
-// const bearings = [0, , 45, 90, 135, 180, 225, 270]
 
 
 
@@ -58,44 +57,10 @@ function createGridOvercaptureArea(centerLong, centerLat, buildings, distance, g
     )
   )
 
-  return filteredPoints //turf.pointsWithinPolygon(grid, circle)
+  return filteredPoints
 
 }
-/**
- * Required for generate: buildings, boundingBox, pointsOnBoundary, distance
- */
 
-// let currentBest = {
-//   totalCount: null,
-//   totalDistance: null,
-//   totalCrimeCount: null,
-//   score: 0
-// }
-// async function getRandomDirection() {
-//   let directions = ["up", "down", "left", "right"]
-//   if (directions.length === 0) {
-//     directions = ["up", "down", "left", "right"]
-//   }
-//   const randomIndex = Math.floor(Math.random() * directions.length)
-//   const poppedDirection = directions.splice(randomIndex, 1)[0]
-
-//   return poppedDirection
-// }
-
-// async function takeStepInGridCalculateScore(dir, currentPoint) {
-//   let currentCam = await generate(buildings, bbox, [currentPoint], distance)
-//   currentCam = currentCam[0]
-//   let nextPoint = await move(currentPoint, dir)
-//   if (!nextPoint.success) {
-//     return false
-//   }
-//   // let camCoverage = await generate(buildings, bbox, [nextPoint.point.geometry], distance)
-//   // camCoverage = camCoverage[0]
-
-//   let scoreObject = await calculateScore(currentCam, nextPoint.point.geometry, crimeCoords, crimes)
-
-//   return {point: nextPoint, score: scoreObject}
-// }
 
 function runWorker() {
   workerId++
@@ -137,93 +102,7 @@ function runWorker() {
  * @returns
  */
 async function calculateScore(currentCam, currentPoint) {
-  // const PRESCORE_WEIGHT = 0.6
-  // const CRIMECOUNT_WEIGHT = 1
-  // const DISTANCE_WEIGHT = 0.3
 
-  // let totalCount = 0
-  // let totalDistance = 0
-  // let crimeCount = 0
-  // let allPreScore = 0
-  // currentCam.connectedCrimes = []
-  // currentCam.score = 0
-  // for (const coord of crimeCoords) {
-  //   let crimeAsPoint = turf.point([parseFloat(coord.split(",")[0]), parseFloat(coord.split(",")[1])])
-
-  //   /**
-  //    *  If the crime coordinate is inside the coverage area
-  //    */
-  //   if (turf.booleanPointInPolygon(crimeAsPoint, currentCam.polygon)) {
-  //     let distance = turf.distance(currentPoint, crimeAsPoint) * 1000 // In meters
-  //     distance = distance < 1 ? 1 : distance
-
-  //     /**
-  //      * Adds the crime position to the cameras pool of "hits"
-  //      * crimes[coord] = Crime info with amount of crimes at the same coordinate
-  //      * crimeInfo = ^
-  //      * distance = distance in meters
-  //      * uniqueCount (crimes[coord].count) = the amount of crimes at the same coordinate, i.e. 500
-  //      */
-
-  //     let scoreObject = {
-  //       crimeInfo: crimes[coord],
-  //       distance: distance,
-  //       uniqueCount: crimes[coord].count,
-  //       prescore: crimes[coord].count / Math.pow(distance, DISTANCE_WEIGHT) // distance upphöjt i DISTANCE_WEIGHT
-  //     }
-
-  //     /**
-  //      * Holds the camera positions summed prescore
-  //      */
-  //     allPreScore += scoreObject.prescore
-
-  //     currentCam.connectedCrimes.push(scoreObject)
-
-  //     /**
-  //      * Increase the camera positions pool of "hits"
-  //      */
-  //     crimeCount++
-
-  //     /**
-  //      * totalCount holds the total crimes reported, i.e. 3000 for the camera position
-  //      */
-  //     totalCount += crimes[coord].count
-  //     totalDistance += distance
-  //   }
-
-  //   // let allPreScore = 0
-  //   // for (const crime of currentCam.connectedCrimes) {
-  //   //   allPreScore += crime.prescore
-  //   // }
-
-  //   let tempScore = parseFloat((allPreScore / totalCount).toFixed(4))
-
-  //   /**
-  //    * Set the score for the camera position, if not NaN
-  //    */
-  //   currentCam.score = tempScore || 0
-
-  // }
-  // // console.log(crimes)
-
-  // /**
-  //  * Work with crimeCount?
-  //  */
-  // // currentCam.score = crimeCount / Object.keys(crimes).length
-  // const normalizedPreScore = allPreScore / totalCount || 0; // existing score base
-  // const normalizedCrimeCount = crimeCount / Object.keys(crimes).length || 0; // % of total coords this camera covers
-
-  // currentCam.score = parseFloat((
-  //   (PRESCORE_WEIGHT * normalizedPreScore) +
-  //   (CRIMECOUNT_WEIGHT * normalizedCrimeCount)
-  // ).toFixed(4));
-
-  // return {
-  //   "camInfo": currentCam,
-  //   "totalCrimeCount": crimeCount, // unique crime coordinates
-  //   "totalCount": totalCount, // all reported crimes
-  //   "totalDistance": totalDistance
-  // }
   return await scoreCalculation(PRESCORE_WEIGHT, CRIMECOUNT_WEIGHT, DISTANCE_WEIGHT, currentCam, currentPoint, crimes, crimeCoords)
 }
 
@@ -275,7 +154,6 @@ async function bruteForce(camPoint, crimes, crimeCoords, bbox, buildings, distan
 }
 
 async function runAi(data) {
-    console.log(data.prescoreWeight)
     buildings = data.buildings
     let gridArea = createGridOvercaptureArea(parseFloat(data.start.split(",")[1]), parseFloat(data.start.split(",")[0]), buildings, data.distance, data.gridDensity)
     bbox = data.boundingBox

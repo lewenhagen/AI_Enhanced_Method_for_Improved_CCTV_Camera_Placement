@@ -1,14 +1,8 @@
 import express from 'express'
-import { getIntersectingBuildings, getIntersectingBuildingsPolyline, getIntersectingBuildingsAI } from './src/intersectingBuildings.js'
-import { generate } from './src/generate.js'
-// import { createGrid } from './src/createGrid.js'
-import { polygonDivide } from './src/voronoi.js'
-import { walkAlongBuilding, walkAlongBuildingPolyline } from './src/walk.js'
-import { calculateLineCoverage } from './src/calculateLineCoverage.js'
+import { getIntersectingBuildingsAI } from './src/intersectingBuildings.js'
 import { getCrimesInPolygon } from './src/getCrimesInPolygon.js'
 import { getAreaWithoutBuildings } from './src/getAreaWithoutBuildings.js'
 import { runAi } from './src/runAi.js'
-
 
 const app = express()
 const port = 1337
@@ -23,60 +17,7 @@ app.get("/", (req, res) => {
     res.render("index.ejs")
 })
 
-app.get("/ai", (req, res) => {
-  res.render("ai.ejs")
-})
 
-
-
-app.post("/init", async (req, res) => {
-
-    try {
-      let data = await getIntersectingBuildings(req.body.bbox)
-
-      let grid = await polygonDivide(req.body.bbox, req.body.nrOfCams)
-      let coverage = await generate(data.buildings, req.body.bbox, grid.centroids, req.body.distance)
-
-      console.log(`
-        Areas (m\u00B2)
-        ----------------------
-        Boundingbox:            ${data.boundingBoxArea.toFixed(2)}
-        Voronoi:                ${grid.areas.toFixed(2)}
-        Buildings:              ${data.buildingArea.toFixed(2)}
-        BBox without buildings: ${(data.boundingBoxArea - data.buildingArea).toFixed(2)}
-        Coverage (union):       ${coverage.area.toFixed(2)}
-
-        Percentage (%)
-        ----------------------
-        Coverage:               ${((coverage.area/(data.boundingBoxArea - data.buildingArea))*100).toFixed(2)}
-        `)
-
-      res.json({"status": "Ok", "data": data, "coverage": coverage, "grid": grid})
-    } catch(e) {
-      res.json({"status": "error", "message": e.codeName})
-    }
-})
-
-app.post("/getbuildings", async (req, res) => {
-  try {
-    let data = await getIntersectingBuildings(req.body.bbox)
-
-    res.json({"status": "Ok", "data": data})
-  } catch(e) {
-    res.json({"status": "error", "message": e})
-  }
-})
-
-app.post("/getcrimes", async (req, res) => {
-  try {
-    // console.log(req.body.bbox)
-    let data = await getCrimesInPolygon(req.body.bbox)
-
-    res.json({"status": "Ok", "data": data})
-  } catch(e) {
-    res.json({"status": "error", "message": e})
-  }
-})
 
 app.post("/load-ai-data", async (req, res) => {
     try {
@@ -87,15 +28,16 @@ app.post("/load-ai-data", async (req, res) => {
       data.crimes = await getCrimesInPolygon(data.boundingBox, data.buildings)
       console.timeEnd("### Get all crimes in r*2 bounding box")
 
+      /**
+       * Fixes the crimes for the rest of the calculations
+       */
       let crimes = {}
       for (const crime of data.crimes) {
         let location = `${crime.longitude},${crime.latitude}`
 
         if(crimes[location] !== undefined) {
             crimes[location].count++
-            // let temp = {
-            //   count: 1
-            // }
+
             if (crimes[location].codes[crime.crime_code] !== undefined) {
 
               crimes[location].codes[crime.crime_code].count++
@@ -165,13 +107,13 @@ app.post("/run-ai", async (req, res) => {
       response.result.allPoints.sort((a, b) => {
         return (
           // b.totalCrimeCount - a.totalCrimeCount ||
-          b.camInfo.score - a.camInfo.score
+          b.camInfo.score - a.camInfo.score ||
           // b.totalCount - a.totalCount
           // b.camInfo.score - a.camInfo.score ||
           // b.totalCount - a.totalCount ||
           // b.totalCrimeCount - a.totalCrimeCount || // Sort first on unique crime coordinates
           //            // Sort second on total crime occurances
-          // a.totalDistance - b.totalDistance        // Sort last on the distance
+          a.totalDistance - b.totalDistance        // Sort last on the distance
         )
       })
 
@@ -185,14 +127,15 @@ app.post("/run-ai", async (req, res) => {
 
       // Normalize the scores
       const normalized = scores.map(v => Math.pow(Math.log(v + 1) / Math.log(max + 1), 0.5))
-      // Create a key from coordinates
+
+      // A keyholder function from coordinates
       const coordKey = coords => coords.join(',')
-      console.log(coordKey)
+
       const scoreMap = new Map()
 
       allPoints.forEach((point, i) => {
         const key = coordKey(point.camInfo.center.coordinates)
-        // console.log(normalized[i])
+
         scoreMap.set(key, normalized[i])
       })
 
@@ -200,17 +143,14 @@ app.post("/run-ai", async (req, res) => {
       features.forEach(feature => {
         const key = coordKey(feature.geometry.coordinates)
         const normScore = scoreMap.get(key)
-        // console.log(normScore)
+
         feature.properties.opacityScore = normScore ?? 0
       })
-      // console.log(features)
+
       response.result.gridArea.features = features
 
       console.log("Bruteforce best score: " + response.result.allPoints[0].camInfo.score)
     }
-
-
-
 
     // console.log(response.result.gridArea.features[0].properties.opacityScore)
 
@@ -230,67 +170,6 @@ app.post("/run-ai", async (req, res) => {
     res.json(response)
 })
 
-app.post("/walk", async (req, res) => {
-
-    try {
-      let data = await getIntersectingBuildings(req.body.bbox)
-      let walkerResult = await walkAlongBuilding(data, req.body.distance, req.body.nrOfCams, req.body.overlap)
-      let coverageAreaPercent = walkerResult.totalArea / (data.boundingBoxArea - data.buildingArea)
-
-      console.log(`
-        --------------------------------
-        Amount of cameras:      ${walkerResult.polys.length}/${req.body.nrOfCams}
-        --------------------------------
-        Areas (m\u00B2)
-        --------------------------------
-        Boundingbox:            ${data.boundingBoxArea.toFixed(2)}
-        Buildings:              ${data.buildingArea.toFixed(2)}
-        BBox without buildings: ${(data.boundingBoxArea - data.buildingArea).toFixed(2)}
-        Coverage (union):       ${walkerResult.totalArea.toFixed(2)}
-
-        Percentage (%)
-        --------------------------------
-        Coverage:               ${(coverageAreaPercent*100).toFixed(2)}
-        --------------------------------
-        `)
-
-      res.json({"status": "Ok", "data": data, "walker": walkerResult})
-    } catch(e) {
-      res.json({"status": "error", "message": e})
-    }
-})
-
-app.post("/polyline", async (req, res) => {
-  // try {
-    // let polyline = req.body.polyline
-    let data = await getIntersectingBuildingsPolyline(req.body.polyline, req.body.distance)
-    let cameras = await walkAlongBuildingPolyline(data, req.body.distance, req.body.nrOfCams, req.body.overlap, req.body.focusLine)
-    // await calculateLineCoverage(data.line, cameras.polys)
-    // let walkerResult = await walkAlongBuilding(data, req.body.distance, req.body.nrOfCams, req.body.overlap)
-    // let coverageAreaPercent = walkerResult.totalArea / (data.boundingBoxArea - data.buildingArea)
-    // console.log("covered: ", cameras.lineCovered)
-    // console.log(`
-    //   --------------------------------
-    //   Amount of cameras:      ${walkerResult.polys.length}/${req.body.nrOfCams}
-    //   --------------------------------
-    //   Areas (m\u00B2)
-    //   --------------------------------
-    //   Boundingbox:            ${data.boundingBoxArea.toFixed(2)}
-    //   Buildings:              ${data.buildingArea.toFixed(2)}
-    //   BBox without buildings: ${(data.boundingBoxArea - data.buildingArea).toFixed(2)}
-    //   Coverage (union):       ${walkerResult.totalArea.toFixed(2)}
-
-    //   Percentage (%)
-    //   --------------------------------
-    //   Coverage:               ${(coverageAreaPercent*100).toFixed(2)}
-    //   --------------------------------
-    //   `)
-
-    res.json({"status": "Ok", "data": data, "cameras": cameras})
-  // } catch(e) {
-    // res.json({"status": "error", "message": e})
-  // }
-})
 
 
 

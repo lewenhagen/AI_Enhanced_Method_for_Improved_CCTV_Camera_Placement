@@ -1,35 +1,69 @@
 <!doctype html>
 <html lang="en">
-<head>
-    <title>AI_Enhanced_Method_for_Improved_CCTV_Camera_Placement</title>
 
-    <meta charset="utf-8">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <script src='https://npmcdn.com/@turf/turf/turf.min.js'></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/leaflet.polylinemeasure@3.0.0/Leaflet.PolylineMeasure.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.polylinemeasure@3.0.0/Leaflet.PolylineMeasure.min.css">
-    <link rel="stylesheet" href="style.css">
+<head>
+  <title>AI_Enhanced_Method_for_Improved_CCTV_Camera_Placement</title>
+
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src='https://npmcdn.com/@turf/turf/turf.min.js'></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/leaflet.polylinemeasure@3.0.0/Leaflet.PolylineMeasure.min.js"></script>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/leaflet.polylinemeasure@3.0.0/Leaflet.PolylineMeasure.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chroma-js@latest/chroma.min.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"
+    integrity="sha512-cUoWMYmv4H9TGP4hbm1mIjYo90WzIQFo/5jj+P5tQcDTf+iVR59RyIj/a9fRsBxzxt5Dnv/Ex7MzRIxcDwaOLw=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.min.js"></script>
+
+  <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
+  <div class="container">
+  <div class="map">
     <div id="map"></div>
-    <!-- <form>
-      <legend>Add crimes</legend>
-      <select name="years" multiple size="6">
-        <option value="2015">2015</option>
-        <option value="2016">2016</option>
-        <option value="2017">2017</option>
-        <option value="2018">2018</option>
-        <option value="2019">2019</option>
-        <option value="2020">2020</option>
-      </select>
-      <input type="button" value="Load">
-    </form> -->
-    <div class="form-popup" id="myForm">
+  </div>
+  <div class="settings">
+
+    <label for="center">Cluster center</label>
+    <!-- <input type="text" value="55.56213319182642, 12.979257702827455" placeholder="55.5636, 12.9746" id="center"> -->
+    <!-- <input type="text" value="55.56340730157441, 12.975207567214968" placeholder="55.5636, 12.9746" id="center"> -->
+    <input type="text" value="55.5636, 12.9746" placeholder="55.5636, 12.9746" id="center">
+    <!-- <input type="text" value="55.56329202667833, 12.981516122817995" placeholder="55.5636, 12.9746" id="center"> -->
+    <label for="distance">Distance</label>
+    <input type="number" value="100" placeholder="100" id="distance">
+    <label for="distance">Grid density</label>
+    <input type="number" value="5" placeholder="5" id="gridDensity">
+    <label for="simulations">Show simulation # (1 is best)</label>
+    <input type="number" value="1" placeholder="1" id="simulations" min="1" disabled>
+    <button id="animate" disabled="true">Animate</button>
+    <button id="getBest" disabled="true">Show the best</button>
+
+    <div class="checkbox-container">
+      <input type="checkbox" id="reinforcement">
+      <label for="reinforcement">Use random walk</label>
+    </div>
+
+    <!-- <label for="reinforcement">Use random walk</label>
+    <input type="checkbox" id="reinforcement"> -->
+
+    <label for="prescoreWeight">Score weight:</label> <input type="number" value="0.6" placeholder="0.6" id="prescoreWeight" step="0.1" min="0">
+    Crimecount weight: <input type="number" value="1" placeholder="1" id="crimecountWeight" step="0.1" min="0">
+    Distance weight: <input type="number" value="0.3" placeholder="0.3" id="distanceWeight" step="0.1" min="0">
+
+    <button id="loadAiBtn">Load data</button>
+    <!-- </form> -->
+
+    <!-- <div class="form-popup" id="myForm">
       <form id="theForm" class="form-container">
         <h1>Add data</h1>
 
@@ -45,8 +79,10 @@
         <button id="okButton" type="button" class="btn ok">Ok</button>
         <button id="cancelButton" type="button" class="btn cancel">Close</button>
       </form>
+    </div> -->
     </div>
-
-    <script type="module" src="main.js"></script>
+  </div>
+  <script type="module" src="main.js"></script>
 </body>
+
 </html>

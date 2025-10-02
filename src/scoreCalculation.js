@@ -1,16 +1,15 @@
 import * as turf from '@turf/turf'
 
 async function scoreCalculation(PRESCORE_WEIGHT, CRIMECOUNT_WEIGHT, DISTANCE_WEIGHT, currentCam, currentPoint, crimes, crimeCoords) {
-  // const PRESCORE_WEIGHT = 0.6
-  // const CRIMECOUNT_WEIGHT = 1
-  // const DISTANCE_WEIGHT = 0.3
 
   let totalCount = 0
   let totalDistance = 0
   let crimeCount = 0
-  let allPreScore = 0
+  let gridScore = 0
+
   currentCam.connectedCrimes = []
   currentCam.score = 0
+
   for (const coord of crimeCoords) {
     let crimeAsPoint = turf.point([parseFloat(coord.split(",")[0]), parseFloat(coord.split(",")[1])])
 
@@ -37,9 +36,9 @@ async function scoreCalculation(PRESCORE_WEIGHT, CRIMECOUNT_WEIGHT, DISTANCE_WEI
       }
 
       /**
-       * Holds the camera positions summed prescore
+       * Holds the camera positions (grid coordinates) summed score
        */
-      allPreScore += scoreObject.prescore
+      gridScore += scoreObject.prescore
 
       currentCam.connectedCrimes.push(scoreObject)
 
@@ -60,7 +59,7 @@ async function scoreCalculation(PRESCORE_WEIGHT, CRIMECOUNT_WEIGHT, DISTANCE_WEI
     //   allPreScore += crime.prescore
     // }
 
-    let tempScore = parseFloat((allPreScore / totalCount).toFixed(4))
+    let tempScore = parseFloat((gridScore / totalCount).toFixed(4))
 
     /**
      * Set the score for the camera position, if not NaN
@@ -74,13 +73,13 @@ async function scoreCalculation(PRESCORE_WEIGHT, CRIMECOUNT_WEIGHT, DISTANCE_WEI
    * Work with crimeCount?
    */
   // currentCam.score = crimeCount / Object.keys(crimes).length
-  const normalizedPreScore = allPreScore / totalCount || 0; // existing score base
-  const normalizedCrimeCount = crimeCount / Object.keys(crimes).length || 0; // % of total coords this camera covers
+  const normalizedGridScore = gridScore / totalCount || 0
+  const normalizedCrimeCount = crimeCount / Object.keys(crimes).length || 0 // % of total crime coords this camera covers
 
   currentCam.score = parseFloat((
-    (PRESCORE_WEIGHT * normalizedPreScore) +
+    (PRESCORE_WEIGHT * normalizedGridScore) +
     (CRIMECOUNT_WEIGHT * normalizedCrimeCount)
-  ).toFixed(4));
+  ).toFixed(4))
 
   return {
     "camInfo": currentCam,
