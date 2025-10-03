@@ -42,6 +42,14 @@ function scale (value) {
   }
 }
 
+function hideLoader() {
+  document.getElementById('loading-overlay').style.display = 'none';
+}
+
+function showLoader() {
+  document.getElementById('loading-overlay').style.display = 'flex';
+}
+
 
 async function drawBoundingBoxWithoutBuildings() {
   const headers = { 'Content-Type': 'application/json' }
@@ -199,7 +207,11 @@ L.control.polylineMeasure({
 
 
 map.on("click", function(e) {
-  alert(`${e.latlng.lat}, ${e.latlng.lng}`)
+  navigator.clipboard.writeText(`${e.latlng.lat}, ${e.latlng.lng}`).then(function() {
+    console.log('Copying to clipboard was successful!')
+    map.panTo(new L.LatLng(e.latlng.lat, e.latlng.lng))
+    document.getElementById("center").value = `${e.latlng.lat}, ${e.latlng.lng}`
+  })
 })
 
 
@@ -211,6 +223,8 @@ loadAiBtn.addEventListener("click", async function(event) {
 
     animate.disabled = true
     theBestBtn.disabled = true
+   
+    showLoader()
 
     let center = document.getElementById("center").value
     let distance = parseInt(document.getElementById("distance").value)
@@ -245,6 +259,9 @@ loadAiBtn.addEventListener("click", async function(event) {
     // drawCrimes(json.data.crimes)
 
     await runAI()
+
+    hideLoader()
+    console.log("DONE!")
 })
 
 animate.addEventListener("click", function(event) {
@@ -312,5 +329,5 @@ theBestBtn.addEventListener("click", function(event) {
     layer.openPopup()
     drawnItems.addLayer(L.geoJSON(useThis.camInfo.polygon, {style: {color:"purple"}}))
     drawnItems.bringToBack()
-
 })
+

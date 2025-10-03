@@ -28,58 +28,61 @@
 </head>
 
 <body>
-  <div class="container">
-  <div class="map">
-    <div id="map"></div>
+  <div id="loading-overlay">
+    <img src="https://cdn.pixabay.com/animation/2025/04/28/17/09/17-09-41-260_256.gif" alt="Loading..." />
   </div>
-  <div class="settings">
-
-    <label for="center">Cluster center</label>
-    <!-- <input type="text" value="55.56213319182642, 12.979257702827455" placeholder="55.5636, 12.9746" id="center"> -->
-    <!-- <input type="text" value="55.56340730157441, 12.975207567214968" placeholder="55.5636, 12.9746" id="center"> -->
-    <input type="text" value="55.5636, 12.9746" placeholder="55.5636, 12.9746" id="center">
-    <!-- <input type="text" value="55.56329202667833, 12.981516122817995" placeholder="55.5636, 12.9746" id="center"> -->
-    <label for="distance">Distance</label>
-    <input type="number" value="100" placeholder="100" id="distance">
-    <label for="distance">Grid density</label>
-    <input type="number" value="5" placeholder="5" id="gridDensity">
-    <label for="simulations">Show simulation # (1 is best)</label>
-    <input type="number" value="1" placeholder="1" id="simulations" min="1" disabled>
-    <button id="animate" disabled="true">Animate</button>
-    <button id="getBest" disabled="true">Show the best</button>
-
-    <div class="checkbox-container">
-      <input type="checkbox" id="reinforcement">
-      <label for="reinforcement">Use random walk</label>
+  <div class="container">
+    <div class="map">
+      <div id="map"></div>
     </div>
+    <div class="settings">
+      <h3>Settings</h3>
+      <label for="center">Cluster center</label>
+      <!-- <input type="text" value="55.56213319182642, 12.979257702827455" placeholder="55.5636, 12.9746" id="center"> -->
+      <!-- <input type="text" value="55.56340730157441, 12.975207567214968" placeholder="55.5636, 12.9746" id="center"> -->
+      <input type="text" value="55.5636, 12.9746" placeholder="55.5636, 12.9746" id="center">
+      <!-- <input type="text" value="55.56329202667833, 12.981516122817995" placeholder="55.5636, 12.9746" id="center"> -->
+      <label for="distance">Distance</label>
+      <input type="number" value="100" placeholder="100" id="distance">
+      <label for="distance">Grid density</label>
+      <input type="number" value="5" placeholder="5" id="gridDensity">
+      <label for="simulations">Show simulation # (1 is best)</label>
+      <input type="number" value="1" placeholder="1" id="simulations" min="1" disabled>
+      <button id="animate" disabled="true">Animate</button>
+      <button id="getBest" disabled="true">Show the best</button>
 
-    <!-- <label for="reinforcement">Use random walk</label>
-    <input type="checkbox" id="reinforcement"> -->
+      <div class="checkbox-container">
+        <input type="checkbox" id="reinforcement">
+        <label for="reinforcement">Use random walk</label>
+      </div>
 
-    <label for="prescoreWeight">Score weight:</label> <input type="number" value="0.6" placeholder="0.6" id="prescoreWeight" step="0.1" min="0">
-    Crimecount weight: <input type="number" value="1" placeholder="1" id="crimecountWeight" step="0.1" min="0">
-    Distance weight: <input type="number" value="0.3" placeholder="0.3" id="distanceWeight" step="0.1" min="0">
+      <!-- <label for="reinforcement">Use random walk</label>
+      <input type="checkbox" id="reinforcement"> -->
 
-    <button id="loadAiBtn">Load data</button>
-    <!-- </form> -->
+      <label for="prescoreWeight">Score weight:</label> <input type="number" value="0.6" placeholder="0.6" id="prescoreWeight" step="0.1" min="0">
+      Crimecount weight: <input type="number" value="1" placeholder="1" id="crimecountWeight" step="0.1" min="0">
+      Distance weight: <input type="number" value="0.3" placeholder="0.3" id="distanceWeight" step="0.1" min="0">
 
-    <!-- <div class="form-popup" id="myForm">
-      <form id="theForm" class="form-container">
-        <h1>Add data</h1>
+      <button id="loadAiBtn">Load data</button>
+      <!-- </form> -->
 
-        <label for="nrofcams"><b>Nr of cams</b></label>
-        <input type="tel" placeholder="How many cameras?" id="nrofcams" required>
+      <!-- <div class="form-popup" id="myForm">
+        <form id="theForm" class="form-container">
+          <h1>Add data</h1>
 
-        <label for="distance"><b>Distance (m)</b></label>
-        <input type="tel" placeholder="Distance (m)" id="distance" required>
+          <label for="nrofcams"><b>Nr of cams</b></label>
+          <input type="tel" placeholder="How many cameras?" id="nrofcams" required>
 
-        <label for="overlap"><b>Max overlap (%)</b></label>
-        <input type="tel" placeholder="0 (%)" id="overlap" value="0">
+          <label for="distance"><b>Distance (m)</b></label>
+          <input type="tel" placeholder="Distance (m)" id="distance" required>
 
-        <button id="okButton" type="button" class="btn ok">Ok</button>
-        <button id="cancelButton" type="button" class="btn cancel">Close</button>
-      </form>
-    </div> -->
+          <label for="overlap"><b>Max overlap (%)</b></label>
+          <input type="tel" placeholder="0 (%)" id="overlap" value="0">
+
+          <button id="okButton" type="button" class="btn ok">Ok</button>
+          <button id="cancelButton" type="button" class="btn cancel">Close</button>
+        </form>
+      </div> -->
     </div>
   </div>
   <script type="module" src="main.js"></script>
