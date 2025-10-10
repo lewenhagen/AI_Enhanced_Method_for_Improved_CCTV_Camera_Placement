@@ -36,14 +36,14 @@ async function scoreCalculation(PRESCORE_WEIGHT, CRIMECOUNT_WEIGHT, DISTANCE_WEI
       }
 
       /**
-       * Holds the camera positions (grid coordinates) summed score
+       * Holds the grid point's (grid coordinates) summed score
        */
       gridScore += scoreObject.prescore
 
       currentCam.connectedCrimes.push(scoreObject)
 
       /**
-       * Increase the camera positions pool of "hits"
+       * Increase the grid point's pool of "hits"
        */
       crimeCount++
 
@@ -89,4 +89,39 @@ async function scoreCalculation(PRESCORE_WEIGHT, CRIMECOUNT_WEIGHT, DISTANCE_WEI
   }
 }
 
-export { scoreCalculation }
+
+async function normalizeScoreForVisualization(allPoints, features) {
+    let scores = []
+
+    scores = allPoints.map(p => p.camInfo.score)
+
+    const max = Math.max(...scores)
+
+    // Normalize the scores
+    const normalized = scores.map(v => Math.pow(Math.log(v + 1) / Math.log(max + 1), 0.5))
+    // console.log(`Normalized max score: ${normalized}`)
+    // A keyholder function from coordinates
+    const coordKey = coords => coords.join(',')
+
+    const scoreMap = new Map()
+
+    allPoints.forEach((point, i) => {
+      const key = coordKey(point.camInfo.center.coordinates)
+
+      scoreMap.set(key, normalized[i])
+    })
+
+    /**
+      * For each feature in grid, set opacityscore to use clientside
+      */
+    features.forEach(feature => {
+      const key = coordKey(feature.geometry.coordinates)
+      const normScore = scoreMap.get(key)
+
+      feature.properties.opacityScore = normScore ?? 0
+    })
+
+    return features
+}
+
+export { scoreCalculation, normalizeScoreForVisualization }

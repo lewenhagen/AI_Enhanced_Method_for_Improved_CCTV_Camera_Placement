@@ -81,7 +81,7 @@ async function runAI() {
 
       const data = await response.json()
       bruteForceData = data
-      // console.log(data.result.gridArea)
+      console.log(data.result.gridArea)
 
       L.geoJSON(data.result.gridArea, {
         pointToLayer: (feature, latlng) =>
@@ -223,7 +223,7 @@ loadAiBtn.addEventListener("click", async function(event) {
 
     animate.disabled = true
     theBestBtn.disabled = true
-   
+
     showLoader()
 
     let center = document.getElementById("center").value
@@ -261,7 +261,7 @@ loadAiBtn.addEventListener("click", async function(event) {
     await runAI()
 
     hideLoader()
-    console.log("DONE!")
+    // console.log("DONE!")
 })
 
 animate.addEventListener("click", function(event) {
@@ -330,4 +330,3 @@ theBestBtn.addEventListener("click", function(event) {
     drawnItems.addLayer(L.geoJSON(useThis.camInfo.polygon, {style: {color:"purple"}}))
     drawnItems.bringToBack()
 })
-
