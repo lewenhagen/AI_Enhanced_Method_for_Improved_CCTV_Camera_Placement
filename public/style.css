@@ -35,7 +35,7 @@ label {
 input[type=text], input[type=number],
 select {
   width: 100%;
-  padding: 12px;
+  padding: 10px;
   margin: 4px 0;
   display: inline-block;
   border: 1px solid #ccc;
@@ -94,7 +94,7 @@ button:disabled {
   align-items: center;
 
   z-index: 99999; /* stay above everything */
-  
+
   /* Prevent user interactions while overlay is shown */
   pointer-events: all;
 }
