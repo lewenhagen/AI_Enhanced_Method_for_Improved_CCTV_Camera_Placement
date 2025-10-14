@@ -1,6 +1,7 @@
 import express from 'express'
 import { getIntersectingBuildingsAI } from './src/intersectingBuildings.js'
 import { getCrimesInPolygon } from './src/getCrimesInPolygon.js'
+import { getAllCrimesAvailable } from './src/getAllCrimesAvailable.js'
 import { getAreaWithoutBuildings } from './src/getAreaWithoutBuildings.js'
 import { runAi } from './src/runAi.js'
 import { normalizeScoreForVisualization } from './src/scoreCalculation.js'
@@ -27,8 +28,9 @@ app.post("/load-ai-data", async (req, res) => {
       console.timeEnd("### Get all intersectiong buildings")
       console.time("### Get all crimes in r*2 bounding box")
       data.crimes = await getCrimesInPolygon(data.boundingBox, data.buildings)
+      data.bigN = await getAllCrimesAvailable()
       console.timeEnd("### Get all crimes in r*2 bounding box")
-
+  
       /**
        * Fixes the crimes for the rest of the calculations
        */
@@ -60,8 +62,8 @@ app.post("/load-ai-data", async (req, res) => {
       aiData.distance = parseFloat(req.body.distance)
       aiData.gridDensity = parseFloat(req.body.gridDensity)
       aiData.useReinforcement = req.body.useReinforcement
-      aiData.prescoreWeight = req.body.prescoreWeight
-      aiData.crimecountWeight = req.body.crimecountWeight
+      // aiData.prescoreWeight = req.body.prescoreWeight
+      // aiData.crimecountWeight = req.body.crimecountWeight
       aiData.distanceWeight = req.body.distanceWeight
       // console.log(req.body.prescoreWeight)
       res.json({"status": "Ok", "data": data})

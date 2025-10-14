@@ -1,6 +1,6 @@
 import * as turf from '@turf/turf'
 
-async function scoreCalculation(PRESCORE_WEIGHT, CRIMECOUNT_WEIGHT, DISTANCE_WEIGHT, currentCam, currentPoint, crimes, crimeCoords) {
+async function scoreCalculation(bigN, DISTANCE_WEIGHT, currentCam, currentPoint, crimes, crimeCoords) {
 
   let totalCount = 0
   let totalDistance = 0
@@ -30,15 +30,15 @@ async function scoreCalculation(PRESCORE_WEIGHT, CRIMECOUNT_WEIGHT, DISTANCE_WEI
 
       let scoreObject = {
         crimeInfo: crimes[coord],
-        distance: distance,
+        crimeDistance: distance,
         uniqueCount: crimes[coord].count,
-        prescore: crimes[coord].count / Math.pow(distance, DISTANCE_WEIGHT) // distance upphöjt i DISTANCE_WEIGHT
+        crimeScore: crimes[coord].count / Math.max((distance * DISTANCE_WEIGHT), 1) 
       }
 
       /**
-       * Holds the grid point's (grid coordinates) summed score
+       * Holds the grid point's (grid coordinates) summed score. Divide this by N.
        */
-      gridScore += scoreObject.prescore
+      gridScore += scoreObject.crimeScore
 
       currentCam.connectedCrimes.push(scoreObject)
 
@@ -52,34 +52,33 @@ async function scoreCalculation(PRESCORE_WEIGHT, CRIMECOUNT_WEIGHT, DISTANCE_WEI
        */
       totalCount += crimes[coord].count
       totalDistance += distance
-    }
+    } // EO if in polygon
 
+    // console.log(gridScore)
     // let allPreScore = 0
     // for (const crime of currentCam.connectedCrimes) {
     //   allPreScore += crime.prescore
     // }
 
-    let tempScore = parseFloat((gridScore / totalCount).toFixed(4))
+    // let tempScore = parseFloat((gridScore / totalCount).toFixed(4))
 
     /**
      * Set the score for the camera position, if not NaN
      */
-    currentCam.score = tempScore || 0
+    // currentCam.score = tempScore || 0
 
-  }
-  // console.log(crimes)
+  } // EO for crime in crimes
+  
 
   /**
    * Work with crimeCount?
    */
   // currentCam.score = crimeCount / Object.keys(crimes).length
-  const normalizedGridScore = gridScore / totalCount || 0
-  const normalizedCrimeCount = crimeCount / Object.keys(crimes).length || 0 // % of total crime coords this camera covers
+  
+  const distanceWeightedScore = gridScore / bigN || 0
+  // const normalizedCrimeCount = crimeCount / Object.keys(crimes).length || 0 // % of total crime coords this camera covers
 
-  currentCam.score = parseFloat((
-    (PRESCORE_WEIGHT * normalizedGridScore) +
-    (CRIMECOUNT_WEIGHT * normalizedCrimeCount)
-  ).toFixed(4))
+  currentCam.score = parseFloat(distanceWeightedScore)
 
   return {
     "camInfo": currentCam,
@@ -98,7 +97,9 @@ async function normalizeScoreForVisualization(allPoints, features) {
     const max = Math.max(...scores)
 
     // Normalize the scores
-    const normalized = scores.map(v => Math.pow(Math.log(v + 1) / Math.log(max + 1), 0.5))
+    const normalized = scores.map(v => v/max)
+    
+    // const normalized = scores.map(v => Math.pow(Math.log(v + 1) / Math.log(max + 1), 0.5))
     // console.log(`Normalized max score: ${normalized}`)
     // A keyholder function from coordinates
     const coordKey = coords => coords.join(',')

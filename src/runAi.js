@@ -21,7 +21,7 @@ let distance = -1
 let gridBuildings = []
 let gridMap = new Map()
 let gridCounter = 0
-let PRESCORE_WEIGHT, CRIMECOUNT_WEIGHT, DISTANCE_WEIGHT
+let DISTANCE_WEIGHT
 
 
 
@@ -76,8 +76,6 @@ function runWorker() {
         crimeCoords,
         gridDensity,
         workerId,
-        PRESCORE_WEIGHT,
-        CRIMECOUNT_WEIGHT,
         DISTANCE_WEIGHT
       }
     })
@@ -101,9 +99,9 @@ function runWorker() {
  * @param {*} currentPoint
  * @returns
  */
-async function calculateScore(currentCam, currentPoint) {
+async function calculateScore(bigN, currentCam, currentPoint) {
 
-  return await scoreCalculation(PRESCORE_WEIGHT, CRIMECOUNT_WEIGHT, DISTANCE_WEIGHT, currentCam, currentPoint, crimes, crimeCoords)
+  return await scoreCalculation(bigN, DISTANCE_WEIGHT, currentCam, currentPoint, crimes, crimeCoords)
 }
 
 async function reinforcement(grid) {
@@ -142,14 +140,15 @@ async function reinforcement(grid) {
  * @param {*} buildings
  * @param {*} distance
  */
-async function bruteForce(camPoint, crimes, crimeCoords, bbox, buildings, distance) {
+async function bruteForce(bigN, camPoint, crimes, crimeCoords, bbox, buildings, distance) {
 
   // let current = camPoint
   // camPoint.properties.id = gridCounter
   gridCounter++
   let currentCam = await generate(buildings, bbox, [camPoint], distance)
   currentCam = currentCam[0]
-  let camObject = await calculateScore(currentCam, camPoint, crimeCoords, crimes)
+  // let camObject = await calculateScore(bigN, currentCam, camPoint, crimeCoords, crimes)
+  let camObject = await scoreCalculation(bigN, DISTANCE_WEIGHT, currentCam, camPoint, crimes, crimeCoords)
   allPoints.push( camObject )
 }
 
@@ -162,8 +161,8 @@ async function runAi(data) {
     distance = data.distance
     gridDensity = data.gridDensity
     allPoints = []
-    PRESCORE_WEIGHT = data.prescoreWeight
-    CRIMECOUNT_WEIGHT = data.crimecountWeight
+    // PRESCORE_WEIGHT = data.prescoreWeight
+    // CRIMECOUNT_WEIGHT = data.crimecountWeight
     DISTANCE_WEIGHT = data.distanceWeight
 
     if (data.useReinforcement) {
@@ -175,7 +174,7 @@ async function runAi(data) {
       await Promise.all(
         features.map(async (current) => {
           let point = current.geometry
-          await bruteForce(point, crimes, crimeCoords, bbox, buildings, data.distance)
+          await bruteForce(data.bigN, point, crimes, crimeCoords, bbox, buildings, data.distance)
         })
       )
     }

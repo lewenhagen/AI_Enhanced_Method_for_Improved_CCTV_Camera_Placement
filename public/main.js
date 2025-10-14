@@ -229,8 +229,8 @@ loadAiBtn.addEventListener("click", async function(event) {
     let center = document.getElementById("center").value
     let distance = parseInt(document.getElementById("distance").value)
     let gridDensity = parseInt(document.getElementById("gridDensity").value)
-    let prescoreWeight = parseFloat(document.getElementById("prescoreWeight").value)
-    let crimecountWeight = parseFloat(document.getElementById("crimecountWeight").value)
+    // let prescoreWeight = parseFloat(document.getElementById("prescoreWeight").value)
+    // let crimecountWeight = parseFloat(document.getElementById("crimecountWeight").value)
     let distanceWeight = parseFloat(document.getElementById("distanceWeight").value)
     let useReinforcement = document.getElementById("reinforcement").checked
 
@@ -244,9 +244,10 @@ loadAiBtn.addEventListener("click", async function(event) {
           distance: distance,
           gridDensity: gridDensity,
           useReinforcement: useReinforcement,
-          prescoreWeight: prescoreWeight,
-          crimecountWeight: crimecountWeight,
           distanceWeight: distanceWeight
+          // prescoreWeight: prescoreWeight,
+          // crimecountWeight: crimecountWeight,
+          
       })
     })
 
@@ -282,9 +283,9 @@ animate.addEventListener("click", function(event) {
     }
     // console.log("here:", pointData)
     let layer = L.geoJSON(pointData.camInfo.center).bindPopup(`
-      Score: ${pointData.camInfo.score}<br>
+      DWS: ${pointData.camInfo.score}<br>
       Area: ${pointData.camInfo.area.toFixed(2).toString()}<br>
-      Total count: ${pointData.totalCount}<br>
+      Crime count: ${pointData.totalCount}<br>
       Total distance (m): ${pointData.totalDistance.toFixed(2)}<br>
       Unique crime coordinates: ${pointData.totalCrimeCount}<br>
       Coordinates (lat/lng): ${pointData.camInfo.center.coordinates[1].toFixed(4)}, ${pointData.camInfo.center.coordinates[0].toFixed(4)}<br>
@@ -318,9 +319,9 @@ theBestBtn.addEventListener("click", function(event) {
       useThis = chosenSimulation
     }
     let layer = L.geoJSON(useThis.camInfo.center).bindPopup(`
-      Score: ${useThis.camInfo.score}<br>
+      DWS: ${useThis.camInfo.score}<br>
       Area: ${useThis.camInfo.area.toFixed(2).toString()}<br>
-      Total count: ${useThis.totalCount}<br>
+      Crime count: ${useThis.totalCount}<br>
       Total distance (m): ${useThis.totalDistance.toFixed(2)}<br>
       Unique crime coordinates: ${useThis.totalCrimeCount}<br>
       Coordinates (lat/lng): ${useThis.camInfo.center.coordinates[1].toFixed(4)}, ${useThis.camInfo.center.coordinates[0].toFixed(4)}`)

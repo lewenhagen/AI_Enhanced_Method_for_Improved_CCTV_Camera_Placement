@@ -13,6 +13,7 @@ body {
 
 .map {
   display: flex;
+  height: 90vh;
   flex-direction: column;
   flex: 80;
 }
