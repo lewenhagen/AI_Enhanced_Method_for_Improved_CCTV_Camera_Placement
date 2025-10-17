@@ -56,10 +56,22 @@
         <label for="reinforcement">Use random walk</label>
       </div>
 
+      <h4>Set norm for score</h4>
+      <label class="radio-container">
+        <input type="radio" name="useN" value="1" checked>
+        Use all crimes in dataset
+      </label>
+
+      <label class="radio-container">
+        <input type="radio" name="useN" value="2">
+        Use crimes in Distance*2 radius
+      </label>
+      
       <!-- <label for="reinforcement">Use random walk</label>
       <input type="checkbox" id="reinforcement"> -->
 
       <div>
+        <h4>Set distance weight</h4>
         <label for="distanceWeight">Distance weight</label>
         <input type="range" id="distanceWeight" min="0" max="1" step="0.1" value="0.2" oninput="this.nextElementSibling.value = this.value"/>
         <output>0.2</output>

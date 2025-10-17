@@ -65,6 +65,15 @@ button {
   margin: 10px 0;
 }
 
+.radio-container {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* space between radio button and label */
+  font-family: sans-serif;
+  font-size: 16px;
+  margin: 10px 0;
+}
+
 /* Stilren checkbox */
 input[type="checkbox"] {
   width: 18px;

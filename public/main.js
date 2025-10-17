@@ -38,7 +38,7 @@ function scale (value) {
   if (value === undefined) {
     return "#000"
   } else {
-    return chroma.scale(["#ffffffff", "#e4e1e1ff", "#aaa9a9ff","#000"])(value).hex()
+    return chroma.scale(["#ffffffff", "#b1b0b0ff", "#5b5a5aff","#000"])(value).hex()
   }
 }
 
@@ -233,6 +233,8 @@ loadAiBtn.addEventListener("click", async function(event) {
     // let crimecountWeight = parseFloat(document.getElementById("crimecountWeight").value)
     let distanceWeight = parseFloat(document.getElementById("distanceWeight").value)
     let useReinforcement = document.getElementById("reinforcement").checked
+    let crimesForNorm = parseInt(document.querySelector('input[name="useN"]:checked').value)
+    
 
     let response = await fetch('/load-ai-data', {
       method: 'POST',
@@ -244,7 +246,8 @@ loadAiBtn.addEventListener("click", async function(event) {
           distance: distance,
           gridDensity: gridDensity,
           useReinforcement: useReinforcement,
-          distanceWeight: distanceWeight
+          distanceWeight: distanceWeight,
+          scoreNorm: crimesForNorm
           // prescoreWeight: prescoreWeight,
           // crimecountWeight: crimecountWeight,
           

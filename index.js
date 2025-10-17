@@ -28,7 +28,12 @@ app.post("/load-ai-data", async (req, res) => {
       console.timeEnd("### Get all intersectiong buildings")
       console.time("### Get all crimes in r*2 bounding box")
       data.crimes = await getCrimesInPolygon(data.boundingBox, data.buildings)
-      data.bigN = await getAllCrimesAvailable()
+      if (req.body.scoreNorm == 1) {
+        data.bigN = await getAllCrimesAvailable()
+      } else if (req.body.scoreNorm == 2) {
+        data.bigN = data.crimes.length
+      }
+      
       console.timeEnd("### Get all crimes in r*2 bounding box")
   
       /**

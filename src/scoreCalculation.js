@@ -83,7 +83,7 @@ async function normalizeScoreForVisualization(allPoints, features) {
 
     // Normalize the scores
     const normalized = scores.map(v => v/max)
-
+    // console.log(normalized)
     // const normalized = scores.map(v => Math.pow(Math.log(v + 1) / Math.log(max + 1), 0.5))
     // console.log(`Normalized max score: ${normalized}`)
     // A keyholder function from coordinates
