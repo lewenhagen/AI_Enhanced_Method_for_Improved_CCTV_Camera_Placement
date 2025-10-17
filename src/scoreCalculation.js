@@ -32,7 +32,7 @@ async function scoreCalculation(bigN, DISTANCE_WEIGHT, currentCam, currentPoint,
         crimeInfo: crimes[coord],
         crimeDistance: distance,
         uniqueCount: crimes[coord].count,
-        crimeScore: crimes[coord].count / Math.max((distance * DISTANCE_WEIGHT), 1) 
+        crimeScore: crimes[coord].count / Math.max((distance * DISTANCE_WEIGHT), 1)
       }
 
       /**
@@ -54,27 +54,12 @@ async function scoreCalculation(bigN, DISTANCE_WEIGHT, currentCam, currentPoint,
       totalDistance += distance
     } // EO if in polygon
 
-    // console.log(gridScore)
-    // let allPreScore = 0
-    // for (const crime of currentCam.connectedCrimes) {
-    //   allPreScore += crime.prescore
-    // }
-
-    // let tempScore = parseFloat((gridScore / totalCount).toFixed(4))
-
-    /**
-     * Set the score for the camera position, if not NaN
-     */
-    // currentCam.score = tempScore || 0
-
   } // EO for crime in crimes
-  
 
-  /**
-   * Work with crimeCount?
-   */
+
+
   // currentCam.score = crimeCount / Object.keys(crimes).length
-  
+
   const distanceWeightedScore = gridScore / bigN || 0
   // const normalizedCrimeCount = crimeCount / Object.keys(crimes).length || 0 // % of total crime coords this camera covers
 
@@ -98,7 +83,7 @@ async function normalizeScoreForVisualization(allPoints, features) {
 
     // Normalize the scores
     const normalized = scores.map(v => v/max)
-    
+
     // const normalized = scores.map(v => Math.pow(Math.log(v + 1) / Math.log(max + 1), 0.5))
     // console.log(`Normalized max score: ${normalized}`)
     // A keyholder function from coordinates
