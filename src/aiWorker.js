@@ -15,17 +15,16 @@ let startPositions = []
 
 const {
     gridMap,
-    buildings,
+    BUILDINGS,
     gridBuildings,
-    bbox,
+    BBOX,
     distance,
-    crimes,
-    crimeCoords,
+    CRIMES,
+    CRIMECOORDS,
     gridDensity,
     workerId,
-    PRESCORE_WEIGHT,
-    CRIMECOUNT_WEIGHT,
-    DISTANCE_WEIGHT
+    DISTANCE_WEIGHT,
+    bigN
 } = workerData
 
 const directionBearings = {
@@ -41,9 +40,10 @@ const directionBearings = {
 
 for (let i = 0; i < 100; i++) {
   let point = (await getRandomPointFromGrid()).geometry
-  let temp = await generate(buildings, bbox, [point], distance)
+  let temp = await generate(BUILDINGS, BBOX, [point], distance)
   temp = temp[0]
-  let scoreObject = await calculateScore(temp, point, crimeCoords, crimes)
+
+  let scoreObject = await scoreCalculation(bigN, DISTANCE_WEIGHT, temp, point, CRIMES, CRIMECOORDS)
   startPositions.push(scoreObject)
 }
 
@@ -135,7 +135,7 @@ async function move(currentPoint, direction) {
 //   // console.log(gridMap)
 // }
 
-async function calculateScore(currentCam, currentPoint, crimeCoords, crimes) {
+async function calculateScore(currentCam, currentPoint, CRIMECOORDS) {
   // let totalCount = 0
   // let totalDistance = 0
   // let crimeCount = 0
@@ -195,7 +195,7 @@ async function calculateScore(currentCam, currentPoint, crimeCoords, crimes) {
   //   "totalCount": totalCount,
   //   "totalDistance": totalDistance
   // }
-  return await scoreCalculation(PRESCORE_WEIGHT, CRIMECOUNT_WEIGHT, DISTANCE_WEIGHT, currentCam, currentPoint, crimes, crimeCoords)
+  return await scoreCalculation(bigN, DISTANCE_WEIGHT, currentCam, currentPoint, CRIMES, CRIMECOORDS)
 }
 
 async function getRandomDirection() {
@@ -220,10 +220,10 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
     return false
   }
 
-  let currentCam = await generate(buildings, bbox, [nextPoint.point.geometry], distance)
+  let currentCam = await generate(BUILDINGS, BBOX, [nextPoint.point.geometry], distance)
   currentCam = currentCam[0]
   let scoreObject = {}
-  scoreObject = await calculateScore(currentCam, nextPoint.point.geometry, crimeCoords, crimes)
+  scoreObject = await calculateScore(currentCam, nextPoint.point.geometry, CRIMECOORDS, CRIMES)
     return {
       point: nextPoint,
       score: scoreObject
@@ -237,51 +237,146 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
     let lastPoint = startPoint
     let simulationPoints = []
 
-    let startCam = await generate(buildings, bbox, [startPoint], distance)
+    let startCam = await generate(BUILDINGS, BBOX, [startPoint], distance)
     startCam = startCam[0]
 
-    let lastScore = await calculateScore(startCam, startPoint, crimeCoords, crimes)
+    let lastScore = await calculateScore(startCam, startPoint, CRIMECOORDS, CRIMES)
     simulationPoints.push(lastScore)
 
     let dir = await getRandomDirection()
 
-    let i = 0;
-    while (i < 30) {
-        // console.log(i)
-        dir = await getRandomDirection()
-        let stepObject = await takeStepInGridCalculateScore(dir, lastPoint)
-        // console.log(stepObject)
-        // If correct move
-        if (stepObject !== false) {
-            let temp = 0
-            // If score is higher
-            if (stepObject.score.camInfo.score > lastScore.camInfo.score) {
-                simulationPoints.push(stepObject.score)
-                lastPoint = stepObject.point.point.geometry
-                lastScore = stepObject.score
-                // i++;
+    // let i = 0;
+    // while (true) {
+    //   const directions = ["up", "down", "left", "right", "upLeft", "downLeft", "upRight", "downRight"]
+    //   const stepResults = [];
 
-            } else {
-              // temp++
-              // if (temp === 6) {
-              //   i++
-              //   temp = 0
-              // }
-                // If score is lower
-                // let oldDir = dir;
-                dir = await getRandomDirection()
-                // continue
-                // while (dir !== oldDir) {
-                //   dir = await getRandomDirection()
-                // }
-            }
-            i++;
-        } else {
-          // If outside or in building
+    //   // Try all directions
+    //   for (const dir of directions) {
+    //     const stepObject = await takeStepInGridCalculateScore(dir, lastPoint);
+    //     if (stepObject !== false) {
+    //       stepResults.push(stepObject);
+    //     }
+    //   }
+
+    //   if (stepResults.length === 0) {
+    //     // No valid steps — stop or choose new start
+    //     break;
+    //   }
+
+    //   // Sort by score (descending)
+    //   stepResults.sort((a, b) => b.score.camInfo.score - a.score.camInfo.score);
+
+    //   const bestScore = stepResults[0].score.camInfo.score;
+
+    //   // Filter to only top scorers (in case of tie)
+    //   const topSteps = stepResults.filter(
+    //     s => s.score.camInfo.score === bestScore
+    //   );
+
+    //   // If multiple have same score, try all of them recursively / iteratively
+    //   // For simplicity, we’ll just pick one at random among top scorers
+    //   const nextStep =
+    //     topSteps.length > 1
+    //       ? topSteps[Math.floor(Math.random() * topSteps.length)]
+    //       : topSteps[0];
+
+    //   // If the best score improves, move there
+    //   if (bestScore > lastScore.camInfo.score) {
+    //     simulationPoints.push(nextStep.score);
+    //     lastPoint = nextStep.point.point.geometry;
+    //     lastScore = nextStep.score;
+    //   } else {
+    //     // Reached local maximum — no better move
+    //     break;
+    //   }
+
+    //   i++;
+    // }
+    let i = 0;
+
+    while (true) {
+      // 1️⃣ Try all possible directions
+      const directions = ["up", "down", "left", "right", "upLeft", "downLeft", "upRight", "downRight"]
+      const stepResults = [];
+
+      for (const dir of directions) {
+        const stepObject = await takeStepInGridCalculateScore(dir, lastPoint);
+        if (stepObject !== false) {
+          stepResults.push(stepObject);
+        }
+      }
+
+      if (stepResults.length === 0) break; // no valid moves
+
+      // 2️⃣ Sort by score (descending)
+      stepResults.sort((a, b) => b.score.camInfo.score - a.score.camInfo.score);
+
+      // 3️⃣ Get the best score value
+      const bestScoreValue = stepResults[0].score.camInfo.score;
+
+      // 4️⃣ Filter all top scorers (in case of ties)
+      const topSteps = stepResults.filter(
+        s => s.score.camInfo.score === bestScoreValue
+      );
+
+      let foundBetter = false;
+
+      // 5️⃣ Test *all* top-scoring directions
+      for (const topStep of topSteps) {
+        const nextResults = [];
+
+        for (const dir of directions) {
+          const nextStep = await takeStepInGridCalculateScore(dir, topStep.point.point.geometry);
+          if (nextStep !== false) {
+            nextResults.push(nextStep);
+          }
         }
 
-        // i++
+        // Find best score from those secondary moves
+        const bestNext = nextResults.sort(
+          (a, b) => b.score.camInfo.score - a.score.camInfo.score
+        )[0];
+
+        if (bestNext && bestNext.score.camInfo.score > lastScore.camInfo.score) {
+          simulationPoints.push(bestNext.score);
+          lastPoint = bestNext.point.point.geometry;
+          lastScore = bestNext.score;
+          foundBetter = true;
+          break; // stop exploring after finding a better move
+        }
+      }
+
+      // 6️⃣ If none of the top directions improved, stop
+      if (!foundBetter) break;
+
+      i++;
     }
+
+
+    // while (i < 30) {
+    //     // console.log(i)
+    //     dir = await getRandomDirection()
+    //     let stepObject = await takeStepInGridCalculateScore(dir, lastPoint)
+    //     // console.log(stepObject)
+    //     // If correct move
+    //     if (stepObject !== false) {
+    //         let temp = 0
+    //         // If score is higher
+    //         if (stepObject.score.camInfo.score > lastScore.camInfo.score) {
+    //             simulationPoints.push(stepObject.score)
+    //             lastPoint = stepObject.point.point.geometry
+    //             lastScore = stepObject.score
+    //             // i++;
+
+    //         } else {
+              
+    //             dir = await getRandomDirection() 
+    //         }
+    //         i++;
+    //     } else {
+    //       // If outside or in building
+    //     }  
+    // }
     // console.log(simulationPoints)
     console.timeEnd(`Worker: ${workerId}`)
     parentPort.postMessage(simulationPoints)

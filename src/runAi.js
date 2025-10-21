@@ -11,17 +11,18 @@ import { scoreCalculation } from './scoreCalculation.js'
 
 let workerId = 0
 const THREAD_COUNT = os.cpus().length
-let allPoints = []
-let bbox = []
-let buildings = []
-let crimes = []
-let crimeCoords = {}
+let ALLPOINTS = []
+let BBOX = []
+let BUILDINGS = []
+let CRIMES = []
+let CRIMECOORDS = {}
 let gridDensity = -1
 let distance = -1
 let gridBuildings = []
 let gridMap = new Map()
 let gridCounter = 0
 let DISTANCE_WEIGHT
+let bigN
 
 
 
@@ -34,10 +35,10 @@ let DISTANCE_WEIGHT
  * @param {number} gridDensity
  * @returns {FeatureCollection} The points inside capture area
  */
-function createGridOvercaptureArea(centerLong, centerLat, buildings, distance, gridDensity) {
+function createGridOvercaptureArea(centerLong, centerLat, distance, gridDensity) {
   const buildingsCollection = {
     type: "FeatureCollection",
-    features: buildings.map(f => ({
+    features: BUILDINGS.map(f => ({
       type: "Feature",
       geometry: f.geometry,
       properties: f.properties || {}
@@ -47,8 +48,8 @@ function createGridOvercaptureArea(centerLong, centerLat, buildings, distance, g
   const center = [centerLong, centerLat]
   const radius = (distance/1000)
   const circle = turf.circle(center, radius, { steps: 64, units: 'kilometers' })
-  const bbox = turf.bbox(circle)
-  const grid = turf.pointGrid(bbox, gridDensity, { units: 'meters', mask: circle })
+  const circleBbox = turf.bbox(circle)
+  const grid = turf.pointGrid(circleBbox, gridDensity, { units: 'meters', mask: circle })
   const filteredPoints = turf.featureCollection(
     grid.features.filter(point =>
       !buildingsCollection.features.some(building =>
@@ -68,15 +69,16 @@ function runWorker() {
     const worker = new Worker(new URL('./aiWorker.js', import.meta.url), {
       workerData: {
         gridMap,
-        buildings,
+        BUILDINGS,
         gridBuildings,
-        bbox,
+        BBOX,
         distance,
-        crimes,
-        crimeCoords,
+        CRIMES,
+        CRIMECOORDS,
         gridDensity,
         workerId,
-        DISTANCE_WEIGHT
+        DISTANCE_WEIGHT,
+        bigN
       }
     })
 
@@ -93,20 +95,11 @@ function runWorker() {
   })
 }
 
-/**
- * This calculates score for Brute force.
- * @param {*} currentCam
- * @param {*} currentPoint
- * @returns
- */
-async function calculateScore(bigN, currentCam, currentPoint) {
 
-  return await scoreCalculation(bigN, DISTANCE_WEIGHT, currentCam, currentPoint, crimes, crimeCoords)
-}
 
-async function reinforcement(grid) {
+async function randomWalk(grid) {
+  let data = await setupGridAndBuildings(grid, BUILDINGS, gridDensity)
 
-  let data = await setupGridAndBuildings(grid, buildings, gridDensity)
   gridMap = data.gridMap
   gridBuildings = data.gridBuildings
 
@@ -115,71 +108,85 @@ async function reinforcement(grid) {
   console.timeEnd("### Worker time")
 
 
+  // results.sort((a, b) => {
+  //   const scoreA = a[a.length - 1]?.camInfo?.score ?? 0
+  //   const scoreB = b[b.length - 1]?.camInfo?.score ?? 0
+  //   return scoreB - scoreA
+  // })
 
   results.sort((a, b) => {
-    const scoreA = a[a.length - 1]?.camInfo?.score ?? 0
-    const scoreB = b[b.length - 1]?.camInfo?.score ?? 0
-    return scoreB - scoreA
-  })
+    const lastA = a[a.length - 1];
+    const lastB = b[b.length - 1];
+
+    const scoreA = lastA?.camInfo?.score ?? 0;
+    const scoreB = lastB?.camInfo?.score ?? 0;
+
+
+    if (scoreB !== scoreA) return scoreB - scoreA;
+
+    const distanceA = lastA?.totalDistance ?? Infinity;
+    const distanceB = lastB?.totalDistance ?? Infinity;
+
+    return distanceA - distanceB;
+  });
+
   for (const i in results) {
     let index = parseInt(i) + 1
-    console.log(`Simulation ${index}: Score ${results[i][results[i].length-1].camInfo.score}, steps taken ${results[i].length}`)
+    console.log(`Simulation ${index}: Score ${results[i][results[i].length-1].camInfo.score}, steps taken ${results[i].length}, Total distance: ${results[i][results[i].length-1].totalDistance}`)
   }
+
   console.log("Best score after sort: " + results[0][results[0].length-1].camInfo.score)
 
-  allPoints = results
+ ALLPOINTS = results
 }
 
 
 
 /**
  * @param {} camPoint
- * @param {*} crimes
- * @param {*} crimeCoords
- * @param {*} bbox
  * @param {*} buildings
  * @param {*} distance
  */
-async function bruteForce(bigN, camPoint, crimes, crimeCoords, bbox, buildings, distance) {
+async function bruteForce(bigN, camPoint, distance) {
 
   // let current = camPoint
   // camPoint.properties.id = gridCounter
   gridCounter++
-  let currentCam = await generate(buildings, bbox, [camPoint], distance)
+  let currentCam = await generate(BUILDINGS, BBOX, [camPoint], distance)
   currentCam = currentCam[0]
   // let camObject = await calculateScore(bigN, currentCam, camPoint, crimeCoords, crimes)
-  let camObject = await scoreCalculation(bigN, DISTANCE_WEIGHT, currentCam, camPoint, crimes, crimeCoords)
-  allPoints.push( camObject )
+  let camObject = await scoreCalculation(bigN, DISTANCE_WEIGHT, currentCam, camPoint, CRIMES, CRIMECOORDS)
+ ALLPOINTS.push( camObject )
 }
 
 async function runAi(data) {
-    buildings = data.buildings
-    let gridArea = createGridOvercaptureArea(parseFloat(data.start.split(",")[1]), parseFloat(data.start.split(",")[0]), buildings, data.distance, data.gridDensity)
-    bbox = data.boundingBox
-    crimes = data.crimes
-    crimeCoords = Object.keys(data.crimes)
+    BUILDINGS = data.buildings
+    let gridArea = createGridOvercaptureArea(parseFloat(data.start.split(",")[1]), parseFloat(data.start.split(",")[0]), data.distance, data.gridDensity)
+    BBOX = data.boundingBox
+    CRIMES = data.crimes
+    CRIMECOORDS = Object.keys(CRIMES)
     distance = data.distance
     gridDensity = data.gridDensity
-    allPoints = []
+    ALLPOINTS = []
+    bigN = data.bigN
     // PRESCORE_WEIGHT = data.prescoreWeight
     // CRIMECOUNT_WEIGHT = data.crimecountWeight
     DISTANCE_WEIGHT = data.distanceWeight
 
     if (data.useReinforcement) {
-      await reinforcement(gridArea)
-      // console.log("Number of steps: " + THREAD_COUNT)
-
+      await randomWalk(gridArea)
+      
     } else {
-      let features = gridArea.features
+      // let features = gridArea.features
       await Promise.all(
-        features.map(async (current) => {
+        gridArea.features.map(async (current) => {
           let point = current.geometry
-          await bruteForce(data.bigN, point, crimes, crimeCoords, bbox, buildings, data.distance)
+          await bruteForce(bigN, point, data.distance)
         })
       )
     }
 
-    return {gridArea: gridArea, allPoints: allPoints}
+    return {gridArea: gridArea, allPoints: ALLPOINTS}
 }
 
 export { runAi }

@@ -1,7 +1,6 @@
 import * as turf from '@turf/turf'
 
 async function scoreCalculation(bigN, DISTANCE_WEIGHT, currentCam, currentPoint, crimes, crimeCoords) {
-
   let totalCount = 0
   let totalDistance = 0
   let crimeCount = 0

@@ -108,7 +108,7 @@ async function runAI() {
 
   } catch (error) {
       console.error('Error fetching:', error);
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Retry after 1 second
+      await new Promise(resolve => setTimeout(resolve, 1000))
   }
   drawCrimes(allCrimes)
 }
@@ -265,7 +265,6 @@ loadAiBtn.addEventListener("click", async function(event) {
     await runAI()
 
     hideLoader()
-    // console.log("DONE!")
 })
 
 animate.addEventListener("click", function(event) {
@@ -298,10 +297,9 @@ animate.addEventListener("click", function(event) {
     drawnItems.bringToBack()
     layer.openPopup()
     drawnItems.addLayer(L.geoJSON(pointData.camInfo.polygon, {style: {color:"purple"}, interactive: false}))
-    // drawnAi.bringToFront()
+   
     if (i === max-1) {
       clearInterval(myInterval)
-      // myInterval = null
       return
     }
 

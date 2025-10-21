@@ -52,61 +52,21 @@ async function generate(buildings, boundingBox, nrOfCams, distance) {
   circleHolder = []
 
   let coordinates = turf.featureCollection(nrOfCams)
-  //INTE DENNA let coordinates = turf.randomPoint(nrOfCams, {bbox: turf.bbox(turf.polygon([boundingBox]))})
-  // let coordinates = getRandomPointsInPolygon(nrOfCams, turf.polygon([boundingBox]))
-
-
+ 
   turf.featureEach(coordinates, function(currentFeature, featureIndex) {
     let options = {units: 'kilometers', steps: circleSteps}
     let circle = turf.circle(currentFeature, distance/1000, options)
     const intersectingFeatures = []
-    // const polygonBbox = turf.bbox(circle)
 
-    // Search the tree with bounding box from circles
-    // tree.search({
-    //     minX: polygonBbox[0],
-    //     minY: polygonBbox[1],
-    //     maxX: polygonBbox[2],
-    //     maxY: polygonBbox[3]
-    // })
     buildings.forEach(item => {
         if (turf.booleanIntersects(item, circle)) {
             intersectingFeatures.push(turf.flatten(item).features[0])
         }
-    });
+    })
 
-
-
-    // Add each circle as Object to the array
     circleHolder.push({"center": currentFeature, "area": circle, "buildings": intersectingFeatures})
   })
 
-  // for (const coord of coordinates) {
-  //     let point = turf.point(coord)
-  //     let options = {units: 'kilometers', steps: circleSteps}
-  //     let circle = turf.circle(point, distance/1000, options)
-  //     const intersectingFeatures = []
-  //     // const polygonBbox = turf.bbox(circle)
-
-  //     // Search the tree with bounding box from circles
-  //     // tree.search({
-  //     //     minX: polygonBbox[0],
-  //     //     minY: polygonBbox[1],
-  //     //     maxX: polygonBbox[2],
-  //     //     maxY: polygonBbox[3]
-  //     // })
-  //     buildings.forEach(item => {
-  //         if (turf.booleanIntersects(item, circle)) {
-  //             intersectingFeatures.push(turf.flatten(item).features[0])
-  //         }
-  //     });
-
-
-
-  //     // Add each circle as Object to the array
-  //     circleHolder.push({"center": point, "area": circle, "buildings": intersectingFeatures})
-
-  // }
 
   // Loop all circles and create chunks to send to worker
   for (let i = 0; i < circleHolder.length; i += THREAD_COUNT) {
@@ -123,9 +83,7 @@ async function generate(buildings, boundingBox, nrOfCams, distance) {
     return item.geometry.type === "Polygon"
   })
 
-  // console.log(polys)
-  // console.log("here:", turf.area(turf.union(turf.featureCollection(polys))))
-  // console.log(turf.intersect(turf.featureCollection(result)))
+  
   let pArea = null
 
   if (polys.length < 2) {
