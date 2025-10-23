@@ -53,8 +53,8 @@ startPositions.sort((a, b) => {
   )
 })
 
-let top20 = startPositions.slice(0, 10)
-// console.log(top20)
+let topFromInititalRandom = startPositions.slice(0, 10)
+// console.log(topFromInititalRandom)
 // console.log(startPositions[0].camInfo)
 // console.log(startPositions[startPositions.length-1].camInfo.score)
 
@@ -136,65 +136,7 @@ async function move(currentPoint, direction) {
 // }
 
 async function calculateScore(currentCam, currentPoint, CRIMECOORDS) {
-  // let totalCount = 0
-  // let totalDistance = 0
-  // let crimeCount = 0
-  // currentCam.connectedCrimes = []
-  // currentCam.score = 0
-  // // console.log(crimeCoords)
-  // for (const coord of crimeCoords) {
-  //   let crimeAsPoint = turf.point([parseFloat(coord.split(",")[0]), parseFloat(coord.split(",")[1])])
 
-  //   // If the crime coordinate is inside the coverage area
-  //   if (turf.booleanPointInPolygon(crimeAsPoint, currentCam.polygon)) {
-
-  //     // Distance from the camera to the crime (m)
-  //     let distance = turf.distance(currentPoint, crimeAsPoint) * 1000
-  //     distance = distance < 1 ? 1 : distance
-  //     // console.log(distance)
-
-  //     /**
-  //      * Adds the crime position to the cameras pool of "hits"
-  //      * crimeInfo = info about a crime
-  //      * distance = distance in meters
-  //      * uniqueCount (crimes[coord].count) = amount of crimes at the same coordinate, i.e. 3000
-  //      */
-  //     currentCam.connectedCrimes.push({
-  //       crimeInfo: crimes[coord],
-  //       distance: distance,
-  //       uniqueCount: crimes[coord].count,
-  //       prescore: crimes[coord].count / Math.max(1, distance*0)
-  //     })
-
-  //     // Adds to the camera positions amount of crimes in coverage area
-  //     crimeCount++
-
-  //     /**
-  //      * totalCount holds the crimes reported, i.e. 3000
-  //      */
-  //     totalCount += crimes[coord].count
-  //     totalDistance += distance
-  //   }
-
-  //   let allPreScore = 0
-  //   for (const crime of currentCam.connectedCrimes) {
-  //     allPreScore += crime.prescore
-  //   }
-  //   // if ((allPreScore / totalCount) > 1) {
-  //   //   console.log("allPreScore: " + allPreScore)
-  //   //   console.log("totalCount: " + totalCount)
-  //   //   console.log("divided: " + allPreScore / totalCount)
-  //   // }
-
-  //   currentCam.score = parseFloat((allPreScore / totalCount).toFixed(4)) || 0
-  // }
-
-  // return {
-  //   "camInfo": currentCam,
-  //   "totalCrimeCount": crimeCount,
-  //   "totalCount": totalCount,
-  //   "totalDistance": totalDistance
-  // }
   return await scoreCalculation(bigN, DISTANCE_WEIGHT, currentCam, currentPoint, CRIMES, CRIMECOORDS)
 }
 
@@ -233,7 +175,7 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
 (async () => {
     console.time(`Worker: ${workerId}`)
     // let startPoint = (await getRandomPointFromGrid()).geometry
-    let startPoint = top20[Math.floor(Math.random() * top20.length)].camInfo.center  //startPositions[0].camInfo.center
+    let startPoint = topFromInititalRandom[Math.floor(Math.random() * topFromInititalRandom.length)].camInfo.center  //startPositions[0].camInfo.center
     let lastPoint = startPoint
     let simulationPoints = []
 
@@ -243,62 +185,15 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
     let lastScore = await calculateScore(startCam, startPoint, CRIMECOORDS, CRIMES)
     simulationPoints.push(lastScore)
 
-    let dir = await getRandomDirection()
+    // let dir = await getRandomDirection()
 
-    // let i = 0;
-    // while (true) {
-    //   const directions = ["up", "down", "left", "right", "upLeft", "downLeft", "upRight", "downRight"]
-    //   const stepResults = [];
 
-    //   // Try all directions
-    //   for (const dir of directions) {
-    //     const stepObject = await takeStepInGridCalculateScore(dir, lastPoint);
-    //     if (stepObject !== false) {
-    //       stepResults.push(stepObject);
-    //     }
-    //   }
-
-    //   if (stepResults.length === 0) {
-    //     // No valid steps — stop or choose new start
-    //     break;
-    //   }
-
-    //   // Sort by score (descending)
-    //   stepResults.sort((a, b) => b.score.camInfo.score - a.score.camInfo.score);
-
-    //   const bestScore = stepResults[0].score.camInfo.score;
-
-    //   // Filter to only top scorers (in case of tie)
-    //   const topSteps = stepResults.filter(
-    //     s => s.score.camInfo.score === bestScore
-    //   );
-
-    //   // If multiple have same score, try all of them recursively / iteratively
-    //   // For simplicity, we’ll just pick one at random among top scorers
-    //   const nextStep =
-    //     topSteps.length > 1
-    //       ? topSteps[Math.floor(Math.random() * topSteps.length)]
-    //       : topSteps[0];
-
-    //   // If the best score improves, move there
-    //   if (bestScore > lastScore.camInfo.score) {
-    //     simulationPoints.push(nextStep.score);
-    //     lastPoint = nextStep.point.point.geometry;
-    //     lastScore = nextStep.score;
-    //   } else {
-    //     // Reached local maximum — no better move
-    //     break;
-    //   }
-
-    //   i++;
-    // }
-    let i = 0;
 
     while (true) {
-      // 1️⃣ Try all possible directions
-      const directions = ["up", "down", "left", "right", "upLeft", "downLeft", "upRight", "downRight"]
+      const directions = ["up", "down", "left", "right", "upLeft", "downLeft", "upRight", "downRight"];
       const stepResults = [];
 
+      // Try all possible directions
       for (const dir of directions) {
         const stepObject = await takeStepInGridCalculateScore(dir, lastPoint);
         if (stepObject !== false) {
@@ -306,22 +201,22 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
         }
       }
 
-      if (stepResults.length === 0) break; // no valid moves
+      if (stepResults.length === 0) break;
 
-      // 2️⃣ Sort by score (descending)
+      // Sort by score (descending)
       stepResults.sort((a, b) => b.score.camInfo.score - a.score.camInfo.score);
 
-      // 3️⃣ Get the best score value
+      // Get the best score value
       const bestScoreValue = stepResults[0].score.camInfo.score;
 
-      // 4️⃣ Filter all top scorers (in case of ties)
+      // Filter all top scorers (in case of ties)
       const topSteps = stepResults.filter(
-        s => s.score.camInfo.score === bestScoreValue
+        item => item.score.camInfo.score === bestScoreValue
       );
 
       let foundBetter = false;
 
-      // 5️⃣ Test *all* top-scoring directions
+      // Test all top-scoring directions
       for (const topStep of topSteps) {
         const nextResults = [];
 
@@ -332,25 +227,33 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
           }
         }
 
-        // Find best score from those secondary moves
+        // Find the best next step (highest score first)
         const bestNext = nextResults.sort(
           (a, b) => b.score.camInfo.score - a.score.camInfo.score
         )[0];
 
-        if (bestNext && bestNext.score.camInfo.score > lastScore.camInfo.score) {
-          simulationPoints.push(bestNext.score);
-          lastPoint = bestNext.point.point.geometry;
-          lastScore = bestNext.score;
-          foundBetter = true;
-          break; // stop exploring after finding a better move
+        if (bestNext) {
+          const nextScore = bestNext.score.camInfo.score;
+          const nextDistance = bestNext.score.camInfo.totalDistance;
+          const currentScore = lastScore.camInfo.score;
+          const currentDistance = lastScore.camInfo.totalDistance;
+
+          // Move if score improves OR (score same & distance shorter)
+          if (nextScore > currentScore ||
+              (nextScore === currentScore && nextDistance < currentDistance)) {
+            simulationPoints.push(bestNext.score);
+            lastPoint = bestNext.point.point.geometry;
+            lastScore = bestNext.score;
+            foundBetter = true;
+            break; // stop after finding a better (or equally good but closer) move
+          }
         }
       }
 
-      // 6️⃣ If none of the top directions improved, stop
+      // If none of the top directions improved, stop
       if (!foundBetter) break;
-
-      i++;
     }
+
 
 
     // while (i < 30) {
@@ -369,13 +272,13 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
     //             // i++;
 
     //         } else {
-              
-    //             dir = await getRandomDirection() 
+
+    //             dir = await getRandomDirection()
     //         }
     //         i++;
     //     } else {
     //       // If outside or in building
-    //     }  
+    //     }
     // }
     // console.log(simulationPoints)
     console.timeEnd(`Worker: ${workerId}`)
