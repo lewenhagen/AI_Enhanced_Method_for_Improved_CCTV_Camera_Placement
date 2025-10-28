@@ -105,7 +105,7 @@ async function randomWalk(grid) {
   
   console.time("### Worker time")
   
-  let results = await Promise.all(Array(Math.floor(gridMap.size / 20)).fill().map(runWorker))
+  let results = await Promise.all(Array(Math.floor(gridMap.size / 100)).fill().map(runWorker))
   console.timeEnd("### Worker time")
 
 

@@ -153,8 +153,7 @@ async function getRandomDirection() {
 
 async function takeStepInGridCalculateScore(dir, currentPoint) {
 
-  // let currentCam = await generate(buildings, bbox, [currentPoint], distance)
-  // currentCam = currentCam[0]
+ 
 
   let nextPoint = await move(currentPoint, dir)
 
@@ -164,13 +163,13 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
 
   let currentCam = await generate(BUILDINGS, BBOX, [nextPoint.point.geometry], distance)
   currentCam = currentCam[0]
-  let scoreObject = {}
-  scoreObject = await calculateScore(currentCam, nextPoint.point.geometry, CRIMECOORDS, CRIMES)
-    return {
-      point: nextPoint,
-      score: scoreObject
-    }
+  let scoreObject = await calculateScore(currentCam, nextPoint.point.geometry, CRIMECOORDS, CRIMES)
+    
+  return {
+    point: nextPoint,
+    score: scoreObject
   }
+}
 
 (async () => {
     console.time(`Worker: ${workerId}`)
@@ -255,18 +254,18 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
     //   if (!foundBetter) break;
     // }
 
-    let maxSteps = 10;
+    let maxSteps = 9;
     let counter = 0;
     const visitedPoints = new Set();
 
-    // Helper to stringify coordinates so we can store them in a Set
     function pointKey(point) {
-      // Assumes geometry = { x, y } or similar numeric structure
-      // console.log(point)
-      return `${point.coordinates[0]},${point.coordinates[1]}`;
+      if (point.coordinates) {
+        const [x, y] = point.coordinates;
+        return `${x},${y}`;
+      }
+      return `${point.x},${point.y}`;
     }
 
-    // Mark starting point as visited
     visitedPoints.add(pointKey(lastPoint));
 
     while (counter < maxSteps) {
@@ -275,80 +274,50 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
         "upLeft", "downLeft", "upRight", "downRight"
       ];
 
-      // Step 1: Evaluate all directions from current point
+      // Step 1: Check all directions
       const stepResults = [];
       for (const dir of directions) {
         const step = await takeStepInGridCalculateScore(dir, lastPoint);
         if (step !== false) {
           const stepPos = step.point.point.geometry;
-          // Skip if we've already visited this coordinate
           if (!visitedPoints.has(pointKey(stepPos))) {
             stepResults.push(step);
           }
         }
       }
 
+      // Stop if no valid moves
       if (stepResults.length === 0) break;
 
-      // Step 2: Sort by score descending
+      // Step 2: Sort by score
       stepResults.sort((a, b) => b.score.camInfo.score - a.score.camInfo.score);
-      const bestScoreValue = stepResults[0].score.camInfo.score;
 
-      // Step 3: Keep all top scorers (handle ties)
-      const topSteps = stepResults.filter(
-        s => s.score.camInfo.score === bestScoreValue
-      );
+      const currentScore = lastScore.camInfo.score;
+      const currentDistance = lastScore.camInfo.totalDistance;
 
-      let moved = false;
+      // Step 3: Pick the first improvement
+      const nextStep = stepResults.find(candidate => {
+        const nextScore = candidate.score.camInfo.score;
+        const nextDistance = candidate.score.camInfo.totalDistance;
+        return (
+          nextScore > currentScore ||
+          (nextScore === currentScore && nextDistance < currentDistance)
+        );
+      });
 
-      // Step 4: Explore top-scoring directions
-      for (const topStep of topSteps) {
-        const nextResults = [];
+      // Step 4: If no improvement, stop
+      if (!nextStep) break;
 
-        for (const dir of directions) {
-          const nextStep = await takeStepInGridCalculateScore(
-            dir,
-            topStep.point.point.geometry
-          );
+      // Step 5: Move + record
+      simulationPoints.push(nextStep.score);
+      lastPoint = nextStep.point.point.geometry;
+      lastScore = nextStep.score;
+      visitedPoints.add(pointKey(lastPoint));
 
-          if (nextStep !== false) {
-            const nextPos = nextStep.point.point.geometry;
-            // Skip if already visited
-            if (!visitedPoints.has(pointKey(nextPos))) {
-              nextResults.push(nextStep);
-            }
-          }
-        }
-
-        if (nextResults.length === 0) continue;
-
-        // Step 5: Choose best next candidate
-        nextResults.sort((a, b) => b.score.camInfo.score - a.score.camInfo.score);
-        const bestNext = nextResults[0];
-
-        const nextScore = bestNext.score.camInfo.score;
-        const nextDistance = bestNext.score.camInfo.totalDistance;
-        const currentScore = lastScore.camInfo.score;
-        const currentDistance = lastScore.camInfo.totalDistance;
-
-        // Step 6: Move if score improves OR (same score & closer)
-        if (nextScore > currentScore ||
-            (nextScore === currentScore && nextDistance < currentDistance)) {
-
-          simulationPoints.push(bestNext.score);
-          lastPoint = bestNext.point.point.geometry;
-          lastScore = bestNext.score;
-
-          visitedPoints.add(pointKey(lastPoint)); // Mark as visited
-          counter++; // increment after successful move
-          moved = true;
-          break; // proceed to next while iteration
-        }
-      }
-
-      // Step 7: Stop if no improvement found
-      if (!moved) break;
+      // Step 6: Increment 
+      counter++;
     }
+
 
 
 
