@@ -174,8 +174,8 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
 
 (async () => {
     console.time(`Worker: ${workerId}`)
-    // let startPoint = (await getRandomPointFromGrid()).geometry
-    let startPoint = topFromInititalRandom[Math.floor(Math.random() * topFromInititalRandom.length)].camInfo.center  //startPositions[0].camInfo.center
+    let startPoint = (await getRandomPointFromGrid()).geometry
+    // let startPoint = topFromInititalRandom[Math.floor(Math.random() * topFromInititalRandom.length)].camInfo.center  //startPositions[0].camInfo.center
     let lastPoint = startPoint
     let simulationPoints = []
 
@@ -187,72 +187,169 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
 
     // let dir = await getRandomDirection()
 
+    // let maxSteps = 10
+    // let counter = 0
 
+    // while (counter < maxSteps) {
+    //   const directions = ["up", "down", "left", "right", "upLeft", "downLeft", "upRight", "downRight"];
+    //   const stepResults = [];
 
-    while (true) {
-      const directions = ["up", "down", "left", "right", "upLeft", "downLeft", "upRight", "downRight"];
+    //   // Try all directions
+    //   for (const dir of directions) {
+    //     const stepObject = await takeStepInGridCalculateScore(dir, lastPoint);
+    //     if (stepObject !== false) {
+    //       stepResults.push(stepObject);
+    //     }
+    //   }
+
+    //   if (stepResults.length === 0) break;
+
+    //   // Sort by score (descending)
+    //   stepResults.sort((a, b) => b.score.camInfo.score - a.score.camInfo.score);
+
+    //   // Get the best score value
+    //   const bestScoreValue = stepResults[0].score.camInfo.score;
+
+    //   // Filter all top scorers (in case of ties)
+    //   const topSteps = stepResults.filter(
+    //     item => item.score.camInfo.score === bestScoreValue
+    //   );
+
+    //   let foundBetter = false;
+
+    //   // Test all top-scoring directions
+    //   for (const topStep of topSteps) {
+    //     const nextResults = [];
+
+    //     for (const dir of directions) {
+    //       const nextStep = await takeStepInGridCalculateScore(dir, topStep.point.point.geometry);
+    //       if (nextStep !== false) {
+    //         nextResults.push(nextStep);
+    //       }
+    //     }
+
+    //     // Find the best next step (highest score first)
+    //     const bestNext = nextResults.sort(
+    //       (a, b) => b.score.camInfo.score - a.score.camInfo.score
+    //     )[0];
+
+    //     if (bestNext) {
+    //       const nextScore = bestNext.score.camInfo.score;
+    //       const nextDistance = bestNext.score.camInfo.totalDistance;
+    //       const currentScore = lastScore.camInfo.score;
+    //       const currentDistance = lastScore.camInfo.totalDistance;
+
+    //       // Move if score improves OR (score same & distance shorter)
+    //       if (nextScore > currentScore ||
+    //           (nextScore === currentScore && nextDistance < currentDistance)) {
+    //         simulationPoints.push(bestNext.score);
+    //         lastPoint = bestNext.point.point.geometry;
+    //         lastScore = bestNext.score;
+    //         foundBetter = true;
+    //         break; // stop after finding a better (or equally good but closer) move
+    //       }
+    //     }
+    //   }
+
+    //   // If none of the top directions improved, stop
+    //   if (!foundBetter) break;
+    // }
+
+    let maxSteps = 10;
+    let counter = 0;
+    const visitedPoints = new Set();
+
+    // Helper to stringify coordinates so we can store them in a Set
+    function pointKey(point) {
+      // Assumes geometry = { x, y } or similar numeric structure
+      // console.log(point)
+      return `${point.coordinates[0]},${point.coordinates[1]}`;
+    }
+
+    // Mark starting point as visited
+    visitedPoints.add(pointKey(lastPoint));
+
+    while (counter < maxSteps) {
+      const directions = [
+        "up", "down", "left", "right",
+        "upLeft", "downLeft", "upRight", "downRight"
+      ];
+
+      // Step 1: Evaluate all directions from current point
       const stepResults = [];
-
-      // Try all possible directions
       for (const dir of directions) {
-        const stepObject = await takeStepInGridCalculateScore(dir, lastPoint);
-        if (stepObject !== false) {
-          stepResults.push(stepObject);
+        const step = await takeStepInGridCalculateScore(dir, lastPoint);
+        if (step !== false) {
+          const stepPos = step.point.point.geometry;
+          // Skip if we've already visited this coordinate
+          if (!visitedPoints.has(pointKey(stepPos))) {
+            stepResults.push(step);
+          }
         }
       }
 
       if (stepResults.length === 0) break;
 
-      // Sort by score (descending)
+      // Step 2: Sort by score descending
       stepResults.sort((a, b) => b.score.camInfo.score - a.score.camInfo.score);
-
-      // Get the best score value
       const bestScoreValue = stepResults[0].score.camInfo.score;
 
-      // Filter all top scorers (in case of ties)
+      // Step 3: Keep all top scorers (handle ties)
       const topSteps = stepResults.filter(
-        item => item.score.camInfo.score === bestScoreValue
+        s => s.score.camInfo.score === bestScoreValue
       );
 
-      let foundBetter = false;
+      let moved = false;
 
-      // Test all top-scoring directions
+      // Step 4: Explore top-scoring directions
       for (const topStep of topSteps) {
         const nextResults = [];
 
         for (const dir of directions) {
-          const nextStep = await takeStepInGridCalculateScore(dir, topStep.point.point.geometry);
+          const nextStep = await takeStepInGridCalculateScore(
+            dir,
+            topStep.point.point.geometry
+          );
+
           if (nextStep !== false) {
-            nextResults.push(nextStep);
+            const nextPos = nextStep.point.point.geometry;
+            // Skip if already visited
+            if (!visitedPoints.has(pointKey(nextPos))) {
+              nextResults.push(nextStep);
+            }
           }
         }
 
-        // Find the best next step (highest score first)
-        const bestNext = nextResults.sort(
-          (a, b) => b.score.camInfo.score - a.score.camInfo.score
-        )[0];
+        if (nextResults.length === 0) continue;
 
-        if (bestNext) {
-          const nextScore = bestNext.score.camInfo.score;
-          const nextDistance = bestNext.score.camInfo.totalDistance;
-          const currentScore = lastScore.camInfo.score;
-          const currentDistance = lastScore.camInfo.totalDistance;
+        // Step 5: Choose best next candidate
+        nextResults.sort((a, b) => b.score.camInfo.score - a.score.camInfo.score);
+        const bestNext = nextResults[0];
 
-          // Move if score improves OR (score same & distance shorter)
-          if (nextScore > currentScore ||
-              (nextScore === currentScore && nextDistance < currentDistance)) {
-            simulationPoints.push(bestNext.score);
-            lastPoint = bestNext.point.point.geometry;
-            lastScore = bestNext.score;
-            foundBetter = true;
-            break; // stop after finding a better (or equally good but closer) move
-          }
+        const nextScore = bestNext.score.camInfo.score;
+        const nextDistance = bestNext.score.camInfo.totalDistance;
+        const currentScore = lastScore.camInfo.score;
+        const currentDistance = lastScore.camInfo.totalDistance;
+
+        // Step 6: Move if score improves OR (same score & closer)
+        if (nextScore > currentScore ||
+            (nextScore === currentScore && nextDistance < currentDistance)) {
+
+          simulationPoints.push(bestNext.score);
+          lastPoint = bestNext.point.point.geometry;
+          lastScore = bestNext.score;
+
+          visitedPoints.add(pointKey(lastPoint)); // Mark as visited
+          counter++; // increment after successful move
+          moved = true;
+          break; // proceed to next while iteration
         }
       }
 
-      // If none of the top directions improved, stop
-      if (!foundBetter) break;
+      // Step 7: Stop if no improvement found
+      if (!moved) break;
     }
+
 
 
 
