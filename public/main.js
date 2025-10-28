@@ -81,7 +81,7 @@ async function runAI() {
 
       const data = await response.json()
       bruteForceData = data
-      console.log(data.result.gridArea)
+      // console.log(data.result.gridArea)
 
       L.geoJSON(data.result.gridArea, {
         pointToLayer: (feature, latlng) =>
