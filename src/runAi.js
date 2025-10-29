@@ -99,15 +99,21 @@ function runWorker() {
 
 
 
-async function randomWalk(grid) {
+async function randomWalk(grid, startingPos) {
   let data = await setupGridAndBuildings(grid, BUILDINGS, gridDensity)
-
   gridMap = data.gridMap
   gridBuildings = data.gridBuildings
+
+  let startingPositions = Math.floor(gridMap.size / 100)
+
+  if (startingPos !== "") {
+    startingPositions = parseInt(startingPos)
+  }
   
   console.time("### Worker time")
   
-  let results = await Promise.all(Array(Math.floor(gridMap.size / 100)).fill().map(runWorker))
+  let results = await Promise.all(Array(startingPositions).fill().map(runWorker))
+  workerId = 0
   console.timeEnd("### Worker time")
 
 
@@ -178,7 +184,7 @@ async function runAi(data) {
     DISTANCE_WEIGHT = data.distanceWeight
 
     if (data.useRandomWalk) {
-      await randomWalk(gridArea)
+      await randomWalk(gridArea, data.startingPos)
       
     } else {
       // let features = gridArea.features

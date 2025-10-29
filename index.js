@@ -69,6 +69,7 @@ app.post("/load-ai-data", async (req, res) => {
       aiData.gridDensity = parseFloat(req.body.gridDensity)
       aiData.useRandomWalk = req.body.useRandomWalk
       aiData.maxSteps = req.body.maxSteps
+      aiData.startingPos = req.body.startingPos
       // aiData.prescoreWeight = req.body.prescoreWeight
       // aiData.crimecountWeight = req.body.crimecountWeight
       aiData.distanceWeight = req.body.distanceWeight

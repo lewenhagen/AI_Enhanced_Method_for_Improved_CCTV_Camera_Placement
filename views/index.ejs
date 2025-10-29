@@ -36,13 +36,12 @@
       <div id="map"></div>
     </div>
     <div class="settings">
-      <span><code>Available cpu cores: <%= cpus %></code></span>
+      <span>
+        <code>Available cpu cores: <%= cpus %></code>
+      </span>
       <h3>Settings</h3>
       <label for="center">Cluster center</label>
-      <!-- <input type="text" value="55.56213319182642, 12.979257702827455" placeholder="55.5636, 12.9746" id="center"> -->
-      <!-- <input type="text" value="55.56340730157441, 12.975207567214968" placeholder="55.5636, 12.9746" id="center"> -->
       <input type="text" value="55.5636, 12.9746" placeholder="55.5636, 12.9746" id="center">
-      <!-- <input type="text" value="55.56329202667833, 12.981516122817995" placeholder="55.5636, 12.9746" id="center"> -->
       <label for="distance">Distance</label>
       <input type="number" value="100" placeholder="100" id="distance">
       <label for="distance">Grid density</label>
@@ -50,7 +49,7 @@
       <label for="simulations">Show simulation # (1 is best)</label>
       <input type="number" value="1" placeholder="1" id="simulations" min="1" disabled>
       <button id="animate" disabled="true">Animate</button>
-      <button id="getBest" disabled="true">Show the best</button>
+      <button id="getBest" disabled="true">Show the best position</button>
 
       <div class="checkbox-container">
         <input type="checkbox" id="random-walk">
@@ -61,7 +60,7 @@
         <label for="max-steps">Max steps</label>
         <input type="number" value="10" placeholder="10" id="max-steps">
         <label for="startingPos">Starting positions</label>
-        <input type="number" value="10" placeholder="20" id="startingPos">
+        <input type="number" value="" placeholder="Leave blank for 20% of gridsize" min="1" id="startingPos">
       </div>
 
       <h4>Set norm for score</h4>
@@ -81,30 +80,8 @@
         <input type="range" id="distanceWeight" min="0" max="1" step="0.1" value="0.2" oninput="this.nextElementSibling.value = this.value"/>
         <output>0.2</output>
       </div>
-      <!-- <label for="prescoreWeight">Score weight:</label> <input type="number" value="0.6" placeholder="0.6" id="prescoreWeight" step="0.1" min="0">
-      Crimecount weight: <input type="number" value="1" placeholder="1" id="crimecountWeight" step="0.1" min="0">
-      Distance weight: <input type="number" value="0.3" placeholder="0.3" id="distanceWeight" step="0.1" min="0"> -->
 
       <button id="loadAiBtn">Load data</button>
-      <!-- </form> -->
-
-      <!-- <div class="form-popup" id="myForm">
-        <form id="theForm" class="form-container">
-          <h1>Add data</h1>
-
-          <label for="nrofcams"><b>Nr of cams</b></label>
-          <input type="tel" placeholder="How many cameras?" id="nrofcams" required>
-
-          <label for="distance"><b>Distance (m)</b></label>
-          <input type="tel" placeholder="Distance (m)" id="distance" required>
-
-          <label for="overlap"><b>Max overlap (%)</b></label>
-          <input type="tel" placeholder="0 (%)" id="overlap" value="0">
-
-          <button id="okButton" type="button" class="btn ok">Ok</button>
-          <button id="cancelButton" type="button" class="btn cancel">Close</button>
-        </form>
-      </div> -->
     </div>
   </div>
   <script type="module" src="main.js"></script>

@@ -233,6 +233,7 @@ loadAiBtn.addEventListener("click", async function(event) {
     let distance = parseInt(document.getElementById("distance").value)
     let gridDensity = parseInt(document.getElementById("gridDensity").value)
     let maxSteps = parseInt(document.getElementById("max-steps").value)
+    let startingPos = document.getElementById("startingPos").value
     // let prescoreWeight = parseFloat(document.getElementById("prescoreWeight").value)
     // let crimecountWeight = parseFloat(document.getElementById("crimecountWeight").value)
     let distanceWeight = parseFloat(document.getElementById("distanceWeight").value)
@@ -252,7 +253,8 @@ loadAiBtn.addEventListener("click", async function(event) {
           useRandomWalk: useRandomWalk,
           distanceWeight: distanceWeight,
           scoreNorm: crimesForNorm,
-          maxSteps: maxSteps
+          maxSteps: maxSteps,
+          startingPos: startingPos
           // prescoreWeight: prescoreWeight,
           // crimecountWeight: crimecountWeight,
           
