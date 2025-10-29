@@ -93,8 +93,8 @@ async function runAI() {
             // color: "black",
             // color: getHeatmapColor(feature.properties.opacityScore),
             // fillColor: getHeatmapColor(feature.properties.opacityScore),
-            color: scale(feature.properties.opacityScore),
-            fillColor: scale(feature.properties.opacityScore),
+            color: feature.properties.opacityScore ? scale(feature.properties.opacityScore) : "white",
+            fillColor: feature.properties.opacityScore ? scale(feature.properties.opacityScore) : "white",
             fillOpacity: 1,
             opacity: 1,
             interactive: false
