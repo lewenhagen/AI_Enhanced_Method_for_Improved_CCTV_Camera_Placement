@@ -5,6 +5,9 @@ const loadAiBtn = document.getElementById("loadAiBtn")
 const animate = document.getElementById("animate")
 const theBestBtn = document.getElementById("getBest")
 const simulations = document.getElementById("simulations")
+const randomWalkCheckbox = document.getElementById("random-walk")
+const maxStepsDiv = document.getElementById("max-steps-div")
+maxStepsDiv.style.display = "none"
 let allCrimes = null
 
 let bruteForceData = []
@@ -229,10 +232,11 @@ loadAiBtn.addEventListener("click", async function(event) {
     let center = document.getElementById("center").value
     let distance = parseInt(document.getElementById("distance").value)
     let gridDensity = parseInt(document.getElementById("gridDensity").value)
+    let maxSteps = parseInt(document.getElementById("max-steps").value)
     // let prescoreWeight = parseFloat(document.getElementById("prescoreWeight").value)
     // let crimecountWeight = parseFloat(document.getElementById("crimecountWeight").value)
     let distanceWeight = parseFloat(document.getElementById("distanceWeight").value)
-    let useReinforcement = document.getElementById("reinforcement").checked
+    let useRandomWalk = randomWalkCheckbox.checked
     let crimesForNorm = parseInt(document.querySelector('input[name="useN"]:checked').value)
     
 
@@ -245,9 +249,10 @@ loadAiBtn.addEventListener("click", async function(event) {
           center: center,
           distance: distance,
           gridDensity: gridDensity,
-          useReinforcement: useReinforcement,
+          useRandomWalk: useRandomWalk,
           distanceWeight: distanceWeight,
-          scoreNorm: crimesForNorm
+          scoreNorm: crimesForNorm,
+          maxSteps: maxSteps
           // prescoreWeight: prescoreWeight,
           // crimecountWeight: crimecountWeight,
           
@@ -276,14 +281,14 @@ animate.addEventListener("click", function(event) {
     drawnItems.clearLayers()
 
     let pointData;
-    if (!document.getElementById("reinforcement").checked) {
+    if (!randomWalkCheckbox.checked) {
       pointData = bruteForceData.result.allPoints[i]
       max = bruteForceData.result.allPoints.length
     } else {
       pointData = bruteForceData.result.allPoints[simulation][i]
       max = bruteForceData.result.allPoints[simulation].length
     }
-    // console.log("here:", pointData)
+    
     let layer = L.geoJSON(pointData.camInfo.center).bindPopup(`
       DWS: ${pointData.camInfo.score}<br>
       Area: ${pointData.camInfo.area.toFixed(2).toString()}<br>
@@ -314,7 +319,7 @@ theBestBtn.addEventListener("click", function(event) {
     clearInterval(myInterval)
     myInterval = null
     let useThis = {}
-    if (document.getElementById("reinforcement").checked) {
+    if (randomWalkCheckbox.checked) {
       useThis = chosenSimulation[chosenSimulation.length-1]
     } else {
       useThis = chosenSimulation
@@ -331,4 +336,13 @@ theBestBtn.addEventListener("click", function(event) {
     layer.openPopup()
     drawnItems.addLayer(L.geoJSON(useThis.camInfo.polygon, {style: {color:"purple"}}))
     drawnItems.bringToBack()
+})
+
+randomWalkCheckbox.addEventListener("change", function() {
+  
+    if(maxStepsDiv.style.display === "none") {
+      maxStepsDiv.style.display = "block"
+    } else {
+      maxStepsDiv.style.display = "none"
+    }
 })

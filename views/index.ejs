@@ -36,6 +36,7 @@
       <div id="map"></div>
     </div>
     <div class="settings">
+      <span><code>Available cpu cores: <%= cpus %></code></span>
       <h3>Settings</h3>
       <label for="center">Cluster center</label>
       <!-- <input type="text" value="55.56213319182642, 12.979257702827455" placeholder="55.5636, 12.9746" id="center"> -->
@@ -52,8 +53,15 @@
       <button id="getBest" disabled="true">Show the best</button>
 
       <div class="checkbox-container">
-        <input type="checkbox" id="reinforcement">
-        <label for="reinforcement">Use random walk</label>
+        <input type="checkbox" id="random-walk">
+        <label for="random-walk">Use random walk</label>
+      </div>
+
+      <div class="max-steps" id="max-steps-div">
+        <label for="max-steps">Max steps</label>
+        <input type="number" value="10" placeholder="10" id="max-steps">
+        <label for="startingPos">Starting positions</label>
+        <input type="number" value="10" placeholder="20" id="startingPos">
       </div>
 
       <h4>Set norm for score</h4>
@@ -67,9 +75,6 @@
         Use crimes in Distance*2 radius
       </label>
       
-      <!-- <label for="reinforcement">Use random walk</label>
-      <input type="checkbox" id="reinforcement"> -->
-
       <div>
         <h4>Set distance weight</h4>
         <label for="distanceWeight">Distance weight</label>

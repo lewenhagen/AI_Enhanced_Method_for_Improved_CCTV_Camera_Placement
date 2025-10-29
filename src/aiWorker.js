@@ -24,7 +24,8 @@ const {
     gridDensity,
     workerId,
     DISTANCE_WEIGHT,
-    bigN
+    bigN,
+    MAXSTEPS
 } = workerData
 
 const directionBearings = {
@@ -254,7 +255,6 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
     //   if (!foundBetter) break;
     // }
 
-    let maxSteps = 9;
     let counter = 0;
     const visitedPoints = new Set();
 
@@ -268,7 +268,7 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
 
     visitedPoints.add(pointKey(lastPoint));
 
-    while (counter < maxSteps) {
+    while (counter < (MAXSTEPS-1)) {
       const directions = [
         "up", "down", "left", "right",
         "upLeft", "downLeft", "upRight", "downRight"
@@ -302,24 +302,57 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
         return (
           nextScore > currentScore ||
           (nextScore === currentScore && nextDistance < currentDistance)
-        );
-      });
+        )
+      })
 
       // Step 4: If no improvement, stop
       if (!nextStep) break;
 
-      // Step 5: Move + record
+      // Step 5: Move + add to simulation
       simulationPoints.push(nextStep.score);
       lastPoint = nextStep.point.point.geometry;
       lastScore = nextStep.score;
       visitedPoints.add(pointKey(lastPoint));
 
-      // Step 6: Increment 
+      // Step 6: Go again 
       counter++;
     }
 
 
+    // // Step 3: Find the first better (or equal & closer) step
+    //   let nextStep = stepResults.find(candidate => {
+    //     const nextScore = candidate.score.camInfo.score;
+    //     const nextDistance = candidate.score.camInfo.totalDistance;
+    //     return (
+    //       nextScore > currentScore ||
+    //       (nextScore === currentScore && nextDistance < currentDistance)
+    //     );
+    //   });
 
+    //   // Step 4: Handle case where no improvement or zero distance
+    //   if (!nextStep || nextStep.score.camInfo.totalDistance === 0) {
+    //     // Try moving randomly if possible
+    //     const unvisited = [];
+
+    //     for (const dir of directions) {
+    //       const tryStep = await takeStepInGridCalculateScore(dir, lastPoint);
+    //       if (tryStep !== false) {
+    //         const pos = tryStep.point.point.geometry;
+    //         if (!visitedPoints.has(pointKey(pos))) {
+    //           unvisited.push(tryStep);
+    //         }
+    //       }
+    //     }
+
+    //     if (unvisited.length > 0) {
+    //       // Pick a random unvisited direction
+    //       const randomIndex = Math.floor(Math.random() * unvisited.length);
+    //       nextStep = unvisited[randomIndex];
+    //     } else {
+    //       // No unvisited directions left — stop
+    //       break;
+    //     }
+    //   }
 
 
     // while (i < 30) {

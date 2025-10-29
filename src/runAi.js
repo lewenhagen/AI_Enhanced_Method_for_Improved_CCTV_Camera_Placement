@@ -23,6 +23,7 @@ let gridMap = new Map()
 let gridCounter = 0
 let DISTANCE_WEIGHT
 let bigN
+let MAXSTEPS
 
 
 
@@ -78,7 +79,8 @@ function runWorker() {
         gridDensity,
         workerId,
         DISTANCE_WEIGHT,
-        bigN
+        bigN,
+        MAXSTEPS
       }
     })
 
@@ -170,11 +172,12 @@ async function runAi(data) {
     gridDensity = data.gridDensity
     ALLPOINTS = []
     bigN = data.bigN
+    MAXSTEPS = data.maxSteps
     // PRESCORE_WEIGHT = data.prescoreWeight
     // CRIMECOUNT_WEIGHT = data.crimecountWeight
     DISTANCE_WEIGHT = data.distanceWeight
 
-    if (data.useReinforcement) {
+    if (data.useRandomWalk) {
       await randomWalk(gridArea)
       
     } else {
