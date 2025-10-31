@@ -104,7 +104,7 @@ async function randomWalk(grid, startingPos) {
   gridMap = data.gridMap
   gridBuildings = data.gridBuildings
 
-  let startingPositions = Math.floor(gridMap.size / 100)
+  let startingPositions = parseInt(Math.round(gridMap.size / 100))
 
   if (startingPos !== "") {
     startingPositions = parseInt(startingPos)
@@ -179,15 +179,12 @@ async function runAi(data) {
     ALLPOINTS = []
     bigN = data.bigN
     MAXSTEPS = data.maxSteps
-    // PRESCORE_WEIGHT = data.prescoreWeight
-    // CRIMECOUNT_WEIGHT = data.crimecountWeight
     DISTANCE_WEIGHT = data.distanceWeight
 
     if (data.useRandomWalk) {
       await randomWalk(gridArea, data.startingPos)
       
     } else {
-      // let features = gridArea.features
       await Promise.all(
         gridArea.features.map(async (current) => {
           let point = current.geometry
@@ -201,7 +198,3 @@ async function runAi(data) {
 
 export { runAi }
 
-
-// totalt brott inom CA
-// vikta  antal brott / distance
-// summera alla per position och dela med totalt antal brott fångade
