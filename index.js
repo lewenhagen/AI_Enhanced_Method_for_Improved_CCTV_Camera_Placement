@@ -24,9 +24,9 @@ app.get("/", (req, res) => {
 
 app.post("/load-ai-data", async (req, res) => {
     try {
-      console.time("### Get all intersectiong buildings")
+      console.time("### Get all intersecting buildings")
       let data = await getIntersectingBuildingsAI(req.body.center, req.body.distance)
-      console.timeEnd("### Get all intersectiong buildings")
+      console.timeEnd("### Get all intersecting buildings")
       console.time("### Get all crimes in r*2 bounding box")
       data.crimes = await getCrimesInPolygon(data.boundingBox, data.buildings)
       if (req.body.scoreNorm == 1) {
