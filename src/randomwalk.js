@@ -5,6 +5,7 @@ import { getCrimesInPolygon } from './getCrimesInPolygon.js'
 import { getAllCrimesAvailable } from './getAllCrimesAvailable.js'
 import { setupGridAndBuildings } from './reinforcement.js'
 import { fixCrimes } from './helpers.js'
+import { promises as fs } from 'fs'
 
 let SILENT=false
 
@@ -99,7 +100,7 @@ async function randomWalk(grid, startingPos) {
     !SILENT && console.log(`Simulation ${index}: Score ${results[i][results[i].length-1].camInfo.score}, steps taken ${results[i].length}, Total distance: ${results[i][results[i].length-1].totalDistance}`)
   }
 
-  console.log("Best score: " + results[0][results[0].length-1].camInfo.score)
+  console.log(`Best score: ${results[0][results[0].length-1].camInfo.score}, steps taken: ${results[0].length}`)
 
   ALLPOINTS = results
 }
@@ -148,10 +149,25 @@ async function initRandomWalk(center, distance, gridDensity, distanceWeight, big
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   SILENT=true
-  console.time("Random walk exec time")
-  // center, distance, diset_weight, bigN, maxSteps, startingPositions (-1 for 1%)
-  await initRandomWalk("55.5636, 12.9746", 100, 5, 0.2, 1, 20, -1)
-  console.timeEnd("Random walk exec time")
+  let json = []
+  for (let i = 0; i < 10; i++) {
+    const start = performance.now()
+    console.time("Random walk exec time")
+    // center, distance, gridSize, dist_weight, bigN (0 or 1), maxSteps, startingPositions (-1 for 1%)
+    let data = await initRandomWalk("55.5636, 12.9746", 100, 5, 0.2, 1, 10, -1)
+    console.timeEnd("Random walk exec time")
+    const end = performance.now()
+    const elapsed = end - start
+
+    json.push({
+      "nr": i+1,
+      "score": data.allPoints[0][data.allPoints[0].length-1].camInfo.score,
+      "steps": data.allPoints[0].length,
+      "time": Math.round((elapsed/1000)*1000)/1000
+    })
+    
+  }
+  await fs.writeFile('randomwalk.json', JSON.stringify(json, null, 2), 'utf8')
 }
 
 export { initRandomWalk }

@@ -81,7 +81,7 @@ async function initBruteforce(center, distance, gridDensity, distanceWeight, big
 if (import.meta.url === `file://${process.argv[1]}`) {
   SILENT=true
   console.time("Brute force exec time")
-  // center, distance, dist_weight, bigN
+  // center, distance, gridSize, dist_weight, bigN
   await initBruteforce("55.5636, 12.9746", 100, 5, 0.2, 1)
   console.timeEnd("Brute force exec time")
 }
