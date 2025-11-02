@@ -31,7 +31,7 @@ app.post("/load-data", async (req, res) => {
       let data = await getIntersectingBuildingsAI(req.body.center, req.body.distance)
       console.timeEnd("### Get all intersecting buildings")
       console.time("### Get all crimes in r*2 bounding box")
-      data.crimes = await getCrimesInPolygon(data.boundingBox, data.buildings)
+      // data.crimes = await getCrimesInPolygon(data.boundingBox, data.buildings)
       if (req.body.scoreNorm == 1) {
         data.bigN = await getAllCrimesAvailable()
       } else if (req.body.scoreNorm == 2) {
@@ -80,7 +80,7 @@ app.post("/run-randomwalk", async (req, res) => {
   response = await initRandomWalk(
     req.body.center, req.body.distance, 
     req.body.gridDensity, req.body.distanceWeight, 
-    req.body.bigN, req.body.maxSteps, req.body.startingPos)
+    req.body.bigN, req.body.maxSteps, req.body.startingPos, req.body.year)
   console.timeEnd("### Random walk exec time")
 
   console.log(`Grid size: ${response.gridArea.features.length} points`)
@@ -93,7 +93,7 @@ app.post("/run-bruteforce", async (req, res) => {
   let response = {}
 
   console.time("### Bruteforce exec time")
-  response = await initBruteforce(req.body.center, req.body.distance, req.body.gridDensity, req.body.distanceWeight, req.body.bigN)
+  response = await initBruteforce(req.body.center, req.body.distance, req.body.gridDensity, req.body.distanceWeight, req.body.bigN, req.body.year)
   console.timeEnd("### Bruteforce exec time")
   console.log(`Grid size: ${response.gridArea.features.length} points`)
 

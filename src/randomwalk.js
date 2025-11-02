@@ -100,12 +100,12 @@ async function randomWalk(grid, startingPos) {
     !SILENT && console.log(`Simulation ${index}: Score ${results[i][results[i].length-1].camInfo.score}, steps taken ${results[i].length}, Total distance: ${results[i][results[i].length-1].totalDistance}`)
   }
 
-  console.log(`Best score: ${results[0][results[0].length-1].camInfo.score}, steps taken: ${results[0].length}`)
+  !SILENT && console.log(`Best score: ${results[0][results[0].length-1].camInfo.score}, steps taken: ${results[0].length}`)
 
   ALLPOINTS = results
 }
 
-async function initRandomWalk(center, distance, gridDensity, distanceWeight, bigN, maxSteps, startingPos) {
+async function initRandomWalk(center, distance, gridDensity, distanceWeight, bigN, maxSteps, startingPos, year) {
     // console.log(center, distance, gridDensity, distanceWeight, bigN, maxSteps, startingPos)
     ALLPOINTS = []
     let data = {}
@@ -115,7 +115,7 @@ async function initRandomWalk(center, distance, gridDensity, distanceWeight, big
     !SILENT && console.timeEnd("### Get all intersecting buildings")
 
     !SILENT && console.time("### Get all crimes in r*2 bounding box")
-    data.crimes = await getCrimesInPolygon(data.boundingBox, data.buildings)
+    data.crimes = await getCrimesInPolygon(data.boundingBox, data.buildings, year)
     !SILENT && console.timeEnd("### Get all crimes in r*2 bounding box")
 
     !SILENT && console.time("### Create grid over capture area")
@@ -144,7 +144,7 @@ async function initRandomWalk(center, distance, gridDensity, distanceWeight, big
       
    
 
-    return {gridArea: gridArea, allPoints: ALLPOINTS}
+    return {gridArea: gridArea, allPoints: ALLPOINTS, buildings: data.buildings, boundingBox: data.boundingBox, crimes: data.crimes}
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
@@ -152,16 +152,17 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   let json = []
   for (let i = 0; i < 10; i++) {
     const start = performance.now()
-    console.time("Random walk exec time")
-    // center, distance, gridSize, dist_weight, bigN (0 or 1), maxSteps, startingPositions (-1 for 1%)
-    let data = await initRandomWalk("55.5636, 12.9746", 100, 5, 0.2, 1, 10, -1)
-    console.timeEnd("Random walk exec time")
+    // console.time("Random walk exec time")
+    // center, distance, gridSize, dist_weight, bigN (0 or 1), maxSteps, startingPositions (-1 for 1%), year
+    let data = await initRandomWalk("55.5636, 12.9746", 100, 5, 0.2, 1, 10, -1, "2017")
+    // console.timeEnd("Random walk exec time")
     const end = performance.now()
     const elapsed = end - start
-
+    console.log(`Random walk exec time: ${Math.round((elapsed/1000)*1000)/1000}, best score: ${data.allPoints[0][data.allPoints[0].length-1].camInfo.score}, steps: ${data.allPoints[0].length}`)
     json.push({
       "nr": i+1,
       "score": data.allPoints[0][data.allPoints[0].length-1].camInfo.score,
+      "distance": data.allPoints[0][data.allPoints[0].length-1].camInfo.totalDistance,
       "steps": data.allPoints[0].length,
       "time": Math.round((elapsed/1000)*1000)/1000
     })

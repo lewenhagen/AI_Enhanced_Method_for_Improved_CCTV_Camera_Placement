@@ -27,8 +27,8 @@ async function bruteForce(bigN, camPoint, distance, distanceWeight) {
 
 
 
-async function initBruteforce(center, distance, gridDensity, distanceWeight, bigN) {
-  // console.log(center, distance, gridDensity, distanceWeight, bigN)
+async function initBruteforce(center, distance, gridDensity, distanceWeight, bigN, year) {
+  // console.log(center, distance, gridDensity, distanceWeight, bigN, year)
   allpoints = []
   data = {}
 
@@ -37,7 +37,7 @@ async function initBruteforce(center, distance, gridDensity, distanceWeight, big
   !SILENT && console.timeEnd("### Get all intersecting buildings")
 
   !SILENT && console.time("### Get all crimes in r*2 bounding box")
-  data.crimes = await getCrimesInPolygon(data.boundingBox, data.buildings)
+  data.crimes = await getCrimesInPolygon(data.boundingBox, data.buildings, year)
   !SILENT && console.timeEnd("### Get all crimes in r*2 bounding box")
 
   !SILENT && console.time("### Create grid over capture area")
@@ -49,9 +49,9 @@ async function initBruteforce(center, distance, gridDensity, distanceWeight, big
   } else {
     bigN = data.crimes.length
   }
-
+  
   data.crimes = await fixCrimes(data.crimes)
-
+  
   data.distance = parseFloat(distance)
   data.gridDensity = parseFloat(gridDensity)
 
@@ -74,15 +74,18 @@ async function initBruteforce(center, distance, gridDensity, distanceWeight, big
 
   return {
     allPoints: allpoints,
-    gridArea: gridArea
+    gridArea: gridArea,
+    buildings: data.buildings,
+    crimes: data.crimes,
+    boundingBox: data.boundingBox
   }
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   SILENT=true
   console.time("Brute force exec time")
-  // center, distance, gridSize, dist_weight, bigN
-  await initBruteforce("55.5636, 12.9746", 100, 5, 0.2, 1)
+  // center, distance, gridSize, dist_weight, bigN, year (YYYY or "all")
+  await initBruteforce("55.5636, 12.9746", 100, 5, 0.2, 1, "2017")
   console.timeEnd("Brute force exec time")
 }
 

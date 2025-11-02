@@ -72,7 +72,7 @@ async function drawBoundingBoxWithoutBuildings() {
     }
 }
 
-async function runRandomWalk(center, distance, gridDensity, distanceWeight, bigN, maxSteps, startingPos) {
+async function runRandomWalk(center, distance, gridDensity, distanceWeight, bigN, maxSteps, startingPos, year) {
   const headers = { 'Content-Type': 'application/json' }
 
   try {
@@ -80,7 +80,7 @@ async function runRandomWalk(center, distance, gridDensity, distanceWeight, bigN
           method: 'POST',
           headers: headers,
           body: JSON.stringify({ 
-            center, distance, gridDensity, distanceWeight, bigN, maxSteps, startingPos
+            center, distance, gridDensity, distanceWeight, bigN, maxSteps, startingPos, year
           })
       });
 
@@ -111,14 +111,19 @@ async function runRandomWalk(center, distance, gridDensity, distanceWeight, bigN
       simulations.disabled = false
       simulations.max = data.allPoints.length
 
+      drawBoundingBox(data.boundingBox)
+      // drawBoundingBoxWithoutBuildings()
+      drawBuildings(data.buildings)
+      drawCrimes(data.crimes)
+
   } catch (error) {
       console.error('Error fetching:', error);
       await new Promise(resolve => setTimeout(resolve, 1000))
   }
-  drawCrimes(allCrimes)
+  // drawCrimes(allCrimes)
 }
 
-async function runBruteForce(center, distance, gridDensity, distanceWeight, bigN) {
+async function runBruteForce(center, distance, gridDensity, distanceWeight, bigN, year) {
   const headers = { 'Content-Type': 'application/json' }
 
   try {
@@ -126,7 +131,7 @@ async function runBruteForce(center, distance, gridDensity, distanceWeight, bigN
           method: 'POST',
           headers: headers,
           body: JSON.stringify({
-            center, distance, gridDensity, distanceWeight, bigN
+            center, distance, gridDensity, distanceWeight, bigN, year
           })
       });
 
@@ -156,11 +161,17 @@ async function runBruteForce(center, distance, gridDensity, distanceWeight, bigN
       simulations.disabled = false
       simulations.max = bruteForceData.allPoints.length
 
+      drawBoundingBox(data.boundingBox)
+      // drawBoundingBoxWithoutBuildings()
+      drawBuildings(data.buildings)
+      drawCrimes(data.crimes)
+
   } catch (error) {
       console.error('Error fetching:', error);
       await new Promise(resolve => setTimeout(resolve, 1000))
   }
-  drawCrimes(allCrimes)
+  
+  
 }
 
 
@@ -283,38 +294,39 @@ loadAiBtn.addEventListener("click", async function(event) {
     let distanceWeight = parseFloat(document.getElementById("distanceWeight").value)
     let useRandomWalk = randomWalkCheckbox.checked
     let bigN = parseInt(document.querySelector('input[name="useN"]:checked').value)
+    let year = document.getElementById("year").value
     
-    let response = await fetch('/load-data', {
-      method: 'POST',
-      headers: {
-          'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-          center: center,
-          distance: distance,
-          gridDensity: gridDensity,
-          // useRandomWalk: useRandomWalk,
-          // distanceWeight: distanceWeight,
-          // scoreNorm: bigN,
-          // maxSteps: maxSteps,
-          // startingPos: startingPos
-          // prescoreWeight: prescoreWeight,
-          // crimecountWeight: crimecountWeight,
+    // let response = await fetch('/load-data', {
+    //   method: 'POST',
+    //   headers: {
+    //       'Content-Type': 'application/json'
+    //   },
+    //   body: JSON.stringify({
+    //       center: center,
+    //       distance: distance,
+    //       gridDensity: gridDensity,
+    //       // useRandomWalk: useRandomWalk,
+    //       // distanceWeight: distanceWeight,
+    //       // scoreNorm: bigN,
+    //       // maxSteps: maxSteps,
+    //       // startingPos: startingPos
+    //       // prescoreWeight: prescoreWeight,
+    //       // crimecountWeight: crimecountWeight,
           
-      })
-    })
+    //   })
+    // })
 
-    let json = await response.json()
+    // let json = await response.json()
 
-    drawBoundingBox(json.data.boundingBox)
+    // drawBoundingBox(json.data.boundingBox)
     // drawBoundingBoxWithoutBuildings()
-    drawBuildings(json.data.buildings)
-    allCrimes = json.data.crimes
-    drawCrimes(json.data.crimes)
+    // drawBuildings(json.data.buildings)
+    // allCrimes = json.data.crimes
+    // drawCrimes(json.data.crimes)
      if (useRandomWalk) {
-      await runRandomWalk(center, distance, gridDensity, distanceWeight, bigN, maxSteps, startingPos)
+      await runRandomWalk(center, distance, gridDensity, distanceWeight, bigN, maxSteps, startingPos, year)
     } else {
-      await runBruteForce(center, distance, gridDensity, distanceWeight, bigN)
+      await runBruteForce(center, distance, gridDensity, distanceWeight, bigN, year)
     }
     
 
