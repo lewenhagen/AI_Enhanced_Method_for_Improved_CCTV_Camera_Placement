@@ -6,6 +6,8 @@ import { getCrimesInPolygon } from './getCrimesInPolygon.js'
 import { getAllCrimesAvailable } from './getAllCrimesAvailable.js'
 import { fixCrimes } from './helpers.js'
 
+let SILENT = false
+
 let allpoints = []
 let data = {}
 
@@ -25,24 +27,24 @@ async function bruteForce(bigN, camPoint, distance, distanceWeight) {
 
 
 
-async function init(center, distance, gridDensity, distanceWeight, useBigN) {
+async function initBruteforce(center, distance, gridDensity, distanceWeight, bigN) {
   // console.log(center, distance, gridDensity, distanceWeight, bigN)
   allpoints = []
   data = {}
 
-  console.time("### Get all intersecting buildings")
+  !SILENT && console.time("### Get all intersecting buildings")
   data = await getIntersectingBuildingsAI(center, distance)
-  console.timeEnd("### Get all intersecting buildings")
+  !SILENT && console.timeEnd("### Get all intersecting buildings")
 
-  console.time("### Get all crimes in r*2 bounding box")
+  !SILENT && console.time("### Get all crimes in r*2 bounding box")
   data.crimes = await getCrimesInPolygon(data.boundingBox, data.buildings)
-  console.timeEnd("### Get all crimes in r*2 bounding box")
+  !SILENT && console.timeEnd("### Get all crimes in r*2 bounding box")
 
-  console.time("### Create grid over capture area")
+  !SILENT && console.time("### Create grid over capture area")
   let gridArea = await createGridOvercaptureArea(parseFloat(center.split(",")[1]), parseFloat(center.split(",")[0]), distance, gridDensity, data.buildings)
-  console.timeEnd("### Create grid over capture area")
+  !SILENT && console.timeEnd("### Create grid over capture area")
 
-  if (useBigN == 1) {
+  if (bigN == 1) {
     bigN = await getAllCrimesAvailable()
   } else {
     bigN = data.crimes.length
@@ -76,8 +78,12 @@ async function init(center, distance, gridDensity, distanceWeight, useBigN) {
   }
 }
 
-console.time("Brute force")
-await init("55.5636, 12.9746", 100, 5, 0, 170784)
-console.timeEnd("Brute force")
+if (import.meta.url === `file://${process.argv[1]}`) {
+  SILENT=true
+  console.time("Brute force exec time")
+  // center, distance, dist_weight, bigN
+  await initBruteforce("55.5636, 12.9746", 100, 5, 0.2, 1)
+  console.timeEnd("Brute force exec time")
+}
 
-// export { init }
+export { initBruteforce }

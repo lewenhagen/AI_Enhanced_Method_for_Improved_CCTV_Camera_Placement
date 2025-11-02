@@ -7,7 +7,8 @@ import { getAreaWithoutBuildings } from './src/getAreaWithoutBuildings.js'
 import { runAi } from './src/runAi.js'
 import { normalizeScoreForVisualization } from './src/scoreCalculation.js'
 import { fixCrimes } from './src/helpers.js'
-import { init } from './src/bruteforce.js'
+import { initBruteforce } from './src/bruteforce.js'
+import { initRandomWalk } from './src/randomwalk.js'
 
 const app = express()
 const port = 1337
@@ -39,31 +40,7 @@ app.post("/load-data", async (req, res) => {
       
       console.timeEnd("### Get all crimes in r*2 bounding box")
   
-      /**
-       * Fixes the crimes for the rest of the calculations
-       */
-      // let crimes = {}
-      // for (const crime of data.crimes) {
-      //   let location = `${crime.longitude},${crime.latitude}`
-
-      //   if(crimes[location] !== undefined) {
-      //       crimes[location].count++
-
-      //       if (crimes[location].codes[crime.crime_code] !== undefined) {
-
-      //         crimes[location].codes[crime.crime_code].count++
-      //       } else {
-      //         crimes[location].codes[crime.crime_code] = {count: 1}
-      //       }
-      //   } else {
-      //     crimes[location] = {
-      //         count: 1,
-      //         codes: {},
-      //         feature: crime.location
-      //     }
-      //     crimes[location].codes.count = 1
-      //   }
-      // }
+      
       data.crimes = await fixCrimes(data.crimes)
       aiData = data
       aiData.start = req.body.center
@@ -95,15 +72,31 @@ app.post("/generate-area-without-buildings", async (req, res) => {
     res.json(response)
 })
 
+app.post("/run-randomwalk", async (req, res) => {
+  let response = {}
+
+  // Time the execution
+  console.time("### Random walk exec time")
+  response = await initRandomWalk(
+    req.body.center, req.body.distance, 
+    req.body.gridDensity, req.body.distanceWeight, 
+    req.body.bigN, req.body.maxSteps, req.body.startingPos)
+  console.timeEnd("### Random walk exec time")
+
+  console.log(`Grid size: ${response.gridArea.features.length} points`)
+
+  res.json(response)
+})
+
 app.post("/run-bruteforce", async (req, res) => {
+  
   let response = {}
 
   console.time("### Bruteforce exec time")
-  response = await init(aiData.start, aiData.distance, aiData.gridDensity, aiData.distanceWeight, aiData.bigN)
+  response = await initBruteforce(req.body.center, req.body.distance, req.body.gridDensity, req.body.distanceWeight, req.body.bigN)
   console.timeEnd("### Bruteforce exec time")
   console.log(`Grid size: ${response.gridArea.features.length} points`)
 
-  // const allPoints = allpoints
   const features = response.gridArea.features
   
   /**
@@ -116,14 +109,6 @@ app.post("/run-bruteforce", async (req, res) => {
 
 app.post("/run-ai", async (req, res) => {
     let response = {}
-
-    /**
-     * aiData contains:
-     * Crimes
-     * Start coordinates
-     * Distance
-     * Grid density
-    **/
 
     // Time the execution
     console.time("### Generate grid calculations")

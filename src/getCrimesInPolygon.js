@@ -14,7 +14,7 @@ async function getCrimesInPolygon(boundingBox, buildings) {
 
   try {
       await client.connect()
-      console.log("Connected to database")
+      // console.log("Connected to database")
 
       try {
           const crimesInPolygon = await collection.find({

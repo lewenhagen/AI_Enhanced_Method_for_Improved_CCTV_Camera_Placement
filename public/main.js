@@ -72,19 +72,66 @@ async function drawBoundingBoxWithoutBuildings() {
     }
 }
 
-async function runAI() {
+async function runRandomWalk(center, distance, gridDensity, distanceWeight, bigN, maxSteps, startingPos) {
+  const headers = { 'Content-Type': 'application/json' }
+
+  try {
+      const response = await fetch('/run-randomwalk', {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify({ 
+            center, distance, gridDensity, distanceWeight, bigN, maxSteps, startingPos
+          })
+      });
+
+      const data = await response.json()
+      bruteForceData = data
+      // console.log(data.result.gridArea)
+
+      L.geoJSON(data.gridArea, {
+        pointToLayer: (feature, latlng) =>
+          L.circleMarker(latlng, {
+            radius: 3,
+            // color: "black",
+            // color: getHeatmapColor(feature.properties.opacityScore),
+            // fillColor: getHeatmapColor(feature.properties.opacityScore),
+            color: feature.properties.opacityScore ? scale(feature.properties.opacityScore) : "white",
+            fillColor: feature.properties.opacityScore ? scale(feature.properties.opacityScore) : "white",
+            fillOpacity: 1,
+            opacity: 1,
+            interactive: false
+          })
+
+      }).addTo(drawnAi)
+
+
+
+      animate.disabled = false
+      theBestBtn.disabled = false
+      simulations.disabled = false
+      simulations.max = data.allPoints.length
+
+  } catch (error) {
+      console.error('Error fetching:', error);
+      await new Promise(resolve => setTimeout(resolve, 1000))
+  }
+  drawCrimes(allCrimes)
+}
+
+async function runBruteForce(center, distance, gridDensity, distanceWeight, bigN) {
   const headers = { 'Content-Type': 'application/json' }
 
   try {
       const response = await fetch('/run-bruteforce', {
           method: 'POST',
           headers: headers,
-          // body: JSON.stringify({ })
+          body: JSON.stringify({
+            center, distance, gridDensity, distanceWeight, bigN
+          })
       });
 
       const data = await response.json()
       bruteForceData = data
-      // console.log(data.result.gridArea)
 
       L.geoJSON(data.gridArea, {
         pointToLayer: (feature, latlng) =>
@@ -115,7 +162,6 @@ async function runAI() {
   }
   drawCrimes(allCrimes)
 }
-
 
 
 function drawBoundingBox(box) {
@@ -234,13 +280,10 @@ loadAiBtn.addEventListener("click", async function(event) {
     let gridDensity = parseInt(document.getElementById("gridDensity").value)
     let maxSteps = parseInt(document.getElementById("max-steps").value)
     let startingPos = document.getElementById("startingPos").value
-    // let prescoreWeight = parseFloat(document.getElementById("prescoreWeight").value)
-    // let crimecountWeight = parseFloat(document.getElementById("crimecountWeight").value)
     let distanceWeight = parseFloat(document.getElementById("distanceWeight").value)
     let useRandomWalk = randomWalkCheckbox.checked
-    let crimesForNorm = parseInt(document.querySelector('input[name="useN"]:checked').value)
+    let bigN = parseInt(document.querySelector('input[name="useN"]:checked').value)
     
-
     let response = await fetch('/load-data', {
       method: 'POST',
       headers: {
@@ -250,11 +293,11 @@ loadAiBtn.addEventListener("click", async function(event) {
           center: center,
           distance: distance,
           gridDensity: gridDensity,
-          useRandomWalk: useRandomWalk,
-          distanceWeight: distanceWeight,
-          scoreNorm: crimesForNorm,
-          maxSteps: maxSteps,
-          startingPos: startingPos
+          // useRandomWalk: useRandomWalk,
+          // distanceWeight: distanceWeight,
+          // scoreNorm: bigN,
+          // maxSteps: maxSteps,
+          // startingPos: startingPos
           // prescoreWeight: prescoreWeight,
           // crimecountWeight: crimecountWeight,
           
@@ -264,12 +307,16 @@ loadAiBtn.addEventListener("click", async function(event) {
     let json = await response.json()
 
     drawBoundingBox(json.data.boundingBox)
-    drawBoundingBoxWithoutBuildings()
+    // drawBoundingBoxWithoutBuildings()
     drawBuildings(json.data.buildings)
     allCrimes = json.data.crimes
-    // drawCrimes(json.data.crimes)
-
-    await runAI()
+    drawCrimes(json.data.crimes)
+     if (useRandomWalk) {
+      await runRandomWalk(center, distance, gridDensity, distanceWeight, bigN, maxSteps, startingPos)
+    } else {
+      await runBruteForce(center, distance, gridDensity, distanceWeight, bigN)
+    }
+    
 
     hideLoader()
 })

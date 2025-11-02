@@ -14,12 +14,12 @@ async function getAllCrimesAvailable() {
 
   try {
       await client.connect()
-      console.log("Connected to database")
+      // console.log("Connected to database")
 
       try {
           const bigN = await collection.countDocuments()
 
-          console.log(`Nr of crimes in dataset (N): ${bigN}`)
+          // console.log(`Nr of crimes in dataset (N): ${bigN}`)
           
           await client.close()
           
