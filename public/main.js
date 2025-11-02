@@ -76,7 +76,7 @@ async function runAI() {
   const headers = { 'Content-Type': 'application/json' }
 
   try {
-      const response = await fetch('/run-ai', {
+      const response = await fetch('/run-bruteforce', {
           method: 'POST',
           headers: headers,
           // body: JSON.stringify({ })
@@ -86,7 +86,7 @@ async function runAI() {
       bruteForceData = data
       // console.log(data.result.gridArea)
 
-      L.geoJSON(data.result.gridArea, {
+      L.geoJSON(data.gridArea, {
         pointToLayer: (feature, latlng) =>
           L.circleMarker(latlng, {
             radius: 3,
@@ -107,7 +107,7 @@ async function runAI() {
       animate.disabled = false
       theBestBtn.disabled = false
       simulations.disabled = false
-      simulations.max = bruteForceData.result.allPoints.length
+      simulations.max = bruteForceData.allPoints.length
 
   } catch (error) {
       console.error('Error fetching:', error);
@@ -241,7 +241,7 @@ loadAiBtn.addEventListener("click", async function(event) {
     let crimesForNorm = parseInt(document.querySelector('input[name="useN"]:checked').value)
     
 
-    let response = await fetch('/load-ai-data', {
+    let response = await fetch('/load-data', {
       method: 'POST',
       headers: {
           'Content-Type': 'application/json'
@@ -284,11 +284,11 @@ animate.addEventListener("click", function(event) {
 
     let pointData;
     if (!randomWalkCheckbox.checked) {
-      pointData = bruteForceData.result.allPoints[i]
-      max = bruteForceData.result.allPoints.length
+      pointData = bruteForceData.allPoints[i]
+      max = bruteForceData.allPoints.length
     } else {
-      pointData = bruteForceData.result.allPoints[simulation][i]
-      max = bruteForceData.result.allPoints[simulation].length
+      pointData = bruteForceData.allPoints[simulation][i]
+      max = bruteForceData.allPoints[simulation].length
     }
     
     let layer = L.geoJSON(pointData.camInfo.center).bindPopup(`
@@ -316,7 +316,7 @@ animate.addEventListener("click", function(event) {
 
 theBestBtn.addEventListener("click", function(event) {
     let simulation = parseInt(simulations.value)-1
-    let chosenSimulation = bruteForceData.result.allPoints[simulation]
+    let chosenSimulation = bruteForceData.allPoints[simulation]
     drawnItems.clearLayers()
     clearInterval(myInterval)
     myInterval = null

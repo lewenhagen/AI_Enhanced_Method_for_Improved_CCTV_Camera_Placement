@@ -1,6 +1,7 @@
 import * as turf from '@turf/turf'
 
 async function scoreCalculation(bigN, DISTANCE_WEIGHT, currentCam, currentPoint, crimes, crimeCoords) {
+  // console.log(bigN, DISTANCE_WEIGHT, currentCam, currentPoint)
   let totalCount = 0
   let totalDistance = 0
   let crimeCount = 0

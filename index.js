@@ -6,6 +6,8 @@ import { getAllCrimesAvailable } from './src/getAllCrimesAvailable.js'
 import { getAreaWithoutBuildings } from './src/getAreaWithoutBuildings.js'
 import { runAi } from './src/runAi.js'
 import { normalizeScoreForVisualization } from './src/scoreCalculation.js'
+import { fixCrimes } from './src/helpers.js'
+import { init } from './src/bruteforce.js'
 
 const app = express()
 const port = 1337
@@ -22,7 +24,7 @@ app.get("/", (req, res) => {
 
 
 
-app.post("/load-ai-data", async (req, res) => {
+app.post("/load-data", async (req, res) => {
     try {
       console.time("### Get all intersecting buildings")
       let data = await getIntersectingBuildingsAI(req.body.center, req.body.distance)
@@ -40,29 +42,29 @@ app.post("/load-ai-data", async (req, res) => {
       /**
        * Fixes the crimes for the rest of the calculations
        */
-      let crimes = {}
-      for (const crime of data.crimes) {
-        let location = `${crime.longitude},${crime.latitude}`
+      // let crimes = {}
+      // for (const crime of data.crimes) {
+      //   let location = `${crime.longitude},${crime.latitude}`
 
-        if(crimes[location] !== undefined) {
-            crimes[location].count++
+      //   if(crimes[location] !== undefined) {
+      //       crimes[location].count++
 
-            if (crimes[location].codes[crime.crime_code] !== undefined) {
+      //       if (crimes[location].codes[crime.crime_code] !== undefined) {
 
-              crimes[location].codes[crime.crime_code].count++
-            } else {
-              crimes[location].codes[crime.crime_code] = {count: 1}
-            }
-        } else {
-          crimes[location] = {
-              count: 1,
-              codes: {},
-              feature: crime.location
-          }
-          crimes[location].codes.count = 1
-        }
-      }
-      data.crimes = crimes
+      //         crimes[location].codes[crime.crime_code].count++
+      //       } else {
+      //         crimes[location].codes[crime.crime_code] = {count: 1}
+      //       }
+      //   } else {
+      //     crimes[location] = {
+      //         count: 1,
+      //         codes: {},
+      //         feature: crime.location
+      //     }
+      //     crimes[location].codes.count = 1
+      //   }
+      // }
+      data.crimes = await fixCrimes(data.crimes)
       aiData = data
       aiData.start = req.body.center
       aiData.distance = parseFloat(req.body.distance)
@@ -91,6 +93,25 @@ app.post("/generate-area-without-buildings", async (req, res) => {
     }
 
     res.json(response)
+})
+
+app.post("/run-bruteforce", async (req, res) => {
+  let response = {}
+
+  console.time("### Bruteforce exec time")
+  response = await init(aiData.start, aiData.distance, aiData.gridDensity, aiData.distanceWeight, aiData.bigN)
+  console.timeEnd("### Bruteforce exec time")
+  console.log(`Grid size: ${response.gridArea.features.length} points`)
+
+  // const allPoints = allpoints
+  const features = response.gridArea.features
+  
+  /**
+   * Set the new features to the response
+   */
+  response.gridArea.features = await normalizeScoreForVisualization(response.allPoints, features)
+
+  res.json(response)
 })
 
 app.post("/run-ai", async (req, res) => {
