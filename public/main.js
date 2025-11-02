@@ -1,7 +1,7 @@
 const theForm = document.getElementById("theForm")
 const okButton = document.getElementById("okButton")
 const cancelButton = document.getElementById("cancelButton")
-const loadAiBtn = document.getElementById("loadAiBtn")
+const loadBtn = document.getElementById("loadBtn")
 const animate = document.getElementById("animate")
 const theBestBtn = document.getElementById("getBest")
 const simulations = document.getElementById("simulations")
@@ -276,7 +276,7 @@ map.on("click", function(e) {
 
 
 
-loadAiBtn.addEventListener("click", async function(event) {
+loadBtn.addEventListener("click", async function(event) {
     drawnAi.clearLayers()
     drawnItems.clearLayers()
     clearInterval(myInterval)
@@ -296,40 +296,12 @@ loadAiBtn.addEventListener("click", async function(event) {
     let bigN = parseInt(document.querySelector('input[name="useN"]:checked').value)
     let year = document.getElementById("year").value
     
-    // let response = await fetch('/load-data', {
-    //   method: 'POST',
-    //   headers: {
-    //       'Content-Type': 'application/json'
-    //   },
-    //   body: JSON.stringify({
-    //       center: center,
-    //       distance: distance,
-    //       gridDensity: gridDensity,
-    //       // useRandomWalk: useRandomWalk,
-    //       // distanceWeight: distanceWeight,
-    //       // scoreNorm: bigN,
-    //       // maxSteps: maxSteps,
-    //       // startingPos: startingPos
-    //       // prescoreWeight: prescoreWeight,
-    //       // crimecountWeight: crimecountWeight,
-          
-    //   })
-    // })
-
-    // let json = await response.json()
-
-    // drawBoundingBox(json.data.boundingBox)
-    // drawBoundingBoxWithoutBuildings()
-    // drawBuildings(json.data.buildings)
-    // allCrimes = json.data.crimes
-    // drawCrimes(json.data.crimes)
-     if (useRandomWalk) {
+    if (useRandomWalk) {
       await runRandomWalk(center, distance, gridDensity, distanceWeight, bigN, maxSteps, startingPos, year)
     } else {
       await runBruteForce(center, distance, gridDensity, distanceWeight, bigN, year)
     }
     
-
     hideLoader()
 })
 
