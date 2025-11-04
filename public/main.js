@@ -58,23 +58,23 @@ function showLoader() {
 }
 
 
-async function drawBoundingBoxWithoutBuildings() {
-  const headers = { 'Content-Type': 'application/json' }
+// async function drawBoundingBoxWithoutBuildings() {
+//   const headers = { 'Content-Type': 'application/json' }
 
-  try {
-    const response = await fetch('/generate-area-without-buildings', {
-        method: 'POST',
-        headers: headers
-    });
+//   try {
+//     const response = await fetch('/generate-area-without-buildings', {
+//         method: 'POST',
+//         headers: headers
+//     });
 
-    const data = await response.json()
+//     const data = await response.json()
 
-    L.geoJSON(data.area, {fill: false}).addTo(drawnAi)
+//     L.geoJSON(data.area, {fill: false}).addTo(drawnAi)
 
-    } catch (error) {
-        console.error('Error fetching:', error);
-    }
-}
+//     } catch (error) {
+//         console.error('Error fetching:', error);
+//     }
+// }
 
 async function runRandomWalk(center, distance, gridDensity, distanceWeight, bigN, maxSteps, startingPos, year) {
   const headers = { 'Content-Type': 'application/json' }

@@ -1,24 +1,19 @@
 import * as turf from '@turf/turf'
 
 async function scoreCalculation(bigN, DISTANCE_WEIGHT, currentCam, currentPoint, crimes, crimeCoords) {
-  // console.log(bigN, DISTANCE_WEIGHT, currentCam, currentPoint)
   let totalCount = 0
   let totalDistance = 0
   let crimeCount = 0
   let gridScore = 0
-  // console.log(currentCam)
+
   currentCam.connectedCrimes = []
   currentCam.score = 0
 
   for (const coord of crimeCoords) {
     let crimeAsPoint = turf.point([parseFloat(coord.split(",")[0]), parseFloat(coord.split(",")[1])])
-    // console.log("crimeaspoint", crimeAsPoint)
-    // console.log("currentcam.polygon", currentCam.polygon)
-    // console.log("currentpoint", currentPoint)
     /**
      *  If the crime coordinate is inside the coverage area
      */
-    // console.log(currentCam.polygon)
     if (turf.booleanPointInPolygon(crimeAsPoint, currentCam.polygon)) {
       let distance = turf.distance(currentPoint, crimeAsPoint) * 1000 // In meters
       distance = distance < 1 ? 1 : distance
@@ -84,14 +79,8 @@ async function normalizeScoreForVisualization(allPoints, features) {
 
     const max = Math.max(...scores)
 
-    // Normalize the scores
     const normalized = scores.map(v => v/max)
-    // console.log(normalized)
-    // const normalized = scores.map(v => Math.pow(Math.log(v + 1) / Math.log(max + 1), 0.5))
-    // console.log(`Normalized max score: ${normalized}`)
-    // A keyholder function from coordinates
     const coordKey = coords => coords.join(',')
-
     const scoreMap = new Map()
 
     allPoints.forEach((point, i) => {
@@ -100,9 +89,6 @@ async function normalizeScoreForVisualization(allPoints, features) {
       scoreMap.set(key, normalized[i])
     })
 
-    /**
-      * For each feature in grid, set opacityscore to use clientside
-      */
     features.forEach(feature => {
       const key = coordKey(feature.geometry.coordinates)
       const normScore = scoreMap.get(key)
@@ -122,34 +108,7 @@ async function normalizeScoreForBuildingWalkVisualization(allPoints) {
 
     for (let i = 0; i < allPoints.length; i++) {
       allPoints[i].camInfo.visualColor = allPoints[i].camInfo.score / max
-      // result.push()
     }
-
-    // Normalize the scores
-    // const normalized = scores.map(v => v/max)
-    // console.log(normalized)
-    // const normalized = scores.map(v => Math.pow(Math.log(v + 1) / Math.log(max + 1), 0.5))
-    // console.log(`Normalized max score: ${normalized}`)
-    // A keyholder function from coordinates
-    // const coordKey = coords => coords.join(',')
-
-    // const scoreMap = new Map()
-
-    // allPoints.forEach((point, i) => {
-    //   const key = coordKey(point.camInfo.center.coordinates)
-
-    //   scoreMap.set(key, normalized[i])
-    // })
-
-    /**
-      * For each feature in grid, set opacityscore to use clientside
-      */
-    // features.forEach(feature => {
-    //   const key = coordKey(feature.geometry.coordinates)
-    //   const normScore = scoreMap.get(key)
-
-    //   feature.properties.opacityScore = normScore ?? 0
-    // })
 
     return allPoints
 }
