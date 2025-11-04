@@ -51,19 +51,10 @@
       <button id="animate" disabled="true">Animate</button>
       <button id="getBest" disabled="true">Show the best position</button>
 
-      <div class="checkbox-container">
+      <!-- <div class="checkbox-container">
         <input type="checkbox" id="random-walk">
         <label for="random-walk">Use random walk</label>
-      </div>
-
-      <div class="max-steps" id="max-steps-div">
-        <label for="max-steps">Max steps</label>
-        <input type="number" value="10" placeholder="10" id="max-steps">
-        <label for="startingPos">Starting positions</label>
-        <input type="number" value="" placeholder="Leave blank for 1% of grid points" min="1" id="startingPos">
-      </div>
-      
-      
+      </div> -->
       <select id="year">
         <option value="all">Choose crimes from year (leave for all crimes)</option>
         <option value="2015">2015</option>
@@ -73,8 +64,31 @@
         <option value="2019">2019</option>
         <option value="2020">2020</option>
       </select>
-        
-      
+
+      <h4>Choose method</h4>
+      <div class="radio-container">
+
+        <input type="radio" checked id="bruteforce" name="walk-mode" value="bruteforce">
+        <label for="bruteforce">Bruteforce</label>
+
+        <input type="radio" id="randomwalk" name="walk-mode" value="random">
+        <label for="randomwalk">Random</label>
+
+        <input type="radio" id="buildingwalk" name="walk-mode" value="building">
+        <label for="buildingwalk">Buildings</label>
+      </div>
+
+      <div class="max-steps" id="max-steps-div">
+        <label for="max-steps">Max steps</label>
+        <input type="number" value="10" placeholder="10" id="max-steps">
+        <label for="startingPos">Starting positions</label>
+        <input type="number" value="" placeholder="Leave blank for 1% of grid points" min="1" id="startingPos">
+      </div>
+
+      <div class="building-steps" id="building-steps">
+        <label for="building-steps">Step distance (m)</label>
+        <input type="number" value="5" placeholder="5" min="1" id="building-steps-value">
+      </div>
 
       <h4>Set norm for score</h4>
       <label class="radio-container">
@@ -86,7 +100,7 @@
         <input type="radio" name="useN" value="2">
         Use crimes in Distance*2 radius
       </label>
-      
+
       <div>
         <h4>Set distance weight</h4>
         <label for="distanceWeight">Distance weight</label>

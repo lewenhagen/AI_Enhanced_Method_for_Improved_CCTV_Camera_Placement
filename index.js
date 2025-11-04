@@ -5,10 +5,11 @@ import { getCrimesInPolygon } from './src/getCrimesInPolygon.js'
 import { getAllCrimesAvailable } from './src/getAllCrimesAvailable.js'
 import { getAreaWithoutBuildings } from './src/getAreaWithoutBuildings.js'
 import { runAi } from './src/runAi.js'
-import { normalizeScoreForVisualization } from './src/scoreCalculation.js'
+import { normalizeScoreForVisualization, normalizeScoreForBuildingWalkVisualization } from './src/scoreCalculation.js'
 import { fixCrimes } from './src/helpers.js'
 import { initBruteforce } from './src/bruteforce.js'
 import { initRandomWalk } from './src/randomwalk.js'
+import { initBuildingwalk } from './src/buildingwalk.js'
 
 const app = express()
 const port = 1337
@@ -37,10 +38,10 @@ app.post("/load-data", async (req, res) => {
       } else if (req.body.scoreNorm == 2) {
         data.bigN = data.crimes.length
       }
-      
+
       console.timeEnd("### Get all crimes in r*2 bounding box")
-  
-      
+
+
       data.crimes = await fixCrimes(data.crimes)
       aiData = data
       aiData.start = req.body.center
@@ -78,8 +79,8 @@ app.post("/run-randomwalk", async (req, res) => {
   // Time the execution
   console.time("### Random walk exec time")
   response = await initRandomWalk(
-    req.body.center, req.body.distance, 
-    req.body.gridDensity, req.body.distanceWeight, 
+    req.body.center, req.body.distance,
+    req.body.gridDensity, req.body.distanceWeight,
     req.body.bigN, req.body.maxSteps, req.body.startingPos, req.body.year)
   console.timeEnd("### Random walk exec time")
 
@@ -89,7 +90,7 @@ app.post("/run-randomwalk", async (req, res) => {
 })
 
 app.post("/run-bruteforce", async (req, res) => {
-  
+
   let response = {}
 
   console.time("### Bruteforce exec time")
@@ -98,7 +99,7 @@ app.post("/run-bruteforce", async (req, res) => {
   console.log(`Grid size: ${response.gridArea.features.length} points`)
 
   const features = response.gridArea.features
-  
+
   /**
    * Set the new features to the response
    */
@@ -106,6 +107,28 @@ app.post("/run-bruteforce", async (req, res) => {
 
   res.json(response)
 })
+
+
+app.post("/run-buildingwalk", async (req, res) => {
+
+  let response = {}
+
+  console.time("### Building walk exec time")
+  response = await initBuildingwalk(req.body.center, req.body.distance, req.body.gridDensity, req.body.distanceWeight, req.body.bigN, req.body.year, req.body.steps)
+  console.timeEnd("### Building walk exec time")
+  // console.log(`Grid size: ${response.gridArea.features.length} points`)
+
+  // const features = response.gridArea.features
+
+  // /**
+  //  * Set the new features to the response
+  //  */
+  // response.gridArea.features = await normalizeScoreForVisualization(response.allPoints, features)
+  response.allPoints = await normalizeScoreForBuildingWalkVisualization(response.allPoints)
+  // console.log(response.allPoints[0])
+  res.json(response)
+})
+
 
 app.post("/run-ai", async (req, res) => {
     let response = {}
@@ -136,7 +159,7 @@ app.post("/run-ai", async (req, res) => {
 
       const allPoints = response.result.allPoints
       const features = response.result.gridArea.features
-      
+
       /**
        * Set the new features to the response
        */

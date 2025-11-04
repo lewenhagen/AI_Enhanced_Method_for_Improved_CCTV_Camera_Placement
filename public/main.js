@@ -5,9 +5,13 @@ const loadBtn = document.getElementById("loadBtn")
 const animate = document.getElementById("animate")
 const theBestBtn = document.getElementById("getBest")
 const simulations = document.getElementById("simulations")
-const randomWalkCheckbox = document.getElementById("random-walk")
+// const randomWalkCheckbox = document.getElementById("random-walk")
+const methods = document.querySelectorAll('input[name="walk-mode"]')
+let chosenMethod = ""
 const maxStepsDiv = document.getElementById("max-steps-div")
 maxStepsDiv.style.display = "none"
+const buildingsStepDiv = document.getElementById("building-steps")
+buildingsStepDiv.style.display = "none"
 let allCrimes = null
 
 let bruteForceData = []
@@ -79,7 +83,7 @@ async function runRandomWalk(center, distance, gridDensity, distanceWeight, bigN
       const response = await fetch('/run-randomwalk', {
           method: 'POST',
           headers: headers,
-          body: JSON.stringify({ 
+          body: JSON.stringify({
             center, distance, gridDensity, distanceWeight, bigN, maxSteps, startingPos, year
           })
       });
@@ -170,8 +174,89 @@ async function runBruteForce(center, distance, gridDensity, distanceWeight, bigN
       console.error('Error fetching:', error);
       await new Promise(resolve => setTimeout(resolve, 1000))
   }
-  
-  
+
+
+}
+
+
+async function runBuildingWalk(center, distance, gridDensity, distanceWeight, bigN, year, steps) {
+  const headers = { 'Content-Type': 'application/json' }
+
+  try {
+      const response = await fetch('/run-buildingwalk', {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify({
+            center, distance, gridDensity, distanceWeight, bigN, year, steps
+          })
+      });
+
+      const data = await response.json()
+      bruteForceData = data
+      const minRadius = 1  // smallest circle
+      const maxRadius = 6 // largest circle
+      const exponent = 2
+      data.allPoints.forEach((item) => {
+        const { camInfo } = item
+
+        if (camInfo && camInfo.center) {
+          const [lng, lat] = camInfo.center.coordinates
+          const scaledScore = Math.pow(camInfo.visualColor, exponent)
+          const radius = minRadius + scaledScore * (maxRadius - minRadius)
+          // Draw a circle marker for each camera center
+          L.circleMarker([lat, lng], {
+            radius: radius,
+            color: camInfo.visualColor ? scale(camInfo.visualColor) : "white",
+            fillColor: camInfo.visualColor ? scale(camInfo.visualColor) : "white",
+            fillOpacity: 0.9,
+            weight: 1
+          })
+            // .bindPopup(`
+            //   <b>Score:</b> ${camInfo.score.toFixed(3)}<br>
+            //   <b>Crimes:</b> ${item.totalCrimeCount}<br>
+            //   <b>Area:</b> ${camInfo.area.toFixed(1)} m²
+            // `)
+            .addTo(drawnAi)
+        }
+      })
+      // L.geoJSON(data.gridArea, {
+      //   pointToLayer: (feature, latlng) =>
+      //     L.circleMarker(latlng, {
+      //       radius: 3,
+      //       // color: "black",
+      //       // color: getHeatmapColor(feature.properties.opacityScore),
+      //       // fillColor: getHeatmapColor(feature.properties.opacityScore),
+      //       color: feature.properties.opacityScore ? scale(feature.properties.opacityScore) : "white",
+      //       fillColor: feature.properties.opacityScore ? scale(feature.properties.opacityScore) : "white",
+      //       fillOpacity: 1,
+      //       opacity: 1,
+      //       interactive: false
+      //     })
+
+      // }).addTo(drawnAi)
+      L.geoJSON(data.circle, {
+        style: {
+          color: 'blue',
+          fillColor: 'rgba(0, 0, 255, 0.2)',
+          weight: 2
+        }
+      }).addTo(drawnAi)
+
+
+
+      animate.disabled = false
+      theBestBtn.disabled = false
+      simulations.disabled = false
+      simulations.max = bruteForceData.allPoints.length
+
+      // drawBoundingBox(data.boundingBox)
+      drawBuildings(data.buildings)
+      drawCrimes(data.crimes)
+
+  } catch (error) {
+      console.error('Error fetching:', error);
+      await new Promise(resolve => setTimeout(resolve, 1000))
+  }
 }
 
 
@@ -292,16 +377,19 @@ loadBtn.addEventListener("click", async function(event) {
     let maxSteps = parseInt(document.getElementById("max-steps").value)
     let startingPos = document.getElementById("startingPos").value
     let distanceWeight = parseFloat(document.getElementById("distanceWeight").value)
-    let useRandomWalk = randomWalkCheckbox.checked
+    chosenMethod = document.querySelector('input[name="walk-mode"]:checked').value
     let bigN = parseInt(document.querySelector('input[name="useN"]:checked').value)
     let year = document.getElementById("year").value
-    
-    if (useRandomWalk) {
+
+    if (chosenMethod === "random") {
       await runRandomWalk(center, distance, gridDensity, distanceWeight, bigN, maxSteps, startingPos, year)
-    } else {
+    } else if (chosenMethod === "bruteforce") {
       await runBruteForce(center, distance, gridDensity, distanceWeight, bigN, year)
+    } else if (chosenMethod === "building") {
+      let steps = document.getElementById("building-steps-value").value
+      await runBuildingWalk(center, distance, gridDensity, distanceWeight, bigN, year, steps)
     }
-    
+
     hideLoader()
 })
 
@@ -314,14 +402,15 @@ animate.addEventListener("click", function(event) {
     drawnItems.clearLayers()
 
     let pointData;
-    if (!randomWalkCheckbox.checked) {
+    if (chosenMethod === "bruteforce" || chosenMethod === "building") {
       pointData = bruteForceData.allPoints[i]
       max = bruteForceData.allPoints.length
-    } else {
+    } else if (chosenMethod === "random") {
       pointData = bruteForceData.allPoints[simulation][i]
       max = bruteForceData.allPoints[simulation].length
     }
-    
+
+
     let layer = L.geoJSON(pointData.camInfo.center).bindPopup(`
       DWS: ${pointData.camInfo.score}<br>
       Area: ${pointData.camInfo.area.toFixed(2).toString()}<br>
@@ -335,7 +424,7 @@ animate.addEventListener("click", function(event) {
     drawnItems.bringToBack()
     layer.openPopup()
     drawnItems.addLayer(L.geoJSON(pointData.camInfo.polygon, {style: {color:"purple"}, interactive: false}))
-   
+
     if (i === max-1) {
       clearInterval(myInterval)
       return
@@ -352,7 +441,7 @@ theBestBtn.addEventListener("click", function(event) {
     clearInterval(myInterval)
     myInterval = null
     let useThis = {}
-    if (randomWalkCheckbox.checked) {
+    if (chosenMethod === "random") {
       useThis = chosenSimulation[chosenSimulation.length-1]
     } else {
       useThis = chosenSimulation
@@ -371,11 +460,25 @@ theBestBtn.addEventListener("click", function(event) {
     drawnItems.bringToBack()
 })
 
-randomWalkCheckbox.addEventListener("change", function() {
-  
-    if(maxStepsDiv.style.display === "none") {
+methods.forEach(method => {
+  method.addEventListener('change', (event) => {
+    if (event.target.value === "random") {
       maxStepsDiv.style.display = "block"
     } else {
       maxStepsDiv.style.display = "none"
     }
+    if (event.target.value === "building") {
+      buildingsStepDiv.style.display = "block"
+    } else {
+      buildingsStepDiv.style.display = "none"
+    }
+  })
 })
+// methods.forEeach().addEventListener("change", function() {
+
+//     if(maxStepsDiv.style.display === "none") {
+//       maxStepsDiv.style.display = "block"
+//     } else {
+//       maxStepsDiv.style.display = "none"
+//     }
+// })

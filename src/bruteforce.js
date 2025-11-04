@@ -49,9 +49,9 @@ async function initBruteforce(center, distance, gridDensity, distanceWeight, big
   } else {
     bigN = data.crimes.length
   }
-  
+
   data.crimes = await fixCrimes(data.crimes)
-  
+
   data.distance = parseFloat(distance)
   data.gridDensity = parseFloat(gridDensity)
 
@@ -61,12 +61,12 @@ async function initBruteforce(center, distance, gridDensity, distanceWeight, big
       await bruteForce(bigN, point, distance, distanceWeight)
     })
   )
-  
+
   allpoints.sort((a, b) => {
     return (
       // b.totalCrimeCount - a.totalCrimeCount ||
       b.camInfo.score - a.camInfo.score ||
-      a.totalDistance - b.totalDistance 
+      a.totalDistance - b.totalDistance
     )
   })
 
@@ -85,7 +85,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   SILENT=true
   console.time("Brute force exec time")
   // center, distance, gridSize, dist_weight, bigN, year (YYYY or "all")
-  await initBruteforce("55.5636, 12.9746", 100, 5, 0.2, 1, "2017")
+  await initBruteforce("55.5636, 12.9746", 100, 5, 0.2, 1, "all")
   console.timeEnd("Brute force exec time")
 }
 

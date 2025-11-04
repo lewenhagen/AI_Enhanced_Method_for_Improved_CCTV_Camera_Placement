@@ -36,6 +36,42 @@ function createGridOvercaptureArea(centerLong, centerLat, distance, gridDensity,
 }
 
 
+
+/**
+ *
+ * @param {number} centerLong
+ * @param {number} centerLat
+ * @param {Array} buildings
+ * @param {number} distance
+ * @returns {Feature} The circle inside capture area
+ */
+function createCircleOvercaptureArea(centerLong, centerLat, distance, buildings) {
+  const buildingsCollection = {
+    type: "FeatureCollection",
+    features: buildings.map(f => ({
+      type: "Feature",
+      geometry: f.geometry,
+      properties: f.properties || {}
+    }))
+  }
+  const center = [centerLong, centerLat]
+  const radius = (distance/1000)
+  const circle = turf.circle(center, radius, { steps: 64, units: 'kilometers' })
+  const circleBbox = turf.bbox(circle)
+  console.log(circle)
+  const filteredPoints = turf.featureCollection(
+    circle.geometry.features.filter(point =>
+      !buildingsCollection.features.some(building =>
+        turf.booleanPointInPolygon(point, building)
+      )
+    )
+  )
+
+  return filteredPoints
+
+}
+
+
 async function fixCrimes (crimes) {
   let result = {}
   for (const crime of crimes) {
@@ -63,4 +99,4 @@ async function fixCrimes (crimes) {
   return result
 }
 
-export { createGridOvercaptureArea, fixCrimes }
+export { createGridOvercaptureArea, fixCrimes, createCircleOvercaptureArea }

@@ -72,9 +72,9 @@ async function randomWalk(grid, startingPos) {
   } else {
     startingPositions = parseInt(Math.round(gridMap.size / 100))
   }
-  
+
   !SILENT && console.time("### Worker time")
-  
+
   let results = await Promise.all(Array(startingPositions).fill().map(runWorker))
   workerId = 0
   !SILENT && console.timeEnd("### Worker time")
@@ -141,8 +141,8 @@ async function initRandomWalk(center, distance, gridDensity, distanceWeight, big
 
 
     await randomWalk(gridArea, startingPos)
-      
-   
+
+
 
     return {gridArea: gridArea, allPoints: ALLPOINTS, buildings: data.buildings, boundingBox: data.boundingBox, crimes: data.crimes}
 }
@@ -154,7 +154,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     const start = performance.now()
     // console.time("Random walk exec time")
     // center, distance, gridSize, dist_weight, bigN (0 or 1), maxSteps, startingPositions (-1 for 1%), year
-    let data = await initRandomWalk("55.5636, 12.9746", 100, 5, 0.2, 1, 10, -1, "2017")
+    let data = await initRandomWalk("55.5636, 12.9746", 100, 5, 0.2, 1, 10, -1, "all")
     // console.timeEnd("Random walk exec time")
     const end = performance.now()
     const elapsed = end - start
@@ -166,7 +166,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       "steps": data.allPoints[0].length,
       "time": Math.round((elapsed/1000)*1000)/1000
     })
-    
+
   }
   await fs.writeFile('randomwalk.json', JSON.stringify(json, null, 2), 'utf8')
 }
