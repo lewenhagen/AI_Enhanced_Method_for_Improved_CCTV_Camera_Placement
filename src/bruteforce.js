@@ -5,6 +5,8 @@ import { getIntersectingBuildingsAI } from './intersectingBuildings.js'
 import { getCrimesInPolygon } from './getCrimesInPolygon.js'
 import { getAllCrimesAvailable } from './getAllCrimesAvailable.js'
 import { fixCrimes } from './helpers.js'
+import { promises as fs } from 'fs'
+
 
 let SILENT = false
 
@@ -70,7 +72,7 @@ async function initBruteforce(center, distance, gridDensity, distanceWeight, big
     )
   })
 
-  console.log("Bruteforce best score: " + allpoints[0].camInfo.score)
+  !SILENT && console.log("Bruteforce best score: " + allpoints[0].camInfo.score)
 
   return {
     allPoints: allpoints,
@@ -82,11 +84,57 @@ async function initBruteforce(center, distance, gridDensity, distanceWeight, big
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
+  // console.log(process.argv[2])
+  let startLoc = process.argv[2]
+  let dist = process.argv[3]
+  let distWeight = process.argv[4]
+  let year = process.argv[5]
+
   SILENT=true
-  console.time("Brute force exec time")
-  // center, distance, gridSize, dist_weight, bigN, year (YYYY or "all")
-  await initBruteforce("55.5636, 12.9746", 100, 5, 0.2, 1, "all")
-  console.timeEnd("Brute force exec time")
+  let json = []
+
+  const start = performance.now()
+  // console.time("Random walk exec time")
+  // center, distance, gridSize, dist_weight, bigN (0 or 1), year
+  let data = await initBruteforce(startLoc, dist, 5, distWeight, 1, year)
+  // console.timeEnd("Random walk exec time")
+  const end = performance.now()
+  const elapsed = end - start
+  // console.log(`Bruteforce exec time: ${Math.round((elapsed/1000)*1000)/1000}, best score: ${data.allPoints[0].camInfo.score}, steps: ${data.gridArea.features.length}`)
+  json.push({
+    "nr": 1,
+    "score": data.allPoints[0].camInfo.score,
+    "distance": data.allPoints[0].camInfo.totalDistance,
+    "steps": data.gridArea.features.length,
+    "time": Math.round((elapsed/1000)*1000)/1000
+  })
+
+  // console.log(JSON.stringify({
+  //   "bruteforce",
+  //   "score": data.allPoints[0].camInfo.score,
+  //   "distance": data.allPoints[0].camInfo.totalDistance,
+  //   "steps": data.gridArea.features.length,
+  //   "time": Math.round((elapsed/1000)*1000)/1000
+  // }));
+  // data.allPoints[0].camInfo.totalDistance,
+  // console.log(data.allPoints[0].camInfo)
+    console.log(
+      ["Bruteforce",
+      dist,
+      data.gridArea.features.length,
+      Math.round((elapsed/1000)*1000)/1000,
+      data.allPoints[0].camInfo.score]
+    );
+  await fs.writeFile('bruteforce.json', JSON.stringify(json, null, 2), 'utf8')
+
+
+  // console.time("Brute force exec time")
+  // // center, distance, gridSize, dist_weight, bigN, year (YYYY or "all")
+  // await initBruteforce("55.5636, 12.9746", 100, 5, 0.2, 1, "all")
+  // console.timeEnd("Brute force exec time")
+
+
+
 }
 
 export { initBruteforce }

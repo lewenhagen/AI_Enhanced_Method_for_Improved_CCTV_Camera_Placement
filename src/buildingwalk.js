@@ -13,46 +13,104 @@ let data = {}
 let circle
 
 
+// function getBuildingBoundaryPoints(stepSize = 5) {
+//   const buildings = data.buildings
+//   const bbox = data.boundingBox
+//   let pointsAlongBoundary = []
+
+
+
+//   for (const building of buildings) {
+//     // Handle Polygon buildings
+//     if (building.geometry.type === "Polygon") {
+//       let boundary = turf.polygonToLine(building)
+//       let offsetBoundary = turf.lineOffset(boundary, 0.0005, {units: 'kilometers'})
+//       let perimeter = turf.length(offsetBoundary, {units: 'meters'})
+
+//       for (let i = 0; i <= perimeter; i += stepSize) {
+//           let point = turf.along(offsetBoundary, i, {units: 'meters'})
+
+//           // if(turf.booleanPointInPolygon(point, turf.cleanCoords(bbox))) {
+//           //     pointsAlongBoundary.push(point)
+//           // }
+//           if(turf.booleanPointInPolygon(point, circle)) {
+//               pointsAlongBoundary.push(point)
+//               // console.log("yay")
+//           }
+//           // const insideGrid = turf.booleanPointInPolygon(point, circle)
+
+
+//           // if(insideGrid) {
+//           //     pointsAlongBoundary.push(point)
+//           // }
+
+//       }
+//     } else {console.log(building.geometry.type)}
+//   }
+
+//   // Return as a GeoJSON FeatureCollection
+//   return turf.featureCollection(pointsAlongBoundary)
+// }
 function getBuildingBoundaryPoints(stepSize = 5) {
   const buildings = data.buildings
   const bbox = data.boundingBox
   let pointsAlongBoundary = []
 
-
-
   for (const building of buildings) {
-    // Handle Polygon buildings
-    if (building.geometry.type === "Polygon") {
-      let boundary = turf.polygonToLine(building)
-      let offsetBoundary = turf.lineOffset(boundary, 0.0005, {units: 'kilometers'})
-      let perimeter = turf.length(offsetBoundary, {units: 'meters'})
+    try {
+      if (building.geometry.type === "Polygon") {
+        // Ensure coordinates exist and are valid
+        if (!building.geometry.coordinates || !Array.isArray(building.geometry.coordinates)) {
+          console.warn("Invalid geometry:", building)
+          continue
+        }
 
-      for (let i = 0; i <= perimeter; i += stepSize) {
+        // Convert Polygon to Line
+        let boundary = turf.polygonToLine(building)
+
+        // polygonToLine can return a FeatureCollection
+        if (boundary.type === "FeatureCollection") {
+          boundary = boundary.features[0]
+        }
+
+        // Ensure boundary is valid
+        if (!boundary || !boundary.geometry || !boundary.geometry.coordinates) {
+          console.warn("Invalid boundary:", boundary)
+          continue
+        }
+
+        // Offset and measure
+        let offsetBoundary = turf.lineOffset(boundary, 0.0005, {units: 'kilometers'})
+        let perimeter = turf.length(offsetBoundary, {units: 'meters'})
+
+        for (let i = 0; i <= perimeter; i += stepSize) {
           let point = turf.along(offsetBoundary, i, {units: 'meters'})
 
-          // if(turf.booleanPointInPolygon(point, turf.cleanCoords(bbox))) {
-          //     pointsAlongBoundary.push(point)
-          // }
-          if(turf.booleanPointInPolygon(point, circle)) {
+          // Only add if point is valid
+          if (
+            point &&
+            point.geometry &&
+            Array.isArray(point.geometry.coordinates) &&
+            point.geometry.coordinates.every(Number.isFinite)
+          ) {
+            if (turf.booleanPointInPolygon(point, circle)) {
               pointsAlongBoundary.push(point)
-              // console.log("yay")
+            }
           } else {
-            // console.log("noooo")
+            console.warn("Invalid point generated at distance", i)
           }
-          // const insideGrid = turf.booleanPointInPolygon(point, circle)
-
-
-          // if(insideGrid) {
-          //     pointsAlongBoundary.push(point)
-          // }
-
+        }
+      } else {
+        console.log("Skipping non-polygon:", building.geometry.type)
       }
+    } catch (err) {
+      console.error("Error processing building:", err, building)
     }
   }
 
-  // Return as a GeoJSON FeatureCollection
   return turf.featureCollection(pointsAlongBoundary)
 }
+
 
 
 
@@ -82,7 +140,7 @@ async function initBuildingwalk(center, distance, gridDensity, distanceWeight, b
   !SILENT && console.timeEnd("### Get all crimes in r*2 bounding box")
 
   !SILENT && console.time("### Create grid over capture area")
-  let gridArea = await createGridOvercaptureArea(parseFloat(center.split(",")[1]), parseFloat(center.split(",")[0]), distance, gridDensity, data.buildings)
+  // let gridArea = await createGridOvercaptureArea(parseFloat(center.split(",")[1]), parseFloat(center.split(",")[0]), distance, gridDensity, data.buildings)
   // let gridArea = await createGridOvercaptureArea(parseFloat(center.split(",")[1]), parseFloat(center.split(",")[0]), distance, data.buildings)
   !SILENT && console.timeEnd("### Create grid over capture area")
 

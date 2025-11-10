@@ -9,7 +9,6 @@ let circleHolder = []
  */
 async function generate(buildings, boundingBox, pointsOnBoundary, distance) {
   let result = []
-
   for (const currentCoord of pointsOnBoundary) {
     circleHolder = []
 

@@ -150,24 +150,24 @@ async function initRandomWalk(center, distance, gridDensity, distanceWeight, big
 if (import.meta.url === `file://${process.argv[1]}`) {
   SILENT=true
   let json = []
-  for (let i = 0; i < 10; i++) {
+  // for (let i = 0; i < 10; i++) {
     const start = performance.now()
     // console.time("Random walk exec time")
     // center, distance, gridSize, dist_weight, bigN (0 or 1), maxSteps, startingPositions (-1 for 1%), year
-    let data = await initRandomWalk("55.5636, 12.9746", 100, 5, 0.2, 1, 10, -1, "all")
+    let data = await initRandomWalk("55.5636, 12.9746", 100, 5, 0.2, 1, 20, 10, "all")
     // console.timeEnd("Random walk exec time")
     const end = performance.now()
     const elapsed = end - start
     console.log(`Random walk exec time: ${Math.round((elapsed/1000)*1000)/1000}, best score: ${data.allPoints[0][data.allPoints[0].length-1].camInfo.score}, steps: ${data.allPoints[0].length}`)
     json.push({
-      "nr": i+1,
+      "nr": 1,
       "score": data.allPoints[0][data.allPoints[0].length-1].camInfo.score,
       "distance": data.allPoints[0][data.allPoints[0].length-1].camInfo.totalDistance,
       "steps": data.allPoints[0].length,
       "time": Math.round((elapsed/1000)*1000)/1000
     })
 
-  }
+  // }
   await fs.writeFile('randomwalk.json', JSON.stringify(json, null, 2), 'utf8')
 }
 

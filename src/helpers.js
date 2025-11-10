@@ -58,7 +58,7 @@ function createCircleOvercaptureArea(centerLong, centerLat, distance, buildings)
   const radius = (distance/1000)
   const circle = turf.circle(center, radius, { steps: 64, units: 'kilometers' })
   const circleBbox = turf.bbox(circle)
-  console.log(circle)
+  // console.log(circle)
   const filteredPoints = turf.featureCollection(
     circle.geometry.features.filter(point =>
       !buildingsCollection.features.some(building =>

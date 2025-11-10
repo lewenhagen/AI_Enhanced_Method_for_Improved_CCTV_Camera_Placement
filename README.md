@@ -68,3 +68,6 @@ db.crimes.find({
   }
 });
 ```
+
+### Run on mac to connect to dockercontainer
+`docker exec -it mongo mongo -u root -p pass`
