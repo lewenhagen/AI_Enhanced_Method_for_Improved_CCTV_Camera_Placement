@@ -84,7 +84,6 @@ async function initBruteforce(center, distance, gridDensity, distanceWeight, big
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  // console.log(process.argv[2])
   let startLoc = process.argv[2]
   let dist = process.argv[3]
   let distWeight = process.argv[4]
@@ -101,13 +100,13 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const end = performance.now()
   const elapsed = end - start
   // console.log(`Bruteforce exec time: ${Math.round((elapsed/1000)*1000)/1000}, best score: ${data.allPoints[0].camInfo.score}, steps: ${data.gridArea.features.length}`)
-  json.push({
-    "nr": 1,
-    "score": data.allPoints[0].camInfo.score,
-    "distance": data.allPoints[0].camInfo.totalDistance,
-    "steps": data.gridArea.features.length,
-    "time": Math.round((elapsed/1000)*1000)/1000
-  })
+  // json.push({
+  //   "nr": 1,
+  //   "score": data.allPoints[0].camInfo.score,
+  //   "distance": data.allPoints[0].camInfo.totalDistance,
+  //   "steps": data.gridArea.features.length,
+  //   "time": Math.round((elapsed/1000)*1000)/1000
+  // })
 
   // console.log(JSON.stringify({
   //   "bruteforce",
@@ -118,14 +117,23 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   // }));
   // data.allPoints[0].camInfo.totalDistance,
   // console.log(data.allPoints[0].camInfo)
-    console.log(
-      ["Bruteforce",
-      dist,
-      data.gridArea.features.length,
-      Math.round((elapsed/1000)*1000)/1000,
-      data.allPoints[0].camInfo.score]
-    );
-  await fs.writeFile('bruteforce.json', JSON.stringify(json, null, 2), 'utf8')
+    console.log(JSON.stringify(
+      {
+        "num_startpoints": data.gridArea.features.length,
+        "exec_time": Math.round((elapsed/1000)*1000)/1000,
+        "best_score": data.allPoints[0].camInfo.score
+      }
+    )
+  );
+    // console.log(
+    //   ["Bruteforce",
+    //   year,
+    //   dist,
+    //   data.gridArea.features.length,
+    //   Math.round((elapsed/1000)*1000)/1000,
+    //   data.allPoints[0].camInfo.score]
+    // );
+  // await fs.writeFile('bruteforce.json', JSON.stringify(json, null, 2), 'utf8')
 
 
   // console.time("Brute force exec time")
