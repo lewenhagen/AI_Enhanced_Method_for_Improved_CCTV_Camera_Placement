@@ -3,3 +3,9 @@ node_modules
 data/*
 *.yml
 db/*.sqlite
+*.pickle
+experiment.*
+**/*.json
+*.csv
+.ipynb*
+notebook.ipynb

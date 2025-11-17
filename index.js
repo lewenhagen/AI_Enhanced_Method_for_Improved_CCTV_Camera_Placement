@@ -8,7 +8,7 @@ import { runAi } from './src/runAi.js'
 import { normalizeScoreForVisualization, normalizeScoreForBuildingWalkVisualization } from './src/scoreCalculation.js'
 import { fixCrimes } from './src/helpers.js'
 import { initBruteforce } from './src/bruteforce.js'
-import { initRandomWalk } from './src/randomwalk.js'
+import { initRandomWalk } from './src/hillclimb.js'
 import { initBuildingwalk } from './src/buildingwalk.js'
 
 const app = express()
@@ -30,12 +30,12 @@ app.post("/run-randomwalk", async (req, res) => {
   let response = {}
 
   // Time the execution
-  console.time("### Random walk exec time")
+  console.time("### Hill climbing exec time")
   response = await initRandomWalk(
     req.body.center, req.body.distance,
     req.body.gridDensity, req.body.distanceWeight,
     req.body.bigN, req.body.maxSteps, req.body.startingPos, req.body.year)
-  console.timeEnd("### Random walk exec time")
+  console.timeEnd("### Hill climbing exec time")
 
   console.log(`Grid size: ${response.gridArea.features.length} points`)
 

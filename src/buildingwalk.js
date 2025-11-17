@@ -56,57 +56,136 @@ function getBuildingBoundaryPoints(stepSize = 5) {
   const bbox = data.boundingBox
   let pointsAlongBoundary = []
 
+  // for (const building of buildings) {
+  //   // console.log(building.geometry.coordinates.length)
+  //   try {
+  //     if (building.geometry.type === "Polygon") {
+  //       // Ensure coordinates exist and are valid
+  //       if (!building.geometry.coordinates || !Array.isArray(building.geometry.coordinates)) {
+  //         !SILENT && console.warn("Invalid geometry:", building)
+  //         continue
+  //       }
+
+  //       // Convert Polygon to Line
+  //       let boundary = turf.polygonToLine(building)
+
+  //       // polygonToLine can return a FeatureCollection
+  //       if (boundary.type === "FeatureCollection") {
+  //         boundary = boundary.features[0]
+  //       }
+
+  //       // Ensure boundary is valid
+  //       if (!boundary || !boundary.geometry || !boundary.geometry.coordinates) {
+  //         !SILENT && console.warn("Invalid boundary:", boundary)
+  //         continue
+  //       }
+  //       // if (boundary.type === 'Polygon') {
+  //       //   boundary = {
+  //       //     type: 'LineString',
+  //       //     coordinates: boundary.coordinates[0] // use the outer ring
+  //       //   };
+  //       // }
+
+  //       // Offset and measure
+  //       let offsetBoundary = turf.lineOffset(boundary, 0.0005, {units: 'kilometers'})
+  //       let perimeter = turf.length(offsetBoundary, {units: 'meters'})
+
+  //       for (let i = 0; i <= perimeter; i += stepSize) {
+  //         let point = turf.along(offsetBoundary, i, {units: 'meters'})
+
+  //         // Only add if point is valid
+  //         if (
+  //           point &&
+  //           point.geometry &&
+  //           Array.isArray(point.geometry.coordinates) &&
+  //           point.geometry.coordinates.every(Number.isFinite)
+  //         ) {
+  //           if (turf.booleanPointInPolygon(point, circle)) {
+  //             pointsAlongBoundary.push(point)
+  //           }
+  //         } else {
+  //           !SILENT && console.warn("Invalid point generated at distance", i)
+  //         }
+  //       }
+  //     } else {
+  //       !SILENT && console.log("Skipping non-polygon:", building.geometry.type)
+  //     }
+  //   } catch (err) {
+  //     !SILENT && console.error("Error processing building:", err, building)
+  //   }
+  // }
   for (const building of buildings) {
-    try {
-      if (building.geometry.type === "Polygon") {
-        // Ensure coordinates exist and are valid
-        if (!building.geometry.coordinates || !Array.isArray(building.geometry.coordinates)) {
-          console.warn("Invalid geometry:", building)
-          continue
-        }
-
-        // Convert Polygon to Line
-        let boundary = turf.polygonToLine(building)
-
-        // polygonToLine can return a FeatureCollection
-        if (boundary.type === "FeatureCollection") {
-          boundary = boundary.features[0]
-        }
-
-        // Ensure boundary is valid
-        if (!boundary || !boundary.geometry || !boundary.geometry.coordinates) {
-          console.warn("Invalid boundary:", boundary)
-          continue
-        }
-
-        // Offset and measure
-        let offsetBoundary = turf.lineOffset(boundary, 0.0005, {units: 'kilometers'})
-        let perimeter = turf.length(offsetBoundary, {units: 'meters'})
-
-        for (let i = 0; i <= perimeter; i += stepSize) {
-          let point = turf.along(offsetBoundary, i, {units: 'meters'})
-
-          // Only add if point is valid
-          if (
-            point &&
-            point.geometry &&
-            Array.isArray(point.geometry.coordinates) &&
-            point.geometry.coordinates.every(Number.isFinite)
-          ) {
-            if (turf.booleanPointInPolygon(point, circle)) {
-              pointsAlongBoundary.push(point)
-            }
-          } else {
-            console.warn("Invalid point generated at distance", i)
-          }
-        }
-      } else {
-        console.log("Skipping non-polygon:", building.geometry.type)
-      }
-    } catch (err) {
-      console.error("Error processing building:", err, building)
+  try {
+    const geom = building.geometry;
+    if (geom?.type !== "Polygon") {
+      if (!SILENT) console.log("Skipping non-polygon:", geom?.type);
+      continue;
     }
+
+    // ✅ Ensure coordinates exist and are valid
+    if (!Array.isArray(geom.coordinates) || geom.coordinates.length === 0) {
+      if (!SILENT) console.warn("Invalid geometry:", building);
+      continue;
+    }
+
+    // ✅ If polygon has multiple rings (outer + holes), use only the outer one
+    let boundary;
+    if (geom.coordinates.length > 1) {
+      // Use only the first (outer) ring
+      boundary = turf.lineString(geom.coordinates[0]);
+    } else {
+      // Otherwise, polygonToLine is fine
+      boundary = turf.polygonToLine(building);
+      if (boundary.type === "FeatureCollection") {
+        // Find the longest line (outer ring)
+        boundary = boundary.features.reduce((longest, f) => {
+          const len = turf.length(f);
+          return !longest || len > turf.length(longest) ? f : longest;
+        }, null);
+      }
+    }
+
+    // ✅ Ensure boundary is valid
+    if (!boundary?.geometry?.coordinates) {
+      if (!SILENT) console.warn("Invalid boundary:", boundary);
+      continue;
+    }
+
+    // ✅ Offset and measure safely
+    let offsetBoundary;
+    try {
+      offsetBoundary = turf.lineOffset(boundary, 0.0005, { units: "kilometers" });
+    } catch (err) {
+      if (!SILENT) console.warn("lineOffset failed, using original boundary:", err.message);
+      offsetBoundary = boundary;
+    }
+
+    const perimeter = turf.length(offsetBoundary, { units: "meters" });
+
+    for (let i = 0; i <= perimeter; i += stepSize) {
+      try {
+        const point = turf.along(offsetBoundary, i, { units: "meters" });
+        if (
+          point?.geometry &&
+          Array.isArray(point.geometry.coordinates) &&
+          point.geometry.coordinates.every(Number.isFinite)
+        ) {
+          if (turf.booleanPointInPolygon(point, circle)) {
+            pointsAlongBoundary.push(point);
+          }
+        } else {
+          if (!SILENT) console.warn("Invalid point generated at distance", i);
+        }
+      } catch (err) {
+        if (!SILENT) console.warn("Skipping bad point at distance", i, err.message);
+      }
+    }
+
+  } catch (err) {
+    if (!SILENT) console.error("Error processing building:", err.message);
   }
+}
+
 
   return turf.featureCollection(pointsAlongBoundary)
 }
@@ -175,7 +254,7 @@ async function initBuildingwalk(center, distance, gridDensity, distanceWeight, b
     )
   })
 
-  console.log("Building walk best score: " + allpoints[0].camInfo.score)
+  !SILENT && console.log("Building walk best score: " + allpoints[0].camInfo.score)
 
   return {
     allPoints: allpoints,
@@ -189,18 +268,27 @@ async function initBuildingwalk(center, distance, gridDensity, distanceWeight, b
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   SILENT=true
-  console.time("Building walk exec time")
-  /**
-   * center
-   * distance
-   * gridSize (dist between points)
-   * dist_weight
-   * bigN
-   * crimes from year (YYYY or "all")
-   * steps in m along buildings
-   */
-  await initBuildingwalk("55.5636, 12.9746", 100, 5, 0.2, 1, "all", 5)
-  console.timeEnd("Building walk exec time")
+  let startLoc = process.argv[2]
+  let dist = process.argv[3]
+  let distWeight = process.argv[4]
+  let year = process.argv[5]
+
+  const start = performance.now()
+
+  let data = await initBuildingwalk(startLoc, dist, 5, distWeight, 1, year, 5)
+
+  const end = performance.now()
+  const elapsed = end - start
+
+  console.log(JSON.stringify(
+      {
+        "num_startpoints": data.allPoints[0].length,
+        "exec_time": Math.round((elapsed/1000)*1000)/1000,
+        "best_score": data.allPoints[0].camInfo.score
+      }
+    )
+  )
+
 }
 
 export { initBuildingwalk }
