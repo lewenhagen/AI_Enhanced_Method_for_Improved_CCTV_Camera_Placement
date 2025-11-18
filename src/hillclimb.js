@@ -58,25 +58,13 @@ function runWorker() {
   })
 }
 
+function calculateAverage(results) {
+  const totalStepTime = results.reduce((sum, s) => sum + (s[s.length-1].time || 0), 0);
+  const average = totalStepTime / (results.length - 1)  
+  return average
+}
+
 function processSimulations(results) {
-  // 1. Add avgTime to last object
-  for (const sim of results) {
-    const last = sim[sim.length - 1];
-
-    // Skip if malformed
-    if (!last || typeof last.time !== "number") continue;
-
-    // All steps except last timing object
-    const steps = sim.slice(0, -1);
-
-    // Sum per-step time (if you track time per step)
-    const totalStepTime = steps.reduce((sum, s) => sum + (s.time || 0), 0);
-    const avg = steps.length > 0 ? totalStepTime / steps.length : 0;
-
-    last.avgTime = Number(avg.toFixed(5));
-  }
-
-  // 2. Sort simulations
   results.sort((A, B) => {
     const lastA = A[A.length - 2];   // second last = final step
     const lastB = B[B.length - 2];
@@ -195,6 +183,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     // center, distance, gridSize, dist_weight, bigN (0 or 1), maxSteps, startingPositions (-1 for 1%), year
     let data = await initRandomWalk(startLoc, dist, 5, distWeight, 1, 20, 10, year)
     // console.timeEnd("Random walk exec time")
+    let average = calculateAverage(data.allPoints)
     const end = performance.now()
     const elapsed = end - start
     // console.log(`Random walk exec time: ${Math.round((elapsed/1000)*1000)/1000}, best score: ${data.allPoints[0][data.allPoints[0].length-1].camInfo.score}, steps: ${data.allPoints[0].length}`)
@@ -221,7 +210,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         "exec_time": Number((elapsed/1000).toFixed(5)),
         "best_score": best.camInfo.score,
         "ind_time": data.allPoints[0][data.allPoints[0].length-1].time,
-        "avg_time": data.allPoints[0][data.allPoints[0].length-1].avgTime,
+        "avg_time": Number((average).toFixed(5)),
         "steps": data.allPoints[0].length-1
       }
     ))
