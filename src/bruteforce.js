@@ -107,7 +107,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   //   "steps": data.gridArea.features.length,
   //   "time": Math.round((elapsed/1000)*1000)/1000
   // })
-
+  const totalCount = Object.values(data.crimes)
+      .reduce((sum, item) => sum + item.count, 0);
   // console.log(JSON.stringify({
   //   "bruteforce",
   //   "score": data.allPoints[0].camInfo.score,
@@ -117,11 +118,17 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   // }));
   // data.allPoints[0].camInfo.totalDistance,
   // console.log(data.allPoints[0].camInfo)
+  
     console.log(JSON.stringify(
       {
         "num_startpoints": data.gridArea.features.length,
         "exec_time": Math.round((elapsed/1000)*1000)/1000,
-        "best_score": data.allPoints[0].camInfo.score
+        "best_score": data.allPoints[0].camInfo.score,
+        "ind_time": null,
+        "avg_time": null,
+        "steps": data.gridArea.features.length,
+        "total_crimes": totalCount,
+        "seen_crimes": data.allPoints[0].totalCount
       }
     )
   );
@@ -141,7 +148,14 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   // await initBruteforce("55.5636, 12.9746", 100, 5, 0.2, 1, "all")
   // console.timeEnd("Brute force exec time")
 
-
+//         "num_startpoints": 10,
+//         "exec_time": Number((elapsed/1000).toFixed(5)),
+//         "best_score": best.camInfo.score,
+//         "ind_time": data.allPoints[0][data.allPoints[0].length-1].time,
+//         "avg_time": Number((average).toFixed(5)),
+//         "steps": data.allPoints[0].length-1,
+//         "total_crimes": totalCount,
+//         "seen_crimes": best.totalCount
 
 }
 

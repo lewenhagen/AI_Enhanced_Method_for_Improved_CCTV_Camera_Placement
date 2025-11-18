@@ -163,7 +163,7 @@ async function initRandomWalk(center, distance, gridDensity, distanceWeight, big
 
     await randomWalk(gridArea, startingPos)
 
-
+    !SILENT && ALLPOINTS.forEach(arr => arr.pop());
 
     return {gridArea: gridArea, allPoints: ALLPOINTS, buildings: data.buildings, boundingBox: data.boundingBox, crimes: data.crimes}
 }
@@ -194,8 +194,12 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     //   "steps": data.allPoints[0].length,
     //   "time": Math.round((elapsed/1000)*1000)/1000
     // })
-    //console.log(data.allPoints[0][data.allPoints[0].length-1])
+    const totalCount = Object.values(data.crimes)
+      .reduce((sum, item) => sum + item.count, 0);
+    
     const best = data.allPoints[0][data.allPoints[0].length-2]
+
+    //console.log(best)
     //const totalTime = Number(data.allPoints[0]
     //  .reduce((sum, item) => sum + (item.time || 0), 0)
     //  .toFixed(5)
@@ -211,7 +215,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         "best_score": best.camInfo.score,
         "ind_time": data.allPoints[0][data.allPoints[0].length-1].time,
         "avg_time": Number((average).toFixed(5)),
-        "steps": data.allPoints[0].length-1
+        "steps": data.allPoints[0].length-1,
+        "total_crimes": totalCount,
+        "seen_crimes": best.totalCount
       }
     ))
 
