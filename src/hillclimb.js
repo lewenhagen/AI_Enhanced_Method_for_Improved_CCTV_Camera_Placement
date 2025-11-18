@@ -58,10 +58,49 @@ function runWorker() {
   })
 }
 
+function processSimulations(results) {
+  // 1. Add avgTime to last object
+  for (const sim of results) {
+    const last = sim[sim.length - 1];
+
+    // Skip if malformed
+    if (!last || typeof last.time !== "number") continue;
+
+    // All steps except last timing object
+    const steps = sim.slice(0, -1);
+
+    // Sum per-step time (if you track time per step)
+    const totalStepTime = steps.reduce((sum, s) => sum + (s.time || 0), 0);
+    const avg = steps.length > 0 ? totalStepTime / steps.length : 0;
+
+    last.avgTime = Number(avg.toFixed(5));
+  }
+
+  // 2. Sort simulations
+  results.sort((A, B) => {
+    const lastA = A[A.length - 2];   // second last = final step
+    const lastB = B[B.length - 2];
+
+    const scoreA = lastA?.camInfo?.score ?? 0;
+    const scoreB = lastB?.camInfo?.score ?? 0;
+
+    // Highest score first
+    if (scoreA !== scoreB) return scoreB - scoreA;
+
+    const distA = lastA?.totalDistance ?? Infinity;
+    const distB = lastB?.totalDistance ?? Infinity;
+
+    // Lowest distance second
+    return distA - distB;
+  });
+
+  return results;
+}
 
 
 async function randomWalk(grid, startingPos) {
   let data = await setupGridAndBuildings(grid, BUILDINGS, GRIDDENSITY)
+
   gridMap = data.gridMap
   gridBuildings = data.gridBuildings
 
@@ -76,31 +115,25 @@ async function randomWalk(grid, startingPos) {
   !SILENT && console.time("### Worker time")
 
   let results = await Promise.all(Array(startingPositions).fill().map(runWorker))
+  //console.log(results)
   workerId = 0
   !SILENT && console.timeEnd("### Worker time")
 
-  results.sort((a, b) => {
-    const lastA = a[a.length - 1];
-    const lastB = b[b.length - 1];
+  let sortedSimulations = []
 
-    const scoreA = lastA?.camInfo?.score ?? 0;
-    const scoreB = lastB?.camInfo?.score ?? 0;
+  sortedSimulations = processSimulations(results)
 
+  //console.log(sortedSimulations[0])
 
-    if (scoreB !== scoreA) return scoreB - scoreA;
-
-    const distanceA = lastA?.totalDistance ?? Infinity;
-    const distanceB = lastB?.totalDistance ?? Infinity;
-
-    return distanceA - distanceB;
-  });
-
-  for (const i in results) {
-    let index = parseInt(i) + 1
-    !SILENT && console.log(`Simulation ${index}: Score ${results[i][results[i].length-1].camInfo.score}, steps taken ${results[i].length}, Total distance: ${results[i][results[i].length-1].totalDistance}`)
+  if (!SILENT) {
+    for (const i in results) {
+      let index = parseInt(i) + 1
+      console.log(`Simulation ${index}: Score ${results[i][results[i].length-2].camInfo.score}, steps taken ${results[i].length-1}, Total distance: ${results[i][results[i].length-2].totalDistance}, Simulation time: ${results[i][results[i].length-1].time}`)
+    }
   }
+  
 
-  !SILENT && console.log(`Best score: ${results[0][results[0].length-1].camInfo.score}, steps taken: ${results[0].length}`)
+  !SILENT && console.log(`Best score: ${results[0][results[0].length-2].camInfo.score}, steps taken: ${results[0].length-1}, Time: ${results[0][results[0].length-1].time}`)
 
   ALLPOINTS = results
 }
@@ -172,11 +205,24 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     //   "steps": data.allPoints[0].length,
     //   "time": Math.round((elapsed/1000)*1000)/1000
     // })
+    //console.log(data.allPoints[0][data.allPoints[0].length-1])
+    const best = data.allPoints[0][data.allPoints[0].length-2]
+    //const totalTime = Number(data.allPoints[0]
+    //  .reduce((sum, item) => sum + (item.time || 0), 0)
+    //  .toFixed(5)
+    //)
+    //best.ind_time = totalTime
+    //for (const item of data.allPoints[0]) {
+     // console.log(item)
+    //}
     console.log(JSON.stringify(
       {
         "num_startpoints": 10,
-        "exec_time": Math.round((elapsed/1000)*1000)/1000,
-        "best_score": data.allPoints[0][data.allPoints[0].length-1].camInfo.score
+        "exec_time": Number((elapsed/1000).toFixed(5)),
+        "best_score": best.camInfo.score,
+        "ind_time": data.allPoints[0][data.allPoints[0].length-1].time,
+        "avg_time": data.allPoints[0][data.allPoints[0].length-1].avgTime,
+        "steps": data.allPoints[0].length-1
       }
     ))
 

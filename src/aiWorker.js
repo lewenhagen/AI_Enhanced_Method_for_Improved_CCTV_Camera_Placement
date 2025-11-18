@@ -6,6 +6,7 @@ import * as turf from '@turf/turf'
 import { generate } from "./generateCoverageArea.js"
 import { scoreCalculation } from "./scoreCalculation.js"
 // import { getRandomDirection, calculateScore } from "./aiWorkerFunctions.js";
+import { performance } from 'node:perf_hooks';
 
 let startPositions = []
 
@@ -175,6 +176,7 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
 
 (async () => {
     !SILENT && console.time(`Worker: ${workerId}`)
+    const start = performance.now()
     let startPoint = (await getRandomPointFromGrid()).geometry
     // let startPoint = topFromInititalRandom[Math.floor(Math.random() * topFromInititalRandom.length)].camInfo.center  //startPositions[0].camInfo.center
     let lastPoint = startPoint
@@ -184,6 +186,7 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
     startCam = startCam[0]
 
     let lastScore = await calculateScore(startCam, startPoint, CRIMECOORDS, CRIMES)
+    
     simulationPoints.push(lastScore)
 
     // let dir = await getRandomDirection()
@@ -310,7 +313,11 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
       if (!nextStep) break;
 
       // Step 5: Move + add to simulation
+      //end = performance.now()
+      //elapsed = end - start
+      //nextStep.score.time = Number((elapsed/1000).toFixed(5))
       simulationPoints.push(nextStep.score);
+      
       lastPoint = nextStep.point.point.geometry;
       lastScore = nextStep.score;
       visitedPoints.add(pointKey(lastPoint));
@@ -381,6 +388,13 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
     //     }
     // }
     // console.log(simulationPoints)
+    const end = performance.now()
+    const elapsed = end - start
+    simulationPoints.push({
+      time: Number((elapsed/1000).toFixed(5)),
+      avgTime: 0
+    })
+    
     !SILENT && console.timeEnd(`Worker: ${workerId}`)
     parentPort.postMessage(simulationPoints)
 })()
