@@ -3,12 +3,12 @@ import { promises as fs } from 'fs'
 import { appendFile } from 'fs/promises';
 
 const years = [2018, 2019, 2020]
-const radiuses = [100] // 50
+const radiuses = [100, 150, 200]
 const methods = ["bruteforce", "hillclimb", "buildingwalk"]
 
 let result = []
 // let center = "55.5636,12.9746"
-let dist_weights = [0.2]
+let dist_weights = [0, 0.2, 0.4, 0.6, 0.8, 1]
 
 let hotspots2017 = await JSON.parse(await fs.readFile("hotspots/hotspots_2017.json"))
 let hotspots2018 = await JSON.parse(await fs.readFile("hotspots/hotspots_2018.json"))
@@ -57,9 +57,16 @@ function runScript(method, center, radius, dist_weight, year) {
       method,
       year,
       radius,
+      dist_weight: dist_weight,
       num_startpoints: temp.num_startpoints,
       execution_time: temp.exec_time,
-      best_score: temp.best_score
+      best_score: temp.best_score,
+      ind_time: temp.ind_time,
+      avg_time: temp.avg_time,
+      steps: temp.steps,
+      total_crimes: temp.total_crimes,
+      seen_crimes: temp.seen_crimes,
+      unique_crime_coords: temp.unique_crime_coords
     };
 
     const json = JSON.stringify(entry, null, 2);
@@ -83,14 +90,18 @@ function runScript(method, center, radius, dist_weight, year) {
 let testCounter = 1
 let coordCounter = 1
 let methodCounter = 1
+let distWeightCounter = 1
+let radiusCounter = 1
 
 for (const item of hotspots_map) {
     // testCounter = 1
     coordCounter = 1
     for (const pos of item.startCoords) {
 
-        // for (let year of years) {
+        radiusCounter = 1
         for (let radius of radiuses) {
+            distWeightCounter = 1
+
             for (let dw of dist_weights) {
                 methodCounter = 1
                 for (let method of methods) {
@@ -99,12 +110,15 @@ for (const item of hotspots_map) {
                     // console.log(`Evaluate against year: ${item.year}, Center: ${pos}, Radius: ${radius}, Dist_weight: ${dw}, Method: ${method} done.`)
                     console.log(`Test: ${testCounter}/${hotspots_map.length}`)
                     console.log(`Coordinate: ${coordCounter}/${item.startCoords.length}`)
+                    console.log(`Radius: ${radiusCounter}/${radiuses.length}`)
+                    console.log(`Dist_weight: ${distWeightCounter}/${dist_weights.length}`)
                     console.log(`Method: ${methodCounter}/${methods.length}`)
                     console.log("----------------------------")
                     methodCounter++
                 }
+                distWeightCounter++
             }
-
+            radiusCounter++
         }
         // }
         coordCounter++

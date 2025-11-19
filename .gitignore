@@ -9,3 +9,4 @@ experiment.*
 *.csv
 .ipynb*
 notebook.ipynb
+*.gz

@@ -177,53 +177,33 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   let year = process.argv[5]
 
   let json = []
-  // for (let i = 0; i < 10; i++) {
-    const start = performance.now()
-    // console.time("Random walk exec time")
-    // center, distance, gridSize, dist_weight, bigN (0 or 1), maxSteps, startingPositions (-1 for 1%), year
-    let data = await initRandomWalk(startLoc, dist, 5, distWeight, 1, 20, 10, year)
-    // console.timeEnd("Random walk exec time")
-    let average = calculateAverage(data.allPoints)
-    const end = performance.now()
-    const elapsed = end - start
-    // console.log(`Random walk exec time: ${Math.round((elapsed/1000)*1000)/1000}, best score: ${data.allPoints[0][data.allPoints[0].length-1].camInfo.score}, steps: ${data.allPoints[0].length}`)
-    // json.push({
-    //   "nr": 1,
-    //   "score": data.allPoints[0][data.allPoints[0].length-1].camInfo.score,
-    //   "distance": data.allPoints[0][data.allPoints[0].length-1].camInfo.totalDistance,
-    //   "steps": data.allPoints[0].length,
-    //   "time": Math.round((elapsed/1000)*1000)/1000
-    // })
-    const totalCount = Object.values(data.crimes)
-      .reduce((sum, item) => sum + item.count, 0);
-    
-    const best = data.allPoints[0][data.allPoints[0].length-2]
+  
+  const start = performance.now()
+  
+  let data = await initRandomWalk(startLoc, dist, 5, distWeight, 1, 20, 10, year)
+  
+  let average = calculateAverage(data.allPoints)
+  const end = performance.now()
+  const elapsed = end - start
+  
+  const totalCount = Object.values(data.crimes)
+    .reduce((sum, item) => sum + item.count, 0);
+  
+  const best = data.allPoints[0][data.allPoints[0].length-2]
 
-    //console.log(best)
-    //const totalTime = Number(data.allPoints[0]
-    //  .reduce((sum, item) => sum + (item.time || 0), 0)
-    //  .toFixed(5)
-    //)
-    //best.ind_time = totalTime
-    //for (const item of data.allPoints[0]) {
-     // console.log(item)
-    //}
-    console.log(JSON.stringify(
-      {
-        "num_startpoints": 10,
-        "exec_time": Number((elapsed/1000).toFixed(5)),
-        "best_score": best.camInfo.score,
-        "ind_time": data.allPoints[0][data.allPoints[0].length-1].time,
-        "avg_time": Number((average).toFixed(5)),
-        "steps": data.allPoints[0].length-1,
-        "total_crimes": totalCount,
-        "seen_crimes": best.totalCount
-      }
-    ))
-
-
-  // }
-  // await fs.writeFile('randomwalk.json', JSON.stringify(json, null, 2), 'utf8')
+  console.log(JSON.stringify(
+    {
+      "num_startpoints": 10,
+      "exec_time": Number((elapsed/1000).toFixed(5)),
+      "best_score": best.camInfo.score,
+      "ind_time": data.allPoints[0][data.allPoints[0].length-1].time,
+      "avg_time": Number((average).toFixed(5)),
+      "steps": data.allPoints[0].length-1,
+      "total_crimes": totalCount,
+      "seen_crimes": best.totalCount,
+      "unique_crime_coords": best.totalCrimeCount
+    }
+  ))
 }
 
 export { initRandomWalk }

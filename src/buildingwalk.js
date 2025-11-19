@@ -276,15 +276,24 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const start = performance.now()
 
   let data = await initBuildingwalk(startLoc, dist, 5, distWeight, 1, year, 5)
-
+  
   const end = performance.now()
   const elapsed = end - start
+
+  const totalCount = Object.values(data.crimes)
+      .reduce((sum, item) => sum + item.count, 0);
 
   console.log(JSON.stringify(
       {
         "num_startpoints": data.allPoints[0].length,
         "exec_time": Math.round((elapsed/1000)*1000)/1000,
-        "best_score": data.allPoints[0].camInfo.score
+        "best_score": data.allPoints[0].camInfo.score,
+        "ind_time": null,
+        "avg_time": null,
+        "steps": data.allPoints.length,
+        "total_crimes": totalCount,
+        "seen_crimes": data.allPoints[0].totalCount,
+        "unique_crime_coords": data.allPoints[0].totalCrimeCount
       }
     )
   )

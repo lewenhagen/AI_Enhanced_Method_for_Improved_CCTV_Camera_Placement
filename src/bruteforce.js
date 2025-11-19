@@ -93,31 +93,13 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   let json = []
 
   const start = performance.now()
-  // console.time("Random walk exec time")
-  // center, distance, gridSize, dist_weight, bigN (0 or 1), year
+  
   let data = await initBruteforce(startLoc, dist, 5, distWeight, 1, year)
-  // console.timeEnd("Random walk exec time")
+  
   const end = performance.now()
   const elapsed = end - start
-  // console.log(`Bruteforce exec time: ${Math.round((elapsed/1000)*1000)/1000}, best score: ${data.allPoints[0].camInfo.score}, steps: ${data.gridArea.features.length}`)
-  // json.push({
-  //   "nr": 1,
-  //   "score": data.allPoints[0].camInfo.score,
-  //   "distance": data.allPoints[0].camInfo.totalDistance,
-  //   "steps": data.gridArea.features.length,
-  //   "time": Math.round((elapsed/1000)*1000)/1000
-  // })
   const totalCount = Object.values(data.crimes)
       .reduce((sum, item) => sum + item.count, 0);
-  // console.log(JSON.stringify({
-  //   "bruteforce",
-  //   "score": data.allPoints[0].camInfo.score,
-  //   "distance": data.allPoints[0].camInfo.totalDistance,
-  //   "steps": data.gridArea.features.length,
-  //   "time": Math.round((elapsed/1000)*1000)/1000
-  // }));
-  // data.allPoints[0].camInfo.totalDistance,
-  // console.log(data.allPoints[0].camInfo)
   
     console.log(JSON.stringify(
       {
@@ -128,35 +110,12 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         "avg_time": null,
         "steps": data.gridArea.features.length,
         "total_crimes": totalCount,
-        "seen_crimes": data.allPoints[0].totalCount
+        "seen_crimes": data.allPoints[0].totalCount,
+        "unique_crime_coords": data.allPoints[0].totalCrimeCount
       }
     )
   );
-    // console.log(
-    //   ["Bruteforce",
-    //   year,
-    //   dist,
-    //   data.gridArea.features.length,
-    //   Math.round((elapsed/1000)*1000)/1000,
-    //   data.allPoints[0].camInfo.score]
-    // );
-  // await fs.writeFile('bruteforce.json', JSON.stringify(json, null, 2), 'utf8')
-
-
-  // console.time("Brute force exec time")
-  // // center, distance, gridSize, dist_weight, bigN, year (YYYY or "all")
-  // await initBruteforce("55.5636, 12.9746", 100, 5, 0.2, 1, "all")
-  // console.timeEnd("Brute force exec time")
-
-//         "num_startpoints": 10,
-//         "exec_time": Number((elapsed/1000).toFixed(5)),
-//         "best_score": best.camInfo.score,
-//         "ind_time": data.allPoints[0][data.allPoints[0].length-1].time,
-//         "avg_time": Number((average).toFixed(5)),
-//         "steps": data.allPoints[0].length-1,
-//         "total_crimes": totalCount,
-//         "seen_crimes": best.totalCount
-
+  
 }
 
 export { initBruteforce }
