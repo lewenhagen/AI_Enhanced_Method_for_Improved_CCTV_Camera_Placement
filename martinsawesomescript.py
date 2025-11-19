@@ -9,7 +9,7 @@ radii_lst = [ 100, 50 ]
 # methods_lst = ['bruteforce','hill_climb','building_walk']
 methods_lst = ['bruteforce']
 
-results_df = pd.DataFrame(columns=["method", "radius", "num_startpoints", "execution_time", "best_score"])
+results_df = pd.DataFrame(columns=["method", "year", "radius", "num_startpoints", "execution_time", "best_score"])
 
 def executeMethod(method, center, distance, distWeight, year):
     # print(method, center, distance, distWeight, year)
@@ -39,6 +39,7 @@ for year in years_lst:
             if method == 'bruteforce':
                 #Run method using radius={radius} on loaded data, store result in {result_list}
                 result_list = executeMethod("bruteforce", "55.5636,12.9746", radius, "0.2", year)
+                # print(type(list(result_list)))
             # elif method == 'hill_climb':
             #     #Run method using radius={radius} on loaded data, store result in {result_list}
             # elif method == 'building_walk':
@@ -51,7 +52,7 @@ for year in years_lst:
             # result_list = ["bruteforce", 100, 10, 0.023, 0.0087]
 
             # Append as a new row
-            results_df.loc[len(results_df)] = result_list
+            results_df.loc[len(results_df)] = list(result_list)
 
 
 results_df.to_csv("out.csv", index=False)
