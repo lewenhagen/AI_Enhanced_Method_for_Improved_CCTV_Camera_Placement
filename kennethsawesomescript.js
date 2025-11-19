@@ -2,14 +2,32 @@ import { spawn } from 'child_process';
 import { promises as fs } from 'fs'
 import { appendFile } from 'fs/promises';
 
+const years = [2018, 2019, 2020]
+const radiuses = [100] // 50
+const methods = ["bruteforce", "hillclimb", "buildingwalk"]
 
-
-const years = [2016, 2017, 2018, 2019]
-const radiuses = [100, 50]
-const methods = ["bruteforce"]
 let result = []
-let center = "55.5636,12.9746"
-let dist_weight = 0.2
+// let center = "55.5636,12.9746"
+let dist_weights = [0.2]
+
+let hotspots2017 = await JSON.parse(await fs.readFile("hotspots/hotspots_2017.json"))
+let hotspots2018 = await JSON.parse(await fs.readFile("hotspots/hotspots_2018.json"))
+let hotspots2019 = await JSON.parse(await fs.readFile("hotspots/hotspots_2019.json"))
+
+let hotspots_map = [
+    {
+        "startCoords": hotspots2017,
+        "year": 2018
+    },
+    {
+        "startCoords": hotspots2018,
+        "year": 2019
+    },
+    {
+        "startCoords": hotspots2019,
+        "year": 2020
+    }
+]
 
 await fs.writeFile('experiment.json', '[\n', 'utf8');
 let isFirst = true;   // track commas
@@ -62,14 +80,37 @@ function runScript(method, center, radius, dist_weight, year) {
     });
   });
 }
+let testCounter = 1
+let coordCounter = 1
+let methodCounter = 1
 
-for (let year of years) {
-    for (let radius of radiuses) {
-        for (let method of methods) {
-            await runScript(method, center, radius, dist_weight, year)
-            console.log(year, radius, method + " done.")
+for (const item of hotspots_map) {
+    // testCounter = 1
+    coordCounter = 1
+    for (const pos of item.startCoords) {
+
+        // for (let year of years) {
+        for (let radius of radiuses) {
+            for (let dw of dist_weights) {
+                methodCounter = 1
+                for (let method of methods) {
+
+                    await runScript(method, pos, radius, dw, item.year)
+                    // console.log(`Evaluate against year: ${item.year}, Center: ${pos}, Radius: ${radius}, Dist_weight: ${dw}, Method: ${method} done.`)
+                    console.log(`Test: ${testCounter}/${hotspots_map.length}`)
+                    console.log(`Coordinate: ${coordCounter}/${item.startCoords.length}`)
+                    console.log(`Method: ${methodCounter}/${methods.length}`)
+                    console.log("----------------------------")
+                    methodCounter++
+                }
+            }
+
         }
+        // }
+        coordCounter++
     }
+    testCounter++
+
 }
 await fs.appendFile('experiment.json', '\n]\n');
 // await fs.writeFile('experiment.json', JSON.stringify(result, null, 2), 'utf8')
