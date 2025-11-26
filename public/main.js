@@ -75,6 +75,58 @@ function showLoader() {
 //         console.error('Error fetching:', error);
 //     }
 // }
+async function runDFS(center, distance, gridDensity, distanceWeight, bigN, maxSteps, startingPos, year) {
+  const headers = { 'Content-Type': 'application/json' }
+
+  try {
+      const response = await fetch('/run-dfs', {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify({
+            center, distance, gridDensity, distanceWeight, bigN, maxSteps, startingPos, year
+          })
+      });
+
+      const data = await response.json()
+      bruteForceData = data
+      // console.log(data.result.gridArea)
+
+      L.geoJSON(data.gridArea, {
+        pointToLayer: (feature, latlng) =>
+          L.circleMarker(latlng, {
+            radius: 3,
+            // color: "black",
+            // color: getHeatmapColor(feature.properties.opacityScore),
+            // fillColor: getHeatmapColor(feature.properties.opacityScore),
+            color: feature.properties.opacityScore ? scale(feature.properties.opacityScore) : "white",
+            fillColor: feature.properties.opacityScore ? scale(feature.properties.opacityScore) : "white",
+            fillOpacity: 1,
+            opacity: 1,
+            interactive: false
+          })
+
+      }).addTo(drawnAi)
+
+
+
+      animate.disabled = false
+      theBestBtn.disabled = false
+      simulations.disabled = false
+      simulations.max = data.allPoints.length
+
+      drawBoundingBox(data.boundingBox)
+      // drawBoundingBoxWithoutBuildings()
+      drawBuildings(data.buildings)
+      drawCrimes(data.crimes)
+
+  } catch (error) {
+      console.error('Error fetching:', error);
+      await new Promise(resolve => setTimeout(resolve, 1000))
+  }
+  // drawCrimes(allCrimes)
+}
+
+
 
 async function runRandomWalk(center, distance, gridDensity, distanceWeight, bigN, maxSteps, startingPos, year) {
   const headers = { 'Content-Type': 'application/json' }
@@ -369,6 +421,8 @@ loadBtn.addEventListener("click", async function(event) {
 
     if (chosenMethod === "random") {
       await runRandomWalk(center, distance, gridDensity, distanceWeight, bigN, maxSteps, startingPos, year)
+    } else if (chosenMethod === "dfs") {
+      await runDFS(center, distance, gridDensity, distanceWeight, bigN, maxSteps, startingPos, year)
     } else if (chosenMethod === "bruteforce") {
       await runBruteForce(center, distance, gridDensity, distanceWeight, bigN, year)
     } else if (chosenMethod === "building") {
@@ -388,10 +442,11 @@ animate.addEventListener("click", function(event) {
     drawnItems.clearLayers()
 
     let pointData;
+
     if (chosenMethod === "bruteforce" || chosenMethod === "building") {
       pointData = bruteForceData.allPoints[i]
       max = bruteForceData.allPoints.length
-    } else if (chosenMethod === "random") {
+    } else if (chosenMethod === "random" || chosenMethod === "dfs") {
       pointData = bruteForceData.allPoints[simulation][i]
       max = bruteForceData.allPoints[simulation].length
     }
@@ -427,11 +482,12 @@ theBestBtn.addEventListener("click", function(event) {
     clearInterval(myInterval)
     myInterval = null
     let useThis = {}
-    if (chosenMethod === "random") {
+    if (chosenMethod === "random" || chosenMethod === "dfs") {
       useThis = chosenSimulation[chosenSimulation.length-1]
     } else {
       useThis = chosenSimulation
     }
+
     let layer = L.geoJSON(useThis.camInfo.center).bindPopup(`
       DWS: ${useThis.camInfo.score}<br>
       Area: ${useThis.camInfo.area.toFixed(2).toString()}<br>
@@ -448,7 +504,7 @@ theBestBtn.addEventListener("click", function(event) {
 
 methods.forEach(method => {
   method.addEventListener('change', (event) => {
-    if (event.target.value === "random") {
+    if (event.target.value === "random" || event.target.value === "dfs") {
       maxStepsDiv.style.display = "block"
     } else {
       maxStepsDiv.style.display = "none"
@@ -468,3 +524,5 @@ methods.forEach(method => {
 //       maxStepsDiv.style.display = "none"
 //     }
 // })
+
+// git batch

@@ -10,6 +10,7 @@ import { fixCrimes } from './src/helpers.js'
 import { initBruteforce } from './src/bruteforce.js'
 import { initRandomWalk } from './src/hillclimb.js'
 import { initBuildingwalk } from './src/buildingwalk.js'
+import { initDFS } from './src/dfs.js'
 
 const app = express()
 const port = 1337
@@ -24,6 +25,21 @@ app.get("/", (req, res) => {
     res.render("index.ejs", {cpus: cpus})
 })
 
+app.post("/run-dfs", async (req, res) => {
+  let response = {}
+
+  // Time the execution
+  console.time("### DFS exec time")
+  response = await initDFS(
+    req.body.center, req.body.distance,
+    req.body.gridDensity, req.body.distanceWeight,
+    req.body.bigN, req.body.maxSteps, req.body.startingPos, req.body.year)
+  console.timeEnd("### DFS exec time")
+
+  console.log(`Grid size: ${response.gridArea.features.length} points`)
+
+  res.json(response)
+})
 
 
 app.post("/run-randomwalk", async (req, res) => {
