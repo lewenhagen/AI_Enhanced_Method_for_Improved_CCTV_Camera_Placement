@@ -56,7 +56,7 @@ startPositions.sort((a, b) => {
   )
 })
 
-let topFromInititalRandom = startPositions.slice(0, 10)
+// let topFromInititalRandom = startPositions.slice(0, 10)
 // console.log(topFromInititalRandom)
 // console.log(startPositions[0].camInfo)
 // console.log(startPositions[startPositions.length-1].camInfo.score)
@@ -499,49 +499,104 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
   //  HEURISTIC DFS (CORRECTED)
   // ---------------------------------------------
 
+  // async function dfs(point, score, depth) {
+  //   if (depth >= MAXSTEPS - 1) return
+  //   if (simulationPoints.length >= MAXSTEPS) return
+
+  //   const directions = [
+  //     "up","down","left","right",
+  //     "upLeft","downLeft","upRight","downRight"
+  //   ]
+
+  //   // Step 1: evaluate children
+  //   let candidates = []
+  //   for (const dir of directions) {
+  //     const step = await takeStepInGridCalculateScore(dir, point)
+  //     if (!step || !step.score || !step.point) continue
+
+  //     const p = step.point.point.geometry
+  //     if (!visited.has(key(p))) {
+  //       candidates.push(step)
+  //     }
+  //   }
+
+  //   if (candidates.length === 0) return
+
+  //   // Step 2: heuristic sort — highest score first
+  //   candidates.sort((a, b) =>
+  //     b.score.camInfo.score - a.score.camInfo.score ||
+  //     a.score.camInfo.totalDistance - b.score.camInfo.totalDistance
+  //   )
+
+  //   // Step 3: DFS → deep first
+  //   for (const child of candidates) {
+  //     if (simulationPoints.length >= MAXSTEPS) break
+
+  //     const p = child.point.point.geometry
+  //     visited.add(key(p))
+
+  //     // ⬅ SAME OBJECT STRUCTURE as the original algorithm
+  //     simulationPoints.push(child.score)
+
+  //     // Go deeper
+  //     await dfs(p, child.score, depth + 1)
+  //   }
+  // }
+
   async function dfs(point, score, depth) {
-    if (depth >= MAXSTEPS - 1) return
-    if (simulationPoints.length >= MAXSTEPS) return
+  if (depth >= MAXSTEPS - 1) return
+  if (simulationPoints.length >= MAXSTEPS) return
 
-    const directions = [
-      "up","down","left","right",
-      "upLeft","downLeft","upRight","downRight"
-    ]
+  const directions = [
+    "up","down","left","right",
+    "upLeft","downLeft","upRight","downRight"
+  ]
 
-    // Step 1: evaluate children
-    let candidates = []
-    for (const dir of directions) {
-      const step = await takeStepInGridCalculateScore(dir, point)
-      if (!step || !step.score || !step.point) continue
+  // --------------------------------------------------
+  // STEP 1 — Evaluate all 8 directions in PARALLEL
+  // --------------------------------------------------
+  const stepPromises = directions.map(dir =>
+    takeStepInGridCalculateScore(dir, point)
+  )
 
-      const p = step.point.point.geometry
-      if (!visited.has(key(p))) {
-        candidates.push(step)
-      }
-    }
+  // Await all at once
+  const stepResults = await Promise.all(stepPromises)
 
-    if (candidates.length === 0) return
-
-    // Step 2: heuristic sort — highest score first
-    candidates.sort((a, b) =>
-      b.score.camInfo.score - a.score.camInfo.score ||
-      a.score.camInfo.totalDistance - b.score.camInfo.totalDistance
-    )
-
-    // Step 3: DFS → deep first
-    for (const child of candidates) {
-      if (simulationPoints.length >= MAXSTEPS) break
-
-      const p = child.point.point.geometry
-      visited.add(key(p))
-
-      // ⬅ SAME OBJECT STRUCTURE as the original algorithm
-      simulationPoints.push(child.score)
-
-      // Go deeper
-      await dfs(p, child.score, depth + 1)
+  // Filter valid, non-visited results
+  let candidates = []
+  for (const step of stepResults) {
+    if (!step || !step.score || !step.point) continue
+    const p = step.point.point.geometry
+    if (!visited.has(key(p))) {
+      candidates.push(step)
     }
   }
+
+  if (candidates.length === 0) return
+
+  // --------------------------------------------------
+  // STEP 2 — Sort heuristically
+  // --------------------------------------------------
+  candidates.sort((a, b) =>
+    b.score.camInfo.score - a.score.camInfo.score ||
+    a.score.camInfo.totalDistance - b.score.camInfo.totalDistance
+  )
+
+  // --------------------------------------------------
+  // STEP 3 — DFS (deep first), still sequential
+  // --------------------------------------------------
+  for (const child of candidates) {
+    if (simulationPoints.length >= MAXSTEPS) break
+
+    const p = child.point.point.geometry
+    visited.add(key(p))
+
+    simulationPoints.push(child.score)
+
+    await dfs(p, child.score, depth + 1)
+  }
+}
+
 
 
   // Run DFS
