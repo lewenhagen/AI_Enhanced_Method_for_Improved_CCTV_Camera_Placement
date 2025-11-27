@@ -470,6 +470,114 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
 // !SILENT && console.timeEnd(`Worker: ${workerId}`);
 // parentPort.postMessage(simulationPoints);
 
+  // !SILENT && console.time(`Worker: ${workerId}`)
+  // const start = performance.now()
+
+  // // ---------------------------------------------
+  // // INITIAL SETUP
+  // // ---------------------------------------------
+  // let startPoint = (await getRandomPointFromGrid()).geometry
+  // let lastPoint = startPoint
+
+  // let startCam = await generate(BUILDINGS, BBOX, [startPoint], DISTANCE)
+  // startCam = startCam[0]
+
+  // let startScore = await calculateScore(startCam, startPoint, CRIMECOORDS, CRIMES)
+
+  // // Structures
+  // let visited = new Set()
+  // let simulationPoints = []
+
+  // function key(point) {
+  //   return point.coordinates
+  //     ? `${point.coordinates[0]},${point.coordinates[1]}`
+  //     : `${point.x},${point.y}`
+  // }
+
+  // // Save starting point
+  // visited.add(key(startPoint))
+  // simulationPoints.push(startScore)
+
+
+  // // ---------------------------------------------
+  // //  HEURISTIC DFS (CORRECTED)
+  // // ---------------------------------------------
+
+  // async function dfs(point, score, depth) {
+  //   if (depth >= MAXSTEPS - 1) return
+  //   if (simulationPoints.length >= MAXSTEPS) return
+
+  //   const directions = [
+  //     "up","down","left","right",
+  //     "upLeft","downLeft","upRight","downRight"
+  //   ]
+
+  //   // --------------------------------------------------
+  //   // STEP 1 — Evaluate all 8 directions in PARALLEL
+  //   // --------------------------------------------------
+  //   const stepPromises = directions.map(dir =>
+  //     takeStepInGridCalculateScore(dir, point)
+  //   )
+
+  //   // Await all at once
+  //   const stepResults = await Promise.all(stepPromises)
+
+  //   // Filter valid, non-visited results
+  //   let candidates = []
+  //   for (const step of stepResults) {
+  //     if (!step || !step.score || !step.point) continue
+  //     const p = step.point.point.geometry
+  //     if (!visited.has(key(p))) {
+  //       candidates.push(step)
+  //     }
+  //   }
+
+  //   if (candidates.length === 0) return
+
+  //   // --------------------------------------------------
+  //   // STEP 2 — Sort heuristically
+  //   // --------------------------------------------------
+  //   candidates.sort((a, b) =>
+  //     b.score.camInfo.score - a.score.camInfo.score ||
+  //     a.score.camInfo.totalDistance - b.score.camInfo.totalDistance
+  //   )
+
+  //   // --------------------------------------------------
+  //   // STEP 3 — DFS (deep first), still sequential
+  //   // --------------------------------------------------
+  //   for (const child of candidates) {
+  //     if (simulationPoints.length >= MAXSTEPS) break
+
+  //     const p = child.point.point.geometry
+
+  //     visited.add(key(p))
+
+  //     simulationPoints.push(child.score)
+
+  //     await dfs(p, child.score, depth + 1)
+  //   }
+
+
+  // }
+
+  // // Run DFS
+
+  // await dfs(startPoint, startScore, 0)
+
+
+  // // ---------------------------------------------
+  // // END + RETURN
+  // // ---------------------------------------------
+  // const end = performance.now()
+  // const elapsed = end - start
+
+  // simulationPoints.push({
+  //   time: Number((elapsed/1000).toFixed(5)),
+  //   avgTime: 0
+  // })
+
+  // !SILENT && console.timeEnd(`Worker: ${workerId}`)
+  // parentPort.postMessage(simulationPoints)
   !SILENT && console.time(`Worker: ${workerId}`)
   const start = performance.now()
 
@@ -488,6 +596,9 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
   let visited = new Set()
   let simulationPoints = []
 
+  // Track BEST SCORE globally
+  let bestScore = startScore   // <------ NEW
+
   function key(point) {
     return point.coordinates
       ? `${point.coordinates[0]},${point.coordinates[1]}`
@@ -500,74 +611,27 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
 
 
   // ---------------------------------------------
-  //  HEURISTIC DFS (CORRECTED)
+  // **HEURISTIC DFS WITH BEST-SCORE TRACKING**
   // ---------------------------------------------
 
-  // async function dfs(point, score, depth) {
-  //   if (depth >= MAXSTEPS - 1) return
-  //   if (simulationPoints.length >= MAXSTEPS) return
+  async function dfs(point, depth) {
 
-  //   const directions = [
-  //     "up","down","left","right",
-  //     "upLeft","downLeft","upRight","downRight"
-  //   ]
-
-  //   // Step 1: evaluate children
-  //   let candidates = []
-  //   for (const dir of directions) {
-  //     const step = await takeStepInGridCalculateScore(dir, point)
-  //     if (!step || !step.score || !step.point) continue
-
-  //     const p = step.point.point.geometry
-  //     if (!visited.has(key(p))) {
-  //       candidates.push(step)
-  //     }
-  //   }
-
-  //   if (candidates.length === 0) return
-
-  //   // Step 2: heuristic sort — highest score first
-  //   candidates.sort((a, b) =>
-  //     b.score.camInfo.score - a.score.camInfo.score ||
-  //     a.score.camInfo.totalDistance - b.score.camInfo.totalDistance
-  //   )
-
-  //   // Step 3: DFS → deep first
-  //   for (const child of candidates) {
-  //     if (simulationPoints.length >= MAXSTEPS) break
-
-  //     const p = child.point.point.geometry
-  //     visited.add(key(p))
-
-  //     // ⬅ SAME OBJECT STRUCTURE as the original algorithm
-  //     simulationPoints.push(child.score)
-
-  //     // Go deeper
-  //     await dfs(p, child.score, depth + 1)
-  //   }
-  // }
-  const pathCoords = [];
-
-  async function dfs(point, score, depth) {
+    // Stop conditions
     if (depth >= MAXSTEPS - 1) return
-    if (simulationPoints.length >= MAXSTEPS) return
+    if (simulationPoints.length >= MAXSTEPS-1) return
 
     const directions = [
       "up","down","left","right",
       "upLeft","downLeft","upRight","downRight"
     ]
 
-    // --------------------------------------------------
-    // STEP 1 — Evaluate all 8 directions in PARALLEL
-    // --------------------------------------------------
+    // Evaluate neighbors in parallel
     const stepPromises = directions.map(dir =>
       takeStepInGridCalculateScore(dir, point)
     )
 
-    // Await all at once
     const stepResults = await Promise.all(stepPromises)
 
-    // Filter valid, non-visited results
     let candidates = []
     for (const step of stepResults) {
       if (!step || !step.score || !step.point) continue
@@ -579,39 +643,42 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
 
     if (candidates.length === 0) return
 
-    // --------------------------------------------------
-    // STEP 2 — Sort heuristically
-    // --------------------------------------------------
+    // Heuristic sort: high score, then short distance
     candidates.sort((a, b) =>
       b.score.camInfo.score - a.score.camInfo.score ||
       a.score.camInfo.totalDistance - b.score.camInfo.totalDistance
     )
 
-    // --------------------------------------------------
-    // STEP 3 — DFS (deep first), still sequential
-    // --------------------------------------------------
+    // DFS on sorted children
     for (const child of candidates) {
       if (simulationPoints.length >= MAXSTEPS) break
 
       const p = child.point.point.geometry
-
       visited.add(key(p))
 
+      // Save score (same object structure)
       simulationPoints.push(child.score)
-      pathCoords.push({x: p.x, y: p.y});
-      await dfs(p, child.score, depth + 1)
 
-    
+      // Track best score globally
+      if (child.score.camInfo.score > bestScore.camInfo.score) {
+        bestScore = child.score
+      }
+
+      await dfs(p, depth + 1)
     }
-
-    
   }
 
 
+  // ---------------------------------------------
+  // RUN DFS
+  // ---------------------------------------------
+  await dfs(startPoint, 0)
 
-  // Run DFS
-  
-  await dfs(startPoint, startScore, 0)
+
+  // ------------------------------------------------
+  // WHEN MAX STEPS REACHED → ADD BEST SCORE FOUND
+  // ------------------------------------------------
+  simulationPoints.push(bestScore)
 
 
   // ---------------------------------------------
@@ -627,6 +694,7 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
 
   !SILENT && console.timeEnd(`Worker: ${workerId}`)
   parentPort.postMessage(simulationPoints)
+
 
 
 
