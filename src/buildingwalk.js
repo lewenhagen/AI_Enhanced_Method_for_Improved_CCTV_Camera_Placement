@@ -132,14 +132,20 @@ async function initBuildingwalk(center, distance, gridDensity, distanceWeight, b
   data.distance = parseFloat(distance)
   data.gridDensity = parseFloat(gridDensity)
 
-  const sharedData = {
+  const sharedData = JSON.parse(JSON.stringify({
     buildings: data.buildings,
     boundingBox: data.boundingBox,
     crimes: data.crimes
-  };
+  }));
+
+  // const sharedData = {
+  //   buildings: data.buildings,
+  //   boundingBox: data.boundingBox,
+  //   crimes: data.crimes
+  // };
 
   const pool = new WorkerPool(
-    path.resolve('./src/buildingwalkWorker.js'),
+    path.resolve('./src/bruteforceWorker.js'),
     10,                      // pool size
     sharedData              // shared to all workers
   );
@@ -154,19 +160,29 @@ async function initBuildingwalk(center, distance, gridDensity, distanceWeight, b
   //     await buildingWalk(bigN, point, distance, distanceWeight)
   //   })
   // )
-  const tasks = points.features.map(f => {
-    return pool.run({
-      camPoint: f.geometry,
-      bigN,
-      distance,
-      distanceWeight
-    });
-  });
+  // const tasks = points.features.map(f => {
+  //   return pool.run({
+  //     camPoint: f.geometry.coordinates,
+  //     bigN,
+  //     distance,
+  //     distanceWeight
+  //   });
+  // });
 
-  allpoints = await Promise.all(tasks);
+  const workerPromises = points.features.map(f =>
+    pool.run({
+      bigN,
+      distanceWeight,
+      camPoint: f.geometry.coordinates,
+      distance
+    })
+  );
+
+  allpoints = await Promise.all(workerPromises);
 
   await pool.close();
-
+  // allpoints = allpoints.filter(p => p.ok); // keep only successful results
+ 
   allpoints.sort((a, b) => {
     return (
       // b.totalCrimeCount - a.totalCrimeCount ||

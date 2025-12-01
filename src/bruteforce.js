@@ -83,29 +83,29 @@ async function initBruteforce(center, distance, gridDensity, distanceWeight, big
   //   })
   // )
   const sharedData = {
-  buildings: data.buildings,
-  boundingBox: data.boundingBox,
-  crimes: data.crimes
-};
+    buildings: data.buildings,
+    boundingBox: data.boundingBox,
+    crimes: data.crimes
+  };
 
-const pool = new WorkerPool(
-  path.resolve('./src/bruteforceWorker.js'),
-  10,
-  sharedData
-);
+  const pool = new WorkerPool(
+    path.resolve('./src/bruteforceWorker.js'),
+    10,
+    sharedData
+  );
 
-const workerPromises = gridArea.features.map(f =>
-  pool.run({
-    bigN,
-    distanceWeight,
-    camPoint: f.geometry,
-    distance
-  })
-);
+  const workerPromises = gridArea.features.map(f =>
+    pool.run({
+      bigN,
+      distanceWeight,
+      camPoint: f.geometry,
+      distance
+    })
+  );
 
-allpoints = (await Promise.all(workerPromises)).map(msg => msg.result);
+  allpoints = (await Promise.all(workerPromises)).map(msg => msg.result);
 
-await pool.close();
+  await pool.close();
 
 
 
