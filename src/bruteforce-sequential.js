@@ -5,46 +5,25 @@ import { getIntersectingBuildingsAI } from './intersectingBuildings.js'
 import { getCrimesInPolygon } from './getCrimesInPolygon.js'
 import { getAllCrimesAvailable } from './getAllCrimesAvailable.js'
 import { fixCrimes } from './helpers.js'
-import { Worker } from 'worker_threads';
-import path from 'path';
-import { WorkerPool } from './pool.js';
 
 let SILENT = false
 
 let allpoints = []
 let data = {}
 
-// /**
-//  * @param {} camPoint
-//  * @param {*} buildings
-//  * @param {*} distance
-//  */
-// async function bruteForce(bigN, camPoint, distance, distanceWeight) {
-//   let currentCam = await generate(data.buildings, data.boundingBox, [camPoint], distance)
-//   currentCam = currentCam[0]
+/**
+ * @param {} camPoint
+ * @param {*} buildings
+ * @param {*} distance
+ */
+async function bruteForce(bigN, camPoint, distance, distanceWeight) {
+  let currentCam = await generate(data.buildings, data.boundingBox, [camPoint], distance)
+  currentCam = currentCam[0]
 
-//   let camObject = await scoreCalculation(bigN, distanceWeight, currentCam, camPoint, data.crimes, Object.keys(data.crimes))
+  let camObject = await scoreCalculation(bigN, distanceWeight, currentCam, camPoint, data.crimes, Object.keys(data.crimes))
 
-//   allpoints.push( camObject )
-// }
-
-// async function runWorker(workerData) {
-//     return new Promise((resolve, reject) => {
-//       const worker = new Worker(path.resolve('./src/bruteforceWorker.js'), {
-//         workerData
-//       });
-
-//       worker.on('message', (msg) => {
-//         if (msg.ok) resolve(msg.result);
-//         else reject(new Error(msg.error));
-//       });
-
-//       worker.on('error', reject);
-//       worker.on('exit', (code) => {
-//         if (code !== 0) reject(new Error(`Worker exited with code ${code}`));
-//       });
-//     });
-//   }
+  allpoints.push( camObject )
+}
 
 
 
@@ -76,39 +55,12 @@ async function initBruteforce(center, distance, gridDensity, distanceWeight, big
   data.distance = parseFloat(distance)
   data.gridDensity = parseFloat(gridDensity)
 
-  // await Promise.all(
-  //   gridArea.features.map(async (current) => {
-  //     let point = current.geometry
-  //     await bruteForce(bigN, point, distance, distanceWeight)
-  //   })
-  // )
-  const sharedData = {
-  buildings: data.buildings,
-  boundingBox: data.boundingBox,
-  crimes: data.crimes
-};
-
-const pool = new WorkerPool(
-  path.resolve('./src/bruteforceWorker.js'),
-  8,
-  sharedData
-);
-
-const workerPromises = gridArea.features.map(f =>
-  pool.run({
-    bigN,
-    distanceWeight,
-    camPoint: f.geometry,
-    distance
-  })
-);
-
-allpoints = (await Promise.all(workerPromises)).map(msg => msg.result);
-
-await pool.close();
-
-
-
+  await Promise.all(
+    gridArea.features.map(async (current) => {
+      let point = current.geometry
+      await bruteForce(bigN, point, distance, distanceWeight)
+    })
+  )
 
   allpoints.sort((a, b) => {
     return (
