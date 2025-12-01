@@ -278,17 +278,30 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
         "upLeft", "downLeft", "upRight", "downRight"
       ];
 
-      // Step 1: Check all directions
+      // Step 1: Check all directions in parallel
       const stepResults = [];
-      for (const dir of directions) {
-        const step = await takeStepInGridCalculateScore(dir, lastPoint);
-        if (step !== false) {
-          const stepPos = step.point.point.geometry;
-          if (!visitedPoints.has(pointKey(stepPos))) {
-            stepResults.push(step);
+
+      const stepPromises = directions.map(dir =>
+        takeStepInGridCalculateScore(dir, lastPoint)
+      )
+
+      const candidates = await Promise.all(stepPromises)
+      for (const step of candidates) {
+        if (!step || !step.score || !step.point) continue
+          const p = step.point.point.geometry
+          if (!visitedPoints.has(pointKey(p))) {
+            stepResults.push(step)
           }
-        }
       }
+      // for (const dir of directions) {
+      //   const step = await takeStepInGridCalculateScore(dir, lastPoint);
+      //   if (step !== false) {
+      //     const stepPos = step.point.point.geometry;
+      //     if (!visitedPoints.has(pointKey(stepPos))) {
+      //       stepResults.push(step);
+      //     }
+      //   }
+      // }
 
       // Stop if no valid moves
       if (stepResults.length === 0) break;
