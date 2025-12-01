@@ -90,7 +90,7 @@ async function initBruteforce(center, distance, gridDensity, distanceWeight, big
 
 const pool = new WorkerPool(
   path.resolve('./src/bruteforceWorker.js'),
-  8,
+  10,
   sharedData
 );
 
