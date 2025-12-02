@@ -8,6 +8,11 @@ import { fixCrimes } from './helpers.js'
 import { Worker } from 'worker_threads';
 import path from 'path';
 import { WorkerPool } from './pool.js';
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const workerPath = path.resolve(__dirname, "bruteforceWorker.js");
 
 let SILENT = false
 
@@ -89,7 +94,7 @@ async function initBruteforce(center, distance, gridDensity, distanceWeight, big
   };
 
   const pool = new WorkerPool(
-    path.resolve('./src/bruteforceWorker.js'),
+    workerPath,
     10,
     sharedData
   );
@@ -139,14 +144,14 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   let json = []
 
   const start = performance.now()
-  
+
   let data = await initBruteforce(startLoc, dist, 5, distWeight, 1, year)
-  
+
   const end = performance.now()
   const elapsed = end - start
   const totalCount = Object.values(data.crimes)
       .reduce((sum, item) => sum + item.count, 0);
-  
+
     console.log(JSON.stringify(
       {
         "num_startpoints": data.gridArea.features.length,
@@ -161,7 +166,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       }
     )
   );
-  
+
 }
 
 export { initBruteforce }

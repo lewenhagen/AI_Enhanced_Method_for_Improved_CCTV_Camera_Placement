@@ -5,6 +5,7 @@ import { scoreCalculation } from './scoreCalculation.js';
 const { buildings, boundingBox, crimes } = workerData.sharedData;
 
 parentPort.on('message', async ({ bigN, distanceWeight, camPoint, distance }) => {
+
   try {
     let currentCam = await generate(buildings, boundingBox, [camPoint], distance);
     currentCam = currentCam[0];
@@ -17,7 +18,7 @@ parentPort.on('message', async ({ bigN, distanceWeight, camPoint, distance }) =>
       crimes,
       Object.keys(crimes)
     );
-
+    // console.log(camObject.camInfo.score)
     parentPort.postMessage({ ok: true, result: camObject });
   } catch (e) {
     parentPort.postMessage({ ok: false, error: e.toString() });

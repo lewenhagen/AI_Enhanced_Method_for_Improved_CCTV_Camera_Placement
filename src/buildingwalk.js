@@ -7,6 +7,11 @@ import { getAllCrimesAvailable } from './getAllCrimesAvailable.js'
 import * as turf from '@turf/turf'
 import { WorkerPool } from './pool.js';
 import path from 'path';
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const workerPath = path.resolve(__dirname, "buildingwalkWorker.js");
 
 let SILENT = false
 
@@ -145,7 +150,7 @@ async function initBuildingwalk(center, distance, gridDensity, distanceWeight, b
   // };
 
   const pool = new WorkerPool(
-    path.resolve('./src/bruteforceWorker.js'),
+    workerPath,
     10,                      // pool size
     sharedData              // shared to all workers
   );
@@ -156,7 +161,7 @@ async function initBuildingwalk(center, distance, gridDensity, distanceWeight, b
   // await Promise.all(
   //   points.features.map(async (current) => {
   //     let point = current.geometry
-  
+
   //     await buildingWalk(bigN, point, distance, distanceWeight)
   //   })
   // )
@@ -173,16 +178,16 @@ async function initBuildingwalk(center, distance, gridDensity, distanceWeight, b
     pool.run({
       bigN,
       distanceWeight,
-      camPoint: f.geometry.coordinates,
+      camPoint: f.geometry,
       distance
     })
   );
 
-  allpoints = await Promise.all(workerPromises);
+  allpoints = (await Promise.all(workerPromises)).map(msg => msg.result);
 
   await pool.close();
   // allpoints = allpoints.filter(p => p.ok); // keep only successful results
- 
+
   allpoints.sort((a, b) => {
     return (
       // b.totalCrimeCount - a.totalCrimeCount ||
@@ -212,7 +217,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const start = performance.now()
 
   let data = await initBuildingwalk(startLoc, dist, 5, distWeight, 1, year, 5)
-  
+
   const end = performance.now()
   const elapsed = end - start
 

@@ -5,6 +5,7 @@ import { scoreCalculation } from './scoreCalculation.js';
 const { buildings, boundingBox, crimes } = workerData.sharedData;
 
 parentPort.on('message', async ({ bigN, distanceWeight, camPoint, distance }) => {
+
   try {
     let currentCam = await generate(buildings, boundingBox, [camPoint], distance);
     currentCam = currentCam[0];
