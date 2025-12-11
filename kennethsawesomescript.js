@@ -1,10 +1,10 @@
 import { spawn } from 'child_process';
 import { promises as fs } from 'fs'
 import { appendFile } from 'fs/promises';
-
+const fileName = "experiment.json"
 const years = [2018, 2019, 2020]
 const radiuses = [100, 150, 200]
-const methods = ["bruteforce", "hillclimb", "buildingwalk"]
+const methods = ["bruteforce", "hillclimb", "buildingwalk", "dfs"]
 
 let result = []
 // let center = "55.5636,12.9746"
@@ -29,7 +29,7 @@ let hotspots_map = [
     }
 ]
 
-await fs.writeFile('experiment.json', '[\n', 'utf8');
+await fs.writeFile(fileName, '[\n', 'utf8');
 let isFirst = true;   // track commas
 
 function runScript(method, center, radius, dist_weight, year) {
@@ -72,9 +72,9 @@ function runScript(method, center, radius, dist_weight, year) {
     const json = JSON.stringify(entry, null, 2);
 
     if (!isFirst) {
-      await fs.appendFile('experiment.json', ',\n' + json);
+      await fs.appendFile(fileName, ',\n' + json);
     } else {
-      await fs.appendFile('experiment.json', json);
+      await fs.appendFile(fileName, json);
       isFirst = false;
     }
   });
@@ -126,5 +126,5 @@ for (const item of hotspots_map) {
     testCounter++
 
 }
-await fs.appendFile('experiment.json', '\n]\n');
-// await fs.writeFile('experiment.json', JSON.stringify(result, null, 2), 'utf8')
+await fs.appendFile(fileName, '\n]\n');
+// await fs.writeFile(fileName', JSON.stringify(result, null, 2), 'utf8')

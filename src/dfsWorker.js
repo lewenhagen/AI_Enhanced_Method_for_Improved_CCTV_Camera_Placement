@@ -585,7 +585,7 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
   // INITIAL SETUP
   // ---------------------------------------------
   let startPoint = (await getRandomPointFromGrid()).geometry
-  let lastPoint = startPoint
+  // let lastPoint = startPoint
 
   let startCam = await generate(BUILDINGS, BBOX, [startPoint], DISTANCE)
   startCam = startCam[0]
@@ -597,7 +597,7 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
   let simulationPoints = []
 
   // Track BEST SCORE globally
-  let bestScore = startScore   // <------ NEW
+  let bestScore = startScore 
 
   function key(point) {
     return point.coordinates
@@ -611,7 +611,7 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
 
 
   // ---------------------------------------------
-  // **HEURISTIC DFS WITH BEST-SCORE TRACKING**
+  // HEURISTIC DFS 
   // ---------------------------------------------
 
   async function dfs(point, depth) {
@@ -633,6 +633,8 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
     const stepResults = await Promise.all(stepPromises)
 
     let candidates = []
+
+    // For each neighbor, add to visited if not there
     for (const step of stepResults) {
       if (!step || !step.score || !step.point) continue
       const p = step.point.point.geometry
