@@ -1,11 +1,16 @@
 import * as turf from '@turf/turf'
 
-async function scoreCalculation(DISTANCE_WEIGHT, currentCam, currentPoint, crimes, crimeCoords) {
+const areas = {
+  "malmö": 76.81 * 10000
+}
+
+async function scoreCalculation(DISTANCE_WEIGHT, currentCam, currentPoint, crimes, crimeCoords,numberOfCrimesInRadius) {
+  
   let totalCount = 0
   let totalDistance = 0
   let crimeCount = 0
   let gridScore = 0
-
+  
   currentCam.connectedCrimes = []
   currentCam.score = 0
 
@@ -53,9 +58,10 @@ async function scoreCalculation(DISTANCE_WEIGHT, currentCam, currentPoint, crime
     } // EO if in polygon
 
   } // EO for crime in crimes
-
-
-
+  // console.log(turf.area(currentCam.polygon))
+  // console.log(totalCount/numberOfCrimesInRadius) / (turf.area(currentCam.polygon) / areas["malmö"])
+  // console.log("Total: " + numberOfCrimesInRadius)
+  // console.log("Found in area: " + totalCount)
   // currentCam.score = crimeCount / Object.keys(crimes).length
 
   const distanceWeightedScore = gridScore // / bigN || 0
@@ -67,7 +73,8 @@ async function scoreCalculation(DISTANCE_WEIGHT, currentCam, currentPoint, crime
     "camInfo": currentCam,
     "totalCrimeCount": crimeCount, // unique crime coordinates
     "totalCount": totalCount, // all reported crimes
-    "totalDistance": totalDistance
+    "totalDistance": totalDistance,
+    "pai": (totalCount/numberOfCrimesInRadius) / (turf.area(currentCam.polygon) / areas["malmö"])
   }
 }
 

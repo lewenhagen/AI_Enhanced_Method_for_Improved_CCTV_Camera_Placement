@@ -2,7 +2,7 @@ import { parentPort, workerData } from 'worker_threads';
 import { generate } from './generateCoverageArea.js';
 import { scoreCalculation } from './scoreCalculation.js';
 
-const { buildings, boundingBox, crimes } = workerData.sharedData;
+const { buildings, boundingBox, crimes, numberOfCrimesInRadius } = workerData.sharedData;
 
 parentPort.on('message', async ({ distanceWeight, camPoint, distance }) => {
 
@@ -15,7 +15,8 @@ parentPort.on('message', async ({ distanceWeight, camPoint, distance }) => {
       currentCam,
       camPoint,
       crimes,
-      Object.keys(crimes)
+      Object.keys(crimes),
+      numberOfCrimesInRadius
     );
 
     parentPort.postMessage({ ok: true, result: camObject });

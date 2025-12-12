@@ -26,7 +26,8 @@ const {
     workerId,
     DISTANCE_WEIGHT,
     MAXSTEPS,
-    SILENT
+    SILENT,
+    numberOfCrimesInRadius
 } = workerData
 
 const directionBearings = {
@@ -40,20 +41,20 @@ const directionBearings = {
   upLeft: 315
 }
 
-for (let i = 0; i < 100; i++) {
-  let point = (await getRandomPointFromGrid()).geometry
-  let temp = await generate(BUILDINGS, BBOX, [point], DISTANCE)
-  temp = temp[0]
+// for (let i = 0; i < 100; i++) {
+//   let point = (await getRandomPointFromGrid()).geometry
+//   let temp = await generate(BUILDINGS, BBOX, [point], DISTANCE)
+//   temp = temp[0]
 
-  let scoreObject = await scoreCalculation(DISTANCE_WEIGHT, temp, point, CRIMES, CRIMECOORDS)
-  startPositions.push(scoreObject)
-}
+//   let scoreObject = await scoreCalculation(DISTANCE_WEIGHT, temp, point, CRIMES, CRIMECOORDS, numberOfCrimesInRadius)
+//   startPositions.push(scoreObject)
+// }
 
-startPositions.sort((a, b) => {
-  return (
-    b.camInfo.score - a.camInfo.score
-  )
-})
+// startPositions.sort((a, b) => {
+//   return (
+//     b.camInfo.score - a.camInfo.score
+//   )
+// })
 
 let topFromInititalRandom = startPositions.slice(0, 10)
 // console.log(topFromInititalRandom)
@@ -139,7 +140,7 @@ async function move(currentPoint, direction) {
 
 async function calculateScore(currentCam, currentPoint, CRIMECOORDS) {
 
-  return await scoreCalculation(DISTANCE_WEIGHT, currentCam, currentPoint, CRIMES, CRIMECOORDS)
+  return await scoreCalculation(DISTANCE_WEIGHT, currentCam, currentPoint, CRIMES, CRIMECOORDS, numberOfCrimesInRadius)
 }
 
 async function getRandomDirection() {

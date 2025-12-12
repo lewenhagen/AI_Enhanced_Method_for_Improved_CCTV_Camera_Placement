@@ -132,6 +132,8 @@ async function initBuildingwalk(center, distance, gridDensity, distanceWeight, y
   //   bigN = data.crimes.length
   // }
 
+  let numberOfCrimesInRadius = data.crimes.length
+
   data.crimes = await fixCrimes(data.crimes)
 
   data.distance = parseFloat(distance)
@@ -140,7 +142,8 @@ async function initBuildingwalk(center, distance, gridDensity, distanceWeight, y
   const sharedData = JSON.parse(JSON.stringify({
     buildings: data.buildings,
     boundingBox: data.boundingBox,
-    crimes: data.crimes
+    crimes: data.crimes,
+    numberOfCrimesInRadius: numberOfCrimesInRadius
   }));
 
   // const sharedData = {
@@ -233,7 +236,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         "steps": data.allPoints.length,
         "total_crimes": totalCount,
         "seen_crimes": data.allPoints[0].totalCount,
-        "unique_crime_coords": data.allPoints[0].totalCrimeCount
+        "unique_crime_coords": data.allPoints[0].totalCrimeCount,
+        "pai": data.allPoints[0].pai
       }
     )
   )

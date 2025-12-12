@@ -22,6 +22,7 @@ let gridMap = new Map()
 let gridCounter = 0
 let DISTANCE_WEIGHT
 let MAXSTEPS
+let numberOfCrimesInRadius
 
 function runWorker() {
   workerId++
@@ -39,7 +40,8 @@ function runWorker() {
         workerId,
         DISTANCE_WEIGHT,
         MAXSTEPS,
-        SILENT
+        SILENT,
+        numberOfCrimesInRadius
       }
     })
 
@@ -146,6 +148,7 @@ async function initRandomWalk(center, distance, gridDensity, distanceWeight, max
     // } else {
     //   BIGN = data.crimes.length
     // }
+    numberOfCrimesInRadius = data.crimes.length
 
     data.crimes = await fixCrimes(data.crimes)
     BUILDINGS = data.buildings
@@ -199,7 +202,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       "steps": data.allPoints[0].length-1,
       "total_crimes": totalCount,
       "seen_crimes": best.totalCount,
-      "unique_crime_coords": best.totalCrimeCount
+      "unique_crime_coords": best.totalCrimeCount,
+      "pai": best.pai
     }
   ))
 }

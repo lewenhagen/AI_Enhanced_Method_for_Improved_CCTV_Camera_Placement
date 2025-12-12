@@ -1,58 +1,110 @@
-import { MongoClient } from 'mongodb'
-import * as turf from '@turf/turf'
+// import fetch from "node-fetch";
+import * as turf from "@turf/turf";
 
-const uri = "mongodb://root:pass@localhost:27017"
-const dbName = "sweden"
-const collectionName = "crimes"
+/**
+ * Fetch relation ID of a city/municipality by name (case-insensitive)
+ */
+async function getRelationId(name) {
+  const query = `
+[out:json][timeout:25];
+relation["boundary"="administrative"]["name"~"${name}", i];
+out ids tags;
+`;
 
+  const res = await fetch("https://overpass-api.de/api/interpreter", {
+    method: "POST",
+    body: query,
+    headers: { "Content-Type": "text/plain" }
+  });
 
+  const data = await res.json();
+  if (!data.elements || data.elements.length === 0) {
+    throw new Error(`❌ No administrative boundary found for "${name}"`);
+  }
 
-async function getTotalArea() {
-  const client = new MongoClient(uri)
-  const db = client.db(dbName)
-  const collection = db.collection(collectionName)
+  // Return the first matching relation ID
+  return data.elements[0].id;
+}
+
+/**
+ * Fetch full geometry of a relation by ID
+ */
+async function getRelationGeometry(id) {
+  const query = `
+[out:json][timeout:60];
+relation(${id});
+out geom;
+`;
+
+  const res = await fetch("https://overpass-api.de/api/interpreter", {
+    method: "POST",
+    body: query,
+    headers: { "Content-Type": "text/plain" }
+  });
+
+  const data = await res.json();
+  if (!data.elements || data.elements.length === 0) {
+    throw new Error(`❌ Relation ${id} has no geometry`);
+  }
+
+  const rel = data.elements[0];
+
+  // Build polygons from member geometry (ways)
+  const polygons = [];
+
+  if (rel.geometry) {
+    // Some relations have direct geometry
+    polygons.push(rel.geometry.map(p => [p.lon, p.lat]));
+  } else if (rel.members) {
+    // Relations with members (ways)
+    for (const m of rel.members) {
+      if (m.geometry && m.type === "way") {
+        const coords = m.geometry.map(p => [p.lon, p.lat]);
+        polygons.push(coords);
+      }
+    }
+  }
+
+  if (polygons.length === 0) {
+    throw new Error(`❌ Relation ${id} has no usable geometry`);
+  }
+
+  // Wrap as MultiPolygon for Turf
+  const feature = turf.multiPolygon([polygons], { relationId: id });
+
+  return feature;
+}
+
+/**
+ * Calculate area in m² and km²
+ */
+function calculateArea(feature) {
+  const areaSqM = turf.area(feature);
+  const areaSqKm = areaSqM / 1_000_000;
+  return { areaSqM, areaSqKm };
+}
+
+/**
+ * Main
+ */
+async function main() {
+  const cityName = process.argv[2] || "Trelleborg";
 
   try {
-    await client.connect()
-    // console.log("Connected to database")
+    const relationId = await getRelationId(cityName);
+    console.log("Found relation ID:", relationId);
 
-    try {
-      const docs = await collection.find({}, {
-        projection: { _id: 0, location: 1 }
-      }).toArray();
+    const feature = await getRelationGeometry(relationId);
+    console.log("Geometry fetched, calculating area...");
 
-      // 2️⃣ Convert MongoDB documents → Turf points
-      const points = turf.featureCollection(
-        docs.map(doc =>
-          turf.point(doc.location.coordinates) // already [lon, lat]
-        )
-      );
+    const area = calculateArea(feature);
 
-      // 3️⃣ Compute convex hull (outer boundary)
-      const hull = turf.convex(points);
-
-      if (!hull) {
-        console.log("Not enough points for a hull");
-        return;
-      }
-
-      // 4️⃣ Get area in square meters
-      const areaSqM = turf.area(hull);
-
-      // 5️⃣ Optional: convert to square km
-      // const areaSqKm = areaSqM / 1_000_000;
-
-      // console.log("Hull area (m²):", areaSqM);
-      // console.log("Hull area (km²):", areaSqKm);
-
-      return areaSqM;
-
-    } catch (err) {
-      console.error("Error fetching batch:", err)
-    }
+    console.log(`Area of "${cityName}":`);
+    console.log(`- ${area.areaSqM.toLocaleString()} m²`);
+    console.log(`- ${area.areaSqKm.toLocaleString()} km²`);
   } catch (err) {
-    console.error("Database connection error:", err)
+    console.error(err.message);
   }
 }
-console.log(await getTotalArea())
-export { getTotalArea }
+
+main();

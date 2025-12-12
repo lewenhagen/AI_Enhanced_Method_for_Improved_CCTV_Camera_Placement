@@ -454,6 +454,7 @@ animate.addEventListener("click", function(event) {
 
     let layer = L.geoJSON(pointData.camInfo.center).bindPopup(`
       DWS: ${pointData.camInfo.score}<br>
+      PAI: ${pointData.pai.toFixed(3)}<br>
       Area: ${pointData.camInfo.area.toFixed(2).toString()}<br>
       Crime count: ${pointData.totalCount}<br>
       Total distance (m): ${pointData.totalDistance.toFixed(2)}<br>
@@ -489,7 +490,8 @@ theBestBtn.addEventListener("click", function(event) {
     }
 
     let layer = L.geoJSON(useThis.camInfo.center).bindPopup(`
-      DWS: ${useThis.camInfo.score}<br>
+      DWS: ${useThis.camInfo.score.toFixed(3)}<br>
+      PAI: ${useThis.pai.toFixed(3)}<br>
       Area: ${useThis.camInfo.area.toFixed(2).toString()}<br>
       Crime count: ${useThis.totalCount}<br>
       Total distance (m): ${useThis.totalDistance.toFixed(2)}<br>

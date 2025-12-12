@@ -22,6 +22,7 @@ let gridMap = new Map()
 let gridCounter = 0
 let DISTANCE_WEIGHT
 let MAXSTEPS
+let numberOfCrimesInRadius
 
 function runWorker() {
   workerId++
@@ -39,7 +40,8 @@ function runWorker() {
         workerId,
         DISTANCE_WEIGHT,
         MAXSTEPS,
-        SILENT
+        SILENT,
+        numberOfCrimesInRadius
       }
     })
 
@@ -84,7 +86,7 @@ function processSimulations(results) {
 }
 
 
-async function dfs(grid, startingPos) {
+async function dfs(grid, startingPos, numberOfCrimesInRadius) {
   let data = await setupGridAndBuildings(grid, BUILDINGS, GRIDDENSITY)
 
   gridMap = data.gridMap
@@ -147,6 +149,7 @@ async function initDFS(center, distance, gridDensity, distanceWeight, maxSteps, 
     // } else {
     //   BIGN = data.crimes.length
     // }
+    numberOfCrimesInRadius = data.crimes.length
 
     data.crimes = await fixCrimes(data.crimes)
     BUILDINGS = data.buildings
@@ -160,7 +163,7 @@ async function initDFS(center, distance, gridDensity, distanceWeight, maxSteps, 
     GRIDDENSITY = gridDensity
 
 
-    await dfs(gridArea, startingPos)
+    await dfs(gridArea, startingPos, numberOfCrimesInRadius)
 
     !SILENT && ALLPOINTS.forEach(arr => arr.pop());
 
@@ -200,7 +203,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       "steps": data.allPoints[0].length-1,
       "total_crimes": totalCount,
       "seen_crimes": best.totalCount,
-      "unique_crime_coords": best.totalCrimeCount
+      "unique_crime_coords": best.totalCrimeCount,
+      "pai": best.pai
     }
   ))
 }

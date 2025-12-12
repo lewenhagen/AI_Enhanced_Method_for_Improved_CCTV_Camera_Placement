@@ -26,7 +26,8 @@ const {
     workerId,
     DISTANCE_WEIGHT,
     MAXSTEPS,
-    SILENT
+    SILENT,
+    numberOfCrimesInRadius
 } = workerData
 
 const directionBearings = {
@@ -119,7 +120,7 @@ async function move(currentPoint, direction) {
 
 async function calculateScore(currentCam, currentPoint, CRIMECOORDS) {
 
-  return await scoreCalculation(DISTANCE_WEIGHT, currentCam, currentPoint, CRIMES, CRIMECOORDS)
+  return await scoreCalculation(DISTANCE_WEIGHT, currentCam, currentPoint, CRIMES, CRIMECOORDS, numberOfCrimesInRadius)
 }
 
 async function getRandomDirection() {
@@ -145,7 +146,7 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
 
   let currentCam = await generate(BUILDINGS, BBOX, [nextPoint.point.geometry], DISTANCE)
   currentCam = currentCam[0]
-  let scoreObject = await calculateScore(currentCam, nextPoint.point.geometry, CRIMECOORDS, CRIMES)
+  let scoreObject = await calculateScore(currentCam, nextPoint.point.geometry, CRIMECOORDS, CRIMES, numberOfCrimesInRadius)
 
   return {
     dir,

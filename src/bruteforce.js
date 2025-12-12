@@ -75,7 +75,7 @@ async function initBruteforce(center, distance, gridDensity, distanceWeight, yea
   // } else {
   //   bigN = data.crimes.length
   // }
-
+  let numberOfCrimesInRadius = data.crimes.length
   data.crimes = await fixCrimes(data.crimes)
 
   data.distance = parseFloat(distance)
@@ -90,7 +90,8 @@ async function initBruteforce(center, distance, gridDensity, distanceWeight, yea
   const sharedData = {
     buildings: data.buildings,
     boundingBox: data.boundingBox,
-    crimes: data.crimes
+    crimes: data.crimes,
+    numberOfCrimesInRadius: numberOfCrimesInRadius
   };
 
   const pool = new WorkerPool(
@@ -161,7 +162,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         "steps": data.gridArea.features.length,
         "total_crimes": totalCount,
         "seen_crimes": data.allPoints[0].totalCount,
-        "unique_crime_coords": data.allPoints[0].totalCrimeCount
+        "unique_crime_coords": data.allPoints[0].totalCrimeCount,
+        "pai": data.allPoints[0].pai
       }
     )
   );
