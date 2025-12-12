@@ -15,6 +15,8 @@ import { initDFS } from './src/dfs.js'
 const app = express()
 const port = 1337
 const cpus = os.cpus().length
+
+const malmoeArea = 76810000
 let aiData = null
 
 app.use(express.static("public"))
@@ -33,7 +35,7 @@ app.post("/run-dfs", async (req, res) => {
   response = await initDFS(
     req.body.center, req.body.distance,
     req.body.gridDensity, req.body.distanceWeight,
-    req.body.bigN, req.body.maxSteps, req.body.startingPos, req.body.year)
+    req.body.maxSteps, req.body.startingPos, req.body.year)
   console.timeEnd("### DFS exec time")
 
   console.log(`Grid size: ${response.gridArea.features.length} points`)
@@ -50,7 +52,7 @@ app.post("/run-randomwalk", async (req, res) => {
   response = await initRandomWalk(
     req.body.center, req.body.distance,
     req.body.gridDensity, req.body.distanceWeight,
-    req.body.bigN, req.body.maxSteps, req.body.startingPos, req.body.year)
+    req.body.maxSteps, req.body.startingPos, req.body.year)
   console.timeEnd("### Hill climbing exec time")
 
   console.log(`Grid size: ${response.gridArea.features.length} points`)
@@ -63,7 +65,7 @@ app.post("/run-bruteforce", async (req, res) => {
   let response = {}
 
   console.time("### Bruteforce exec time")
-  response = await initBruteforce(req.body.center, req.body.distance, req.body.gridDensity, req.body.distanceWeight, req.body.bigN, req.body.year)
+  response = await initBruteforce(req.body.center, req.body.distance, req.body.gridDensity, req.body.distanceWeight, req.body.year)
   console.timeEnd("### Bruteforce exec time")
   console.log(`Grid size: ${response.gridArea.features.length} points`)
 
@@ -83,7 +85,7 @@ app.post("/run-buildingwalk", async (req, res) => {
   let response = {}
 
   console.time("### Building walk exec time")
-  response = await initBuildingwalk(req.body.center, req.body.distance, req.body.gridDensity, req.body.distanceWeight, req.body.bigN, req.body.year, req.body.steps)
+  response = await initBuildingwalk(req.body.center, req.body.distance, req.body.gridDensity, req.body.distanceWeight, req.body.year, req.body.steps)
   console.timeEnd("### Building walk exec time")
 
   response.allPoints = await normalizeScoreForBuildingWalkVisualization(response.allPoints)

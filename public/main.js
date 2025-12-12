@@ -75,7 +75,7 @@ function showLoader() {
 //         console.error('Error fetching:', error);
 //     }
 // }
-async function runDFS(center, distance, gridDensity, distanceWeight, bigN, maxSteps, startingPos, year) {
+async function runDFS(center, distance, gridDensity, distanceWeight, maxSteps, startingPos, year) {
   const headers = { 'Content-Type': 'application/json' }
 
   try {
@@ -83,7 +83,7 @@ async function runDFS(center, distance, gridDensity, distanceWeight, bigN, maxSt
           method: 'POST',
           headers: headers,
           body: JSON.stringify({
-            center, distance, gridDensity, distanceWeight, bigN, maxSteps, startingPos, year
+            center, distance, gridDensity, distanceWeight, maxSteps, startingPos, year
           })
       });
 
@@ -128,7 +128,7 @@ async function runDFS(center, distance, gridDensity, distanceWeight, bigN, maxSt
 
 
 
-async function runRandomWalk(center, distance, gridDensity, distanceWeight, bigN, maxSteps, startingPos, year) {
+async function runRandomWalk(center, distance, gridDensity, distanceWeight, maxSteps, startingPos, year) {
   const headers = { 'Content-Type': 'application/json' }
 
   try {
@@ -136,7 +136,7 @@ async function runRandomWalk(center, distance, gridDensity, distanceWeight, bigN
           method: 'POST',
           headers: headers,
           body: JSON.stringify({
-            center, distance, gridDensity, distanceWeight, bigN, maxSteps, startingPos, year
+            center, distance, gridDensity, distanceWeight, maxSteps, startingPos, year
           })
       });
 
@@ -179,7 +179,7 @@ async function runRandomWalk(center, distance, gridDensity, distanceWeight, bigN
   // drawCrimes(allCrimes)
 }
 
-async function runBruteForce(center, distance, gridDensity, distanceWeight, bigN, year) {
+async function runBruteForce(center, distance, gridDensity, distanceWeight, year) {
   const headers = { 'Content-Type': 'application/json' }
 
   try {
@@ -187,7 +187,7 @@ async function runBruteForce(center, distance, gridDensity, distanceWeight, bigN
           method: 'POST',
           headers: headers,
           body: JSON.stringify({
-            center, distance, gridDensity, distanceWeight, bigN, year
+            center, distance, gridDensity, distanceWeight, year
           })
       });
 
@@ -231,7 +231,7 @@ async function runBruteForce(center, distance, gridDensity, distanceWeight, bigN
 }
 
 
-async function runBuildingWalk(center, distance, gridDensity, distanceWeight, bigN, year, steps) {
+async function runBuildingWalk(center, distance, gridDensity, distanceWeight, year, steps) {
   const headers = { 'Content-Type': 'application/json' }
 
   try {
@@ -239,7 +239,7 @@ async function runBuildingWalk(center, distance, gridDensity, distanceWeight, bi
           method: 'POST',
           headers: headers,
           body: JSON.stringify({
-            center, distance, gridDensity, distanceWeight, bigN, year, steps
+            center, distance, gridDensity, distanceWeight, year, steps
           })
       });
 
@@ -416,18 +416,18 @@ loadBtn.addEventListener("click", async function(event) {
     let startingPos = document.getElementById("startingPos").value
     let distanceWeight = parseFloat(document.getElementById("distanceWeight").value)
     chosenMethod = document.querySelector('input[name="walk-mode"]:checked').value
-    let bigN = parseInt(document.querySelector('input[name="useN"]:checked').value)
+    // let bigN = parseInt(document.querySelector('input[name="useN"]:checked').value)
     let year = document.getElementById("year").value
 
     if (chosenMethod === "random") {
-      await runRandomWalk(center, distance, gridDensity, distanceWeight, bigN, maxSteps, startingPos, year)
+      await runRandomWalk(center, distance, gridDensity, distanceWeight, maxSteps, startingPos, year)
     } else if (chosenMethod === "dfs") {
-      await runDFS(center, distance, gridDensity, distanceWeight, bigN, maxSteps, startingPos, year)
+      await runDFS(center, distance, gridDensity, distanceWeight, maxSteps, startingPos, year)
     } else if (chosenMethod === "bruteforce") {
-      await runBruteForce(center, distance, gridDensity, distanceWeight, bigN, year)
+      await runBruteForce(center, distance, gridDensity, distanceWeight, year)
     } else if (chosenMethod === "building") {
       let steps = document.getElementById("building-steps-value").value
-      await runBuildingWalk(center, distance, gridDensity, distanceWeight, bigN, year, steps)
+      await runBuildingWalk(center, distance, gridDensity, distanceWeight, year, steps)
     }
 
     hideLoader()

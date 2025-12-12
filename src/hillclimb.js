@@ -21,7 +21,6 @@ let gridBuildings = []
 let gridMap = new Map()
 let gridCounter = 0
 let DISTANCE_WEIGHT
-let BIGN
 let MAXSTEPS
 
 function runWorker() {
@@ -39,7 +38,6 @@ function runWorker() {
         GRIDDENSITY,
         workerId,
         DISTANCE_WEIGHT,
-        BIGN,
         MAXSTEPS,
         SILENT
       }
@@ -60,7 +58,7 @@ function runWorker() {
 
 function calculateAverage(results) {
   const totalStepTime = results.reduce((sum, s) => sum + (s[s.length-1].time || 0), 0);
-  const average = totalStepTime / (results.length - 1)  
+  const average = totalStepTime / (results.length - 1)
   return average
 }
 
@@ -119,15 +117,15 @@ async function randomWalk(grid, startingPos) {
       console.log(`Simulation ${index}: Score ${results[i][results[i].length-2].camInfo.score}, steps taken ${results[i].length-1}, Total distance: ${results[i][results[i].length-2].totalDistance}, Simulation time: ${results[i][results[i].length-1].time}`)
     }
   }
-  
+
 
   !SILENT && console.log(`Best score: ${results[0][results[0].length-2].camInfo.score}, steps taken: ${results[0].length-1}, Time: ${results[0][results[0].length-1].time}`)
 
   ALLPOINTS = results
 }
 
-async function initRandomWalk(center, distance, gridDensity, distanceWeight, bigN, maxSteps, startingPos, year) {
-    // console.log(center, distance, gridDensity, distanceWeight, bigN, maxSteps, startingPos)
+async function initRandomWalk(center, distance, gridDensity, distanceWeight, maxSteps, startingPos, year) {
+    // console.log(center, distance, gridDensity, distanceWeight, maxSteps, startingPos)
     ALLPOINTS = []
     let data = {}
 
@@ -143,11 +141,11 @@ async function initRandomWalk(center, distance, gridDensity, distanceWeight, big
     let gridArea = await createGridOvercaptureArea(parseFloat(center.split(",")[1]), parseFloat(center.split(",")[0]), distance, gridDensity, data.buildings)
     !SILENT && console.timeEnd("### Create grid over capture area")
 
-    if (bigN == 1) {
-      BIGN = await getAllCrimesAvailable()
-    } else {
-      BIGN = data.crimes.length
-    }
+    // if (bigN == 1) {
+    //   BIGN = await getAllCrimesAvailable()
+    // } else {
+    //   BIGN = data.crimes.length
+    // }
 
     data.crimes = await fixCrimes(data.crimes)
     BUILDINGS = data.buildings
@@ -177,18 +175,18 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   let year = process.argv[5]
 
   let json = []
-  
+
   const start = performance.now()
-  
-  let data = await initRandomWalk(startLoc, dist, 5, distWeight, 1, 20, 10, year)
-  
+
+  let data = await initRandomWalk(startLoc, dist, 5, distWeight, 20, 10, year)
+
   let average = calculateAverage(data.allPoints)
   const end = performance.now()
   const elapsed = end - start
-  
+
   const totalCount = Object.values(data.crimes)
     .reduce((sum, item) => sum + item.count, 0);
-  
+
   const best = data.allPoints[0][data.allPoints[0].length-2]
 
   console.log(JSON.stringify(

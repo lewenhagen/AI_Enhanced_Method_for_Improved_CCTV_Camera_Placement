@@ -53,7 +53,7 @@ let data = {}
 
 
 
-async function initBruteforce(center, distance, gridDensity, distanceWeight, bigN, year) {
+async function initBruteforce(center, distance, gridDensity, distanceWeight, year) {
   // console.log(center, distance, gridDensity, distanceWeight, bigN, year)
   allpoints = []
   data = {}
@@ -70,11 +70,11 @@ async function initBruteforce(center, distance, gridDensity, distanceWeight, big
   let gridArea = await createGridOvercaptureArea(parseFloat(center.split(",")[1]), parseFloat(center.split(",")[0]), distance, gridDensity, data.buildings)
   !SILENT && console.timeEnd("### Create grid over capture area")
 
-  if (bigN == 1) {
-    bigN = await getAllCrimesAvailable()
-  } else {
-    bigN = data.crimes.length
-  }
+  // if (bigN == 1) {
+  //   bigN = await getAllCrimesAvailable()
+  // } else {
+  //   bigN = data.crimes.length
+  // }
 
   data.crimes = await fixCrimes(data.crimes)
 
@@ -101,7 +101,6 @@ async function initBruteforce(center, distance, gridDensity, distanceWeight, big
 
   const workerPromises = gridArea.features.map(f =>
     pool.run({
-      bigN,
       distanceWeight,
       camPoint: f.geometry,
       distance
@@ -145,7 +144,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
   const start = performance.now()
 
-  let data = await initBruteforce(startLoc, dist, 5, distWeight, 1, year)
+  let data = await initBruteforce(startLoc, dist, 5, distWeight, year)
 
   const end = performance.now()
   const elapsed = end - start

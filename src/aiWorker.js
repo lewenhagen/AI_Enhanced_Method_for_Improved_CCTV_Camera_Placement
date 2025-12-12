@@ -25,7 +25,6 @@ const {
     GRIDDENSITY,
     workerId,
     DISTANCE_WEIGHT,
-    BIGN,
     MAXSTEPS,
     SILENT
 } = workerData
@@ -46,7 +45,7 @@ for (let i = 0; i < 100; i++) {
   let temp = await generate(BUILDINGS, BBOX, [point], DISTANCE)
   temp = temp[0]
 
-  let scoreObject = await scoreCalculation(BIGN, DISTANCE_WEIGHT, temp, point, CRIMES, CRIMECOORDS)
+  let scoreObject = await scoreCalculation(DISTANCE_WEIGHT, temp, point, CRIMES, CRIMECOORDS)
   startPositions.push(scoreObject)
 }
 
@@ -140,7 +139,7 @@ async function move(currentPoint, direction) {
 
 async function calculateScore(currentCam, currentPoint, CRIMECOORDS) {
 
-  return await scoreCalculation(BIGN, DISTANCE_WEIGHT, currentCam, currentPoint, CRIMES, CRIMECOORDS)
+  return await scoreCalculation(DISTANCE_WEIGHT, currentCam, currentPoint, CRIMES, CRIMECOORDS)
 }
 
 async function getRandomDirection() {
@@ -156,7 +155,7 @@ async function getRandomDirection() {
 
 async function takeStepInGridCalculateScore(dir, currentPoint) {
 
- 
+
 
   let nextPoint = await move(currentPoint, dir)
 
@@ -167,7 +166,7 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
   let currentCam = await generate(BUILDINGS, BBOX, [nextPoint.point.geometry], DISTANCE)
   currentCam = currentCam[0]
   let scoreObject = await calculateScore(currentCam, nextPoint.point.geometry, CRIMECOORDS, CRIMES)
-    
+
   return {
     point: nextPoint,
     score: scoreObject
@@ -186,7 +185,7 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
     startCam = startCam[0]
 
     let lastScore = await calculateScore(startCam, startPoint, CRIMECOORDS, CRIMES)
-    
+
     simulationPoints.push(lastScore)
 
     // let dir = await getRandomDirection()
@@ -330,12 +329,12 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
       //elapsed = end - start
       //nextStep.score.time = Number((elapsed/1000).toFixed(5))
       simulationPoints.push(nextStep.score);
-      
+
       lastPoint = nextStep.point.point.geometry;
       lastScore = nextStep.score;
       visitedPoints.add(pointKey(lastPoint));
 
-      // Step 6: Go again 
+      // Step 6: Go again
       counter++;
     }
 
@@ -407,7 +406,7 @@ async function takeStepInGridCalculateScore(dir, currentPoint) {
       time: Number((elapsed/1000).toFixed(5)),
       avgTime: 0
     })
-    
+
     !SILENT && console.timeEnd(`Worker: ${workerId}`)
     parentPort.postMessage(simulationPoints)
 })()

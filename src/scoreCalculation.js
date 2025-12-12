@@ -1,6 +1,6 @@
 import * as turf from '@turf/turf'
 
-async function scoreCalculation(bigN, DISTANCE_WEIGHT, currentCam, currentPoint, crimes, crimeCoords) {
+async function scoreCalculation(DISTANCE_WEIGHT, currentCam, currentPoint, crimes, crimeCoords) {
   let totalCount = 0
   let totalDistance = 0
   let crimeCount = 0
@@ -58,7 +58,7 @@ async function scoreCalculation(bigN, DISTANCE_WEIGHT, currentCam, currentPoint,
 
   // currentCam.score = crimeCount / Object.keys(crimes).length
 
-  const distanceWeightedScore = gridScore / bigN || 0
+  const distanceWeightedScore = gridScore // / bigN || 0
   // const normalizedCrimeCount = crimeCount / Object.keys(crimes).length || 0 // % of total crime coords this camera covers
 
   currentCam.score = parseFloat(distanceWeightedScore)
@@ -114,3 +114,13 @@ async function normalizeScoreForBuildingWalkVisualization(allPoints) {
 }
 
 export { scoreCalculation, normalizeScoreForVisualization, normalizeScoreForBuildingWalkVisualization }
+
+
+// fixa area för malmö
+// PAI för position score
+
+// (brotten som fångas / alla brott ) / (cctv area / malmö area)
+// läs på om PAI index (prediction accuracy index)
+
+//visa bästa automatiskt
+//skicka till clipboard

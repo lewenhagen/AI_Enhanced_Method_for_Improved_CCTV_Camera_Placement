@@ -21,7 +21,6 @@ let gridBuildings = []
 let gridMap = new Map()
 let gridCounter = 0
 let DISTANCE_WEIGHT
-let BIGN
 let MAXSTEPS
 
 function runWorker() {
@@ -39,7 +38,6 @@ function runWorker() {
         GRIDDENSITY,
         workerId,
         DISTANCE_WEIGHT,
-        BIGN,
         MAXSTEPS,
         SILENT
       }
@@ -127,8 +125,8 @@ async function dfs(grid, startingPos) {
   ALLPOINTS = results
 }
 
-async function initDFS(center, distance, gridDensity, distanceWeight, bigN, maxSteps, startingPos, year) {
-    // console.log(center, distance, gridDensity, distanceWeight, bigN, maxSteps, startingPos)
+async function initDFS(center, distance, gridDensity, distanceWeight, maxSteps, startingPos, year) {
+    // console.log(center, distance, gridDensity, distanceWeight, maxSteps, startingPos)
     ALLPOINTS = []
     let data = {}
 
@@ -144,11 +142,11 @@ async function initDFS(center, distance, gridDensity, distanceWeight, bigN, maxS
     let gridArea = await createGridOvercaptureArea(parseFloat(center.split(",")[1]), parseFloat(center.split(",")[0]), distance, gridDensity, data.buildings)
     !SILENT && console.timeEnd("### Create grid over capture area")
 
-    if (bigN == 1) {
-      BIGN = await getAllCrimesAvailable()
-    } else {
-      BIGN = data.crimes.length
-    }
+    // if (bigN == 1) {
+    //   BIGN = await getAllCrimesAvailable()
+    // } else {
+    //   BIGN = data.crimes.length
+    // }
 
     data.crimes = await fixCrimes(data.crimes)
     BUILDINGS = data.buildings
@@ -181,7 +179,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
   const start = performance.now()
 
-  let data = await initDFS(startLoc, dist, 5, distWeight, 1, 20, 10, year)
+  let data = await initDFS(startLoc, dist, 5, distWeight, 20, 10, year)
 
   let average = calculateAverage(data.allPoints)
   const end = performance.now()

@@ -100,18 +100,18 @@ function getBuildingBoundaryPoints(stepSize = 5) {
 
 
 
-async function buildingWalk(bigN, camPoint, distance, distanceWeight) {
+async function buildingWalk(camPoint, distance, distanceWeight) {
   let currentCam = await generate(data.buildings, data.boundingBox, [camPoint], distance)
   currentCam = currentCam[0]
 
-  let camObject = await scoreCalculation(bigN, distanceWeight, currentCam, camPoint, data.crimes, Object.keys(data.crimes))
+  let camObject = await scoreCalculation(distanceWeight, currentCam, camPoint, data.crimes, Object.keys(data.crimes))
 
   allpoints.push( camObject )
 }
 
 
 
-async function initBuildingwalk(center, distance, gridDensity, distanceWeight, bigN, year, steps) {
+async function initBuildingwalk(center, distance, gridDensity, distanceWeight, year, steps) {
   allpoints = []
   data = {}
   circle = turf.circle([parseFloat(center.split(",")[1]), parseFloat(center.split(",")[0])], distance/1000, { steps: 64, units: 'kilometers' })
@@ -126,11 +126,11 @@ async function initBuildingwalk(center, distance, gridDensity, distanceWeight, b
   !SILENT && console.time("### Create grid over capture area")
   !SILENT && console.timeEnd("### Create grid over capture area")
 
-  if (bigN == 1) {
-    bigN = await getAllCrimesAvailable()
-  } else {
-    bigN = data.crimes.length
-  }
+  // if (bigN == 1) {
+  //   bigN = await getAllCrimesAvailable()
+  // } else {
+  //   bigN = data.crimes.length
+  // }
 
   data.crimes = await fixCrimes(data.crimes)
 
@@ -176,7 +176,6 @@ async function initBuildingwalk(center, distance, gridDensity, distanceWeight, b
 
   const workerPromises = points.features.map(f =>
     pool.run({
-      bigN,
       distanceWeight,
       camPoint: f.geometry,
       distance
@@ -216,7 +215,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
   const start = performance.now()
 
-  let data = await initBuildingwalk(startLoc, dist, 5, distWeight, 1, year, 5)
+  let data = await initBuildingwalk(startLoc, dist, 5, distWeight, year, 5)
 
   const end = performance.now()
   const elapsed = end - start
