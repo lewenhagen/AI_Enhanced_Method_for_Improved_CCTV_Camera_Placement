@@ -1,7 +1,7 @@
 import { spawn } from 'child_process';
 import { promises as fs } from 'fs'
 import { appendFile } from 'fs/promises';
-const fileName = "experiment.json"
+const fileName = "experiment-20251212.json"
 const years = [2018, 2019, 2020]
 const radiuses = [100, 150, 200]
 const methods = ["bruteforce", "hillclimb", "buildingwalk", "dfs"]
@@ -66,7 +66,8 @@ function runScript(method, center, radius, dist_weight, year) {
       steps: temp.steps,
       total_crimes: temp.total_crimes,
       seen_crimes: temp.seen_crimes,
-      unique_crime_coords: temp.unique_crime_coords
+      unique_crime_coords: temp.unique_crime_coords,
+      pai: temp.pai
     };
 
     const json = JSON.stringify(entry, null, 2);
