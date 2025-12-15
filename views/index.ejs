@@ -35,7 +35,7 @@
     <div class="map">
       <div id="map"></div>
     </div>
-    <div class="settings">
+    <div class="mainsettings">
       <span>
         <code>Available cpu cores: <%= cpus %></code>
       </span>
@@ -48,69 +48,57 @@
       <input type="number" value="5" placeholder="5" id="gridDensity">
       <label for="simulations">Show simulation # (1 is best)</label>
       <input type="number" value="1" placeholder="1" id="simulations" min="1" disabled>
-      <button id="animate" disabled="true">Animate</button>
-      <button id="getBest" disabled="true">Show the best position</button>
+      <button id="animate" hidden disabled="true">Animate</button>
+      <button id="getBest" disabled="true">Show position</button>
 
       <!-- <div class="checkbox-container">
         <input type="checkbox" id="random-walk">
         <label for="random-walk">Use random walk</label>
       </div> -->
-      <select id="year">
-        <option value="all">Choose crimes from year (leave for all crimes)</option>
-        <option value="2016">2016</option>
-        <option value="2017">2017</option>
-        <option value="2018">2018</option>
-        <option value="2019">2019</option>
-        <option value="2020">2020</option>
-        <option value="2021">2021</option>
-        <option value="2022">2022</option>
-        <option value="2023">2023</option>
-      </select>
+      <button id="toggleSettings" class="toggle-btn">
+        Show advanced settings <span class="arrow">▾</span>
+      </button>
 
-      <h4>Choose method</h4>
-      <div class="radio-container">
+      <div id="settings" class="settings hidden">
+        <h4>Choose years</h4>
+        <select id="year">
+          <option value="all">Choose crimes from year (leave for all crimes)</option>
+          <option value="2016">2016</option>
+          <option value="2017">2017</option>
+          <option value="2018">2018</option>
+          <option value="2019">2019</option>
+          <option value="2020">2020</option>
+          <option value="2021">2021</option>
+          <option value="2022">2022</option>
+          <option value="2023">2023</option>
+        </select>
 
-        <input type="radio" checked id="bruteforce" name="walk-mode" value="bruteforce">
-        <label for="bruteforce">BF</label>
+        <h4>Choose method</h4>
+        <select id="walkmode">
+          <option value="bruteforce">Bruteforce</option>
+          <option value="random">Hillclimb</option>
+          <option value="dfs">DFS</option>
+          <option value="building">Building walk</option>
+        </select>
+        
+        <div class="max-steps" id="max-steps-div">
+          <label for="max-steps">Max steps</label>
+          <input type="number" value="10" placeholder="10" id="max-steps">
+          <label for="startingPos">Starting positions</label>
+          <input type="number" value="" placeholder="Leave blank for 1% of grid points" min="1" id="startingPos">
+        </div>
 
-        <input type="radio" id="randomwalk" name="walk-mode" value="random">
-        <label for="randomwalk">HC</label>
+        <div class="building-steps" id="building-steps">
+          <label for="building-steps">Step distance (m)</label>
+          <input type="number" value="5" placeholder="5" min="1" id="building-steps-value">
+        </div>
 
-        <input type="radio" id="dfs" name="walk-mode" value="dfs">
-        <label for="dfs">DFS</label>
-
-        <input type="radio" id="buildingwalk" name="walk-mode" value="building">
-        <label for="buildingwalk">Buildings</label>
-      </div>
-
-      <div class="max-steps" id="max-steps-div">
-        <label for="max-steps">Max steps</label>
-        <input type="number" value="10" placeholder="10" id="max-steps">
-        <label for="startingPos">Starting positions</label>
-        <input type="number" value="" placeholder="Leave blank for 1% of grid points" min="1" id="startingPos">
-      </div>
-
-      <div class="building-steps" id="building-steps">
-        <label for="building-steps">Step distance (m)</label>
-        <input type="number" value="5" placeholder="5" min="1" id="building-steps-value">
-      </div>
-
-      <!-- <h4>Set norm for score</h4>
-      <label class="radio-container">
-        <input type="radio" name="useN" value="1" checked>
-        Use all crimes in dataset
-      </label>
-
-      <label class="radio-container">
-        <input type="radio" name="useN" value="2">
-        Use crimes in Distance*2 radius
-      </label> -->
-
-      <div>
-        <h4>Set distance weight</h4>
-        <label for="distanceWeight">Distance weight</label>
-        <input type="range" id="distanceWeight" min="0" max="1" step="0.1" value="0.2" oninput="this.nextElementSibling.value = this.value"/>
-        <output>0.2</output>
+        <div>
+          <h4>Set distance weight</h4>
+          <label for="distanceWeight">Distance weight</label>
+          <input type="range" id="distanceWeight" min="0" max="1" step="0.1" value="0.2" oninput="this.nextElementSibling.value = this.value"/>
+          <output>0.2</output>
+        </div>
       </div>
 
       <button id="loadBtn">Load data</button>

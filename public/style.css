@@ -18,7 +18,7 @@ body {
   flex: 80;
 }
 
-.settings {
+.mainsettings {
   display: flex;
   flex-direction: column;
   flex: 20;
@@ -59,7 +59,6 @@ button {
   display: flex;
   align-items: center;
   gap: 8px;
-  /* mellanrum mellan checkbox och label */
   font-family: sans-serif;
   font-size: 16px;
   margin: 10px 0;
@@ -67,19 +66,19 @@ button {
 
 .radio-container {
   display: flex;
-  align-items: center;
-  gap: 8px; /* space between radio button and label */
+  flex-direction: column;  
+  align-items: flex-start;  
+  gap: 8px;
   font-family: sans-serif;
   font-size: 16px;
   margin: 10px 0;
 }
 
-/* Stilren checkbox */
+
 input[type="checkbox"] {
   width: 18px;
   height: 18px;
   accent-color: #007bff;
-  /* Modern blå färg på checkboxen (funkar i moderna browsers) */
   cursor: pointer;
 }
 
@@ -114,3 +113,42 @@ button:disabled {
   height: 80px;
 }
 
+.toggle-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #000;
+}
+
+.arrow {
+  transition: transform 0.2s ease;
+}
+
+.settings {
+  margin-top: 10px;
+  overflow: hidden;
+
+  max-height: 0;
+  opacity: 0;
+
+  transition:
+    max-height 0.4s ease,
+    opacity 0.4s ease;
+}
+
+/* Visible state */
+.settings.open {
+  max-height: 800px; /* large enough to fit content */
+  opacity: 1;
+}
+
+
+
+.open .arrow {
+  transform: rotate(180deg); /* arrow up */
+}

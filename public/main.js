@@ -6,7 +6,7 @@ const animate = document.getElementById("animate")
 const theBestBtn = document.getElementById("getBest")
 const simulations = document.getElementById("simulations")
 // const randomWalkCheckbox = document.getElementById("random-walk")
-const methods = document.querySelectorAll('input[name="walk-mode"]')
+const methods = document.getElementById('walkmode')
 let chosenMethod = ""
 const maxStepsDiv = document.getElementById("max-steps-div")
 maxStepsDiv.style.display = "none"
@@ -17,6 +17,14 @@ let allCrimes = null
 let bruteForceData = []
 let myInterval = null
 let isPaused = false
+
+const toggleBtn = document.getElementById("toggleSettings");
+const settings = document.getElementById("settings");
+
+toggleBtn.addEventListener("click", () => {
+  settings.classList.toggle("open");
+  toggleBtn.classList.toggle("open");
+});
 
 let starMarker = L.AwesomeMarkers.icon({
     icon: 'star',
@@ -57,6 +65,33 @@ function showLoader() {
   document.getElementById('loading-overlay').style.display = 'flex';
 }
 
+function drawTheBest() {
+  let simulation = parseInt(simulations.value)-1
+    let chosenSimulation = bruteForceData.allPoints[simulation]
+    drawnItems.clearLayers()
+    clearInterval(myInterval)
+    myInterval = null
+    let useThis = {}
+    if (chosenMethod === "random" || chosenMethod === "dfs") {
+      useThis = chosenSimulation[chosenSimulation.length-1]
+    } else {
+      useThis = chosenSimulation
+    }
+
+    let layer = L.geoJSON(useThis.camInfo.center).bindPopup(`
+      DWS: ${useThis.camInfo.score.toFixed(3)}<br>
+      PAI: ${useThis.pai.toFixed(3)}<br>
+      Area: ${useThis.camInfo.area.toFixed(2).toString()}<br>
+      Crime count: ${useThis.totalCount}<br>
+      Total distance (m): ${useThis.totalDistance.toFixed(2)}<br>
+      Unique crime coordinates: ${useThis.totalCrimeCount}<br>
+      Coordinates (lat/lng): ${useThis.camInfo.center.coordinates[1].toFixed(4)}, ${useThis.camInfo.center.coordinates[0].toFixed(4)}`)
+    console.log(useThis)
+    drawnItems.addLayer(layer)
+    layer.openPopup()
+    drawnItems.addLayer(L.geoJSON(useThis.camInfo.polygon, {style: {color:"purple"}}))
+    drawnItems.bringToBack()
+}
 
 // async function drawBoundingBoxWithoutBuildings() {
 //   const headers = { 'Content-Type': 'application/json' }
@@ -415,7 +450,7 @@ loadBtn.addEventListener("click", async function(event) {
     let maxSteps = parseInt(document.getElementById("max-steps").value)
     let startingPos = document.getElementById("startingPos").value
     let distanceWeight = parseFloat(document.getElementById("distanceWeight").value)
-    chosenMethod = document.querySelector('input[name="walk-mode"]:checked').value
+    chosenMethod = document.getElementById("walkmode").value
     // let bigN = parseInt(document.querySelector('input[name="useN"]:checked').value)
     let year = document.getElementById("year").value
 
@@ -431,6 +466,7 @@ loadBtn.addEventListener("click", async function(event) {
     }
 
     hideLoader()
+    drawTheBest()
 })
 
 animate.addEventListener("click", function(event) {
@@ -477,54 +513,20 @@ animate.addEventListener("click", function(event) {
 })
 
 theBestBtn.addEventListener("click", function(event) {
-    let simulation = parseInt(simulations.value)-1
-    let chosenSimulation = bruteForceData.allPoints[simulation]
-    drawnItems.clearLayers()
-    clearInterval(myInterval)
-    myInterval = null
-    let useThis = {}
-    if (chosenMethod === "random" || chosenMethod === "dfs") {
-      useThis = chosenSimulation[chosenSimulation.length-1]
-    } else {
-      useThis = chosenSimulation
-    }
-
-    let layer = L.geoJSON(useThis.camInfo.center).bindPopup(`
-      DWS: ${useThis.camInfo.score.toFixed(3)}<br>
-      PAI: ${useThis.pai.toFixed(3)}<br>
-      Area: ${useThis.camInfo.area.toFixed(2).toString()}<br>
-      Crime count: ${useThis.totalCount}<br>
-      Total distance (m): ${useThis.totalDistance.toFixed(2)}<br>
-      Unique crime coordinates: ${useThis.totalCrimeCount}<br>
-      Coordinates (lat/lng): ${useThis.camInfo.center.coordinates[1].toFixed(4)}, ${useThis.camInfo.center.coordinates[0].toFixed(4)}`)
-    console.log(useThis)
-    drawnItems.addLayer(layer)
-    layer.openPopup()
-    drawnItems.addLayer(L.geoJSON(useThis.camInfo.polygon, {style: {color:"purple"}}))
-    drawnItems.bringToBack()
+    drawTheBest()
 })
 
-methods.forEach(method => {
-  method.addEventListener('change', (event) => {
-    if (event.target.value === "random" || event.target.value === "dfs") {
-      maxStepsDiv.style.display = "block"
-    } else {
-      maxStepsDiv.style.display = "none"
-    }
-    if (event.target.value === "building") {
-      buildingsStepDiv.style.display = "block"
-    } else {
-      buildingsStepDiv.style.display = "none"
-    }
-  })
+
+methods.addEventListener('change', (event) => {
+  if (event.target.value === "random" || event.target.value === "dfs") {
+    maxStepsDiv.style.display = "block"
+  } else {
+    maxStepsDiv.style.display = "none"
+  }
+  if (event.target.value === "building") {
+    buildingsStepDiv.style.display = "block"
+  } else {
+    buildingsStepDiv.style.display = "none"
+  }
 })
-// methods.forEeach().addEventListener("change", function() {
 
-//     if(maxStepsDiv.style.display === "none") {
-//       maxStepsDiv.style.display = "block"
-//     } else {
-//       maxStepsDiv.style.display = "none"
-//     }
-// })
-
-// git batch
