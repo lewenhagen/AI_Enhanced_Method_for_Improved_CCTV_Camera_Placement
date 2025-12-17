@@ -464,7 +464,7 @@ loadBtn.addEventListener("click", async function(event) {
       let steps = document.getElementById("building-steps-value").value
       await runBuildingWalk(center, distance, gridDensity, distanceWeight, year, steps)
     }
-
+    simulations.value = 1
     hideLoader()
     drawTheBest()
 })
@@ -529,4 +529,3 @@ methods.addEventListener('change', (event) => {
     buildingsStepDiv.style.display = "none"
   }
 })
-
