@@ -36,9 +36,10 @@
       <div id="map"></div>
     </div>
     <div class="mainsettings">
-      <span>
-        <code>Available cpu cores: <%= cpus %></code>
-      </span>
+      
+      
+      <button id="sendToClipboardBtn" disabled>Copy current coords</button>
+      
       <h3>Settings</h3>
       <label for="center">Cluster center</label>
       <input type="text" value="55.5636, 12.9746" placeholder="55.5636, 12.9746" id="center">
@@ -102,7 +103,7 @@
         </div>
       </div>
 
-      <button id="loadBtn">Load data</button>
+      <button id="loadBtn">Run analysis</button>
     </div>
   </div>
   <script type="module" src="main.js"></script>

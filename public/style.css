@@ -55,6 +55,12 @@ button {
   cursor: pointer;
 }
 
+#sendToClipboardBtn {
+  width: 40%;
+  background-color: #3e823e;
+  color: white;
+}
+
 .checkbox-container {
   display: flex;
   align-items: center;

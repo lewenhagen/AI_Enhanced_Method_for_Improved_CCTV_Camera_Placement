@@ -11,6 +11,7 @@ let chosenMethod = ""
 const maxStepsDiv = document.getElementById("max-steps-div")
 maxStepsDiv.style.display = "none"
 const buildingsStepDiv = document.getElementById("building-steps")
+const sendCoordinatesToClipboardBtn = document.getElementById("sendToClipboardBtn")
 buildingsStepDiv.style.display = "none"
 let allCrimes = null
 
@@ -86,7 +87,7 @@ function drawTheBest() {
       Total distance (m): ${useThis.totalDistance.toFixed(2)}<br>
       Unique crime coordinates: ${useThis.totalCrimeCount}<br>
       Coordinates (lat/lng): ${useThis.camInfo.center.coordinates[1].toFixed(4)}, ${useThis.camInfo.center.coordinates[0].toFixed(4)}`)
-    console.log(useThis)
+    // console.log(useThis)
     drawnItems.addLayer(layer)
     layer.openPopup()
     drawnItems.addLayer(L.geoJSON(useThis.camInfo.polygon, {style: {color:"purple"}}))
@@ -196,7 +197,7 @@ async function runRandomWalk(center, distance, gridDensity, distanceWeight, maxS
       }).addTo(drawnAi)
 
 
-
+      
       animate.disabled = false
       theBestBtn.disabled = false
       simulations.disabled = false
@@ -432,6 +433,15 @@ map.on("click", function(e) {
   })
 })
 
+function sendCoordinatesToClipboard() {
+  console.log(bruteForceData)
+  let temp = bruteForceData.allPoints[0].camInfo.center.coordinates
+  navigator.clipboard.writeText(`${temp[1]}, ${temp[0]}`).then(function() {
+    sendCoordinatesToClipboardBtn.innerText = "Copied!"
+    // alert('Copying to clipboard was successful!')
+    // console.log(`${temp[1]}, ${temp[0]}`)
+  })
+}
 
 
 loadBtn.addEventListener("click", async function(event) {
@@ -441,6 +451,7 @@ loadBtn.addEventListener("click", async function(event) {
 
     animate.disabled = true
     theBestBtn.disabled = true
+    sendCoordinatesToClipboardBtn.disabled = true
 
     showLoader()
 
@@ -467,6 +478,7 @@ loadBtn.addEventListener("click", async function(event) {
     simulations.value = 1
     hideLoader()
     drawTheBest()
+    sendCoordinatesToClipboardBtn.disabled = false
 })
 
 animate.addEventListener("click", function(event) {
@@ -529,3 +541,6 @@ methods.addEventListener('change', (event) => {
     buildingsStepDiv.style.display = "none"
   }
 })
+
+
+sendCoordinatesToClipboardBtn.addEventListener("click", sendCoordinatesToClipboard)
