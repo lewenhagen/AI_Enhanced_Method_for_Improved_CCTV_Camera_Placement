@@ -434,9 +434,19 @@ map.on("click", function(e) {
 })
 
 function sendCoordinatesToClipboard() {
-  console.log(bruteForceData)
-  let temp = bruteForceData.allPoints[0].camInfo.center.coordinates
-  navigator.clipboard.writeText(`${temp[1]}, ${temp[0]}`).then(function() {
+  let coords = ""
+  switch (chosenMethod) {
+    case "bruteforce":
+    case "building":
+      coords = bruteForceData.allPoints[0].camInfo.center.coordinates
+      break
+    case "random":
+    case "dfs":
+      coords = bruteForceData.allPoints[0][bruteForceData.allPoints[0].length-1].camInfo.center.coordinates
+      break
+  }
+
+  navigator.clipboard.writeText(`${coords[1]}, ${coords[0]}`).then(function() {
     sendCoordinatesToClipboardBtn.innerText = "Copied!"
     // alert('Copying to clipboard was successful!')
     // console.log(`${temp[1]}, ${temp[0]}`)
@@ -452,7 +462,7 @@ loadBtn.addEventListener("click", async function(event) {
     animate.disabled = true
     theBestBtn.disabled = true
     sendCoordinatesToClipboardBtn.disabled = true
-
+    
     showLoader()
 
     let center = document.getElementById("center").value
@@ -479,6 +489,7 @@ loadBtn.addEventListener("click", async function(event) {
     hideLoader()
     drawTheBest()
     sendCoordinatesToClipboardBtn.disabled = false
+    sendCoordinatesToClipboardBtn.innerText = "Copy coordinates"
 })
 
 animate.addEventListener("click", function(event) {

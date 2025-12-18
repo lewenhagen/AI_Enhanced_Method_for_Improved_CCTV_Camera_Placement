@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <title>AI_Enhanced_Method_for_Improved_CCTV_Camera_Placement</title>
+  <title>Enhanced_Method_for_Improved_CCTV_Camera_Placement</title>
 
   <meta charset="utf-8">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -38,7 +38,7 @@
     <div class="mainsettings">
       
       
-      <button id="sendToClipboardBtn" disabled>Copy current coords</button>
+      <button id="sendToClipboardBtn" disabled>Copy coordinates</button>
       
       <h3>Settings</h3>
       <label for="center">Cluster center</label>
@@ -62,9 +62,10 @@
       </button>
       
       <div id="settings" class="settings hidden">
-        <h4>Choose years</h4>
+        <!-- <h4>Choose years</h4> -->
         <select id="year">
-          <option value="all">Choose crimes from year (leave for all crimes)</option>
+          <option value="all" selected>Choose year (All crimes default)</option>
+          <!-- <option value="all" selected>All years</option> -->
           <option value="2016">2016</option>
           <option value="2017">2017</option>
           <option value="2018">2018</option>
@@ -75,11 +76,12 @@
           <option value="2023">2023</option>
         </select>
 
-        <h4>Choose method</h4>
+        <!-- <h4>Choose method</h4> -->
         <select id="walkmode">
-          <option value="bruteforce">Bruteforce</option>
+          <option value="bruteforce" selected>Choose method (Bruteforce default)</option>
+          <!-- <option value="bruteforce">Bruteforce</option> -->
           <option value="random">Hillclimb</option>
-          <option value="dfs">DFS</option>
+          <option value="dfs">Depth First Search</option>
           <option value="building">Building walk</option>
         </select>
         
@@ -96,7 +98,7 @@
         </div>
 
         <div>
-          <h4>Set distance weight</h4>
+          <!-- <h4>Set distance weight</h4> -->
           <label for="distanceWeight">Distance weight</label>
           <input type="range" id="distanceWeight" min="0" max="1" step="0.1" value="0.2" oninput="this.nextElementSibling.value = this.value"/>
           <output>0.2</output>
