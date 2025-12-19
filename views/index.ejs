@@ -36,10 +36,10 @@
       <div id="map"></div>
     </div>
     <div class="mainsettings">
-      
-      
+
+
       <button id="sendToClipboardBtn" disabled>Copy coordinates</button>
-      
+
       <h3>Settings</h3>
       <label for="center">Cluster center</label>
       <input type="text" value="55.5636, 12.9746" placeholder="55.5636, 12.9746" id="center">
@@ -47,7 +47,7 @@
       <input type="number" value="100" placeholder="100" id="distance">
       <label for="distance">Grid density</label>
       <input type="number" value="5" placeholder="5" id="gridDensity">
-      <label for="simulations">Show simulation # (1 is best)</label>
+      <label for="simulations">Show position # (1 is best)</label>
       <input type="number" value="1" placeholder="1" id="simulations" min="1" disabled>
       <button id="animate" hidden disabled="true">Animate</button>
       <button id="getBest" disabled="true">Show position</button>
@@ -60,7 +60,7 @@
       <button id="toggleSettings" class="toggle-btn">
         Advanced settings <span class="arrow">▾</span>
       </button>
-      
+
       <div id="settings" class="settings hidden">
         <!-- <h4>Choose years</h4> -->
         <select id="year">
@@ -84,7 +84,7 @@
           <option value="dfs">Depth First Search</option>
           <option value="building">Building walk</option>
         </select>
-        
+
         <div class="max-steps" id="max-steps-div">
           <label for="max-steps">Max steps</label>
           <input type="number" value="10" placeholder="10" id="max-steps">
