@@ -1,5 +1,9 @@
 import { MongoClient } from 'mongodb'
-const uri = "mongodb://root:pass@localhost:27017"
+
+import 'dotenv/config'
+const uri = `mongodb://${process.env.MONGOUSER}:${process.env.MONGOPASS}@localhost:27017`
+
+
 // const db = "sweden"
 // const collection = "buildings"
 

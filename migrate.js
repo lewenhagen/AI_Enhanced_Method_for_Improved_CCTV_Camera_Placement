@@ -1,11 +1,12 @@
 import sqlite3 from 'sqlite3';
 import { MongoClient } from 'mongodb';
-
+import 'dotenv/config'
+const mongoURI = `mongodb://${process.env.MONGOUSER}:${process.env.MONGOPASS}@localhost:27017`
 // SQLite3 Database
 const sqliteDB = new sqlite3.Database('./db/crime_data.sqlite');
 
 // MongoDB Connection
-const mongoURI = 'mongodb://root:pass@localhost:27017'; // Change if using remote MongoDB
+
 const mongoDBName = 'sweden'; // Change to your MongoDB database
 const mongoCollection = 'crimes'; // Target collection
 

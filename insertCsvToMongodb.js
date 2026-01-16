@@ -1,10 +1,11 @@
 import fs from 'fs';
 import csv from 'csv-parser';
 import { MongoClient } from 'mongodb';
-
+import 'dotenv/config'
+const uri = `mongodb://${process.env.MONGOUSER}:${process.env.MONGOPASS}@localhost:27017`
 // ==== CONFIG ====
 const csvFilePath = './crimedata2019-2023.csv'; // Path to your CSV file
-const mongoURI = 'mongodb://root:pass@localhost:27017'; // Change if needed
+
 const mongoDBName = 'sweden';
 const mongoCollection = 'newCrimes';
 

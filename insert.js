@@ -1,7 +1,9 @@
 import { MongoClient } from 'mongodb'
+import 'dotenv/config'
 import * as fs from 'fs'
 
-const uri = "mongodb://root:pass@localhost:27017"
+const uri = `mongodb://${process.env.MONGOUSER}:${process.env.MONGOPASS}@localhost:27017`
+
 const dbName = "sweden"
 const collectionName = "buildings"
 const filePath = "./geojson/sweden_buildings.geojson"

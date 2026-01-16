@@ -1,7 +1,7 @@
 import { exec } from "child_process";
 import { MongoClient } from "mongodb";
-
-const MONGO_URI = "mongodb://root:pass@localhost:27017";
+import 'dotenv/config'
+const MONGO_URI = `mongodb://${process.env.MONGOUSER}:${process.env.MONGOPASS}@localhost:27017`
 const DATABASE = "sweden";
 const COLLECTION = "crimes";
 const BACKUP_PATH = "./backup.archive.gz";
@@ -63,3 +63,10 @@ async function run() {
 }
 
 run();
+
+
+// mongodump \
+//   --uri="mongodb://root:pass@localhost:27017/sweden?authSource=admin" \
+//   --collection buildings \
+//   --archive=buildings.archive.gz \
+//   --gzip

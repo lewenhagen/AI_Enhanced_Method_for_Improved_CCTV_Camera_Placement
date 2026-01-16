@@ -1,5 +1,11 @@
 import express from 'express'
 import os from 'os'
+import session from "express-session"
+import mongoose from "mongoose"
+import bcrypt from "bcrypt"
+import User from "./models/User.js"
+import rateLimit from "express-rate-limit"
+import 'dotenv/config'
 import { getIntersectingBuildingsAI } from './src/intersectingBuildings.js'
 import { getCrimesInPolygon } from './src/getCrimesInPolygon.js'
 import { getAllCrimesAvailable } from './src/getAllCrimesAvailable.js'
@@ -11,6 +17,9 @@ import { initBruteforce } from './src/bruteforce.js'
 import { initRandomWalk } from './src/hillclimb.js'
 import { initBuildingwalk } from './src/buildingwalk.js'
 import { initDFS } from './src/dfs.js'
+import { nextTick } from 'process'
+
+mongoose.connect(`mongodb://${process.env.MONGOUSER}:${process.env.MONGOPASS}@localhost:27017/auth?authSource=admin`);
 
 const app = express()
 const port = 1337
@@ -21,10 +30,87 @@ let aiData = null
 
 app.use(express.static("public"))
 app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
 app.set("view engine", "ejs")
+// app.use(rateLimit())
 
-app.get("/", (req, res) => {
+app.use(
+  session({
+    name: "auth-session",
+    secret: "sopranos-is-better-than-the-wire",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      sameSite: "lax"
+    }
+  })
+);
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5,                  
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: "Too many login attempts. Try again later."
+})
+
+function requireAuth(req, res, next) {
+  if (req.session.authenticated) return next();
+  res.status(401).redirect("/login");
+}
+
+app.get("/", requireAuth, (req, res) => {
     res.render("index.ejs", {cpus: cpus})
+})
+
+app.get("/login", (req, res) => {
+    let data = {
+      message: req.session.message,
+      messageType: req.session.messageType
+    }
+
+    delete req.session.message
+    delete req.session.messageType
+
+    res.render("login.ejs", data)
+})
+
+app.post("/login", loginLimiter, async (req, res) => {
+  
+  const { password } = req.body;
+  
+  if (!password) {
+    req.session.message = "You need to enter a password"
+    req.session.messageType = "error"
+    return res.status(400).redirect("/login");
+  }
+
+  const user = await User.findOne()
+
+  if (!user) {
+    return res.status(401).send("Unauthorized");
+  }
+
+  const match = await bcrypt.compare(password, user.passwordHash)
+
+  if (!match) {
+    req.session.message = "Wrong password"
+    req.session.messageType = "error"
+
+    return res.status(401).redirect("/login")
+  }
+
+  req.session.authenticated = true
+
+  res.redirect("/");
+})
+
+app.get("/logout", (req, res) => {
+
+  req.session.destroy(() => {
+    res.redirect("/login")
+  })
 })
 
 app.post("/run-dfs", async (req, res) => {

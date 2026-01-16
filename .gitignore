@@ -10,3 +10,4 @@ experiment.*
 .ipynb*
 notebook.ipynb
 *.gz
+.env

@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <title>Login</title>
+
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+
+  <style>
+    /* Reset */
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    /* Page layout */
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+    }
+
+    /* NEW: vertical stack container */
+    .login-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Message stays centered above form */
+    .message {
+      width: 100%;
+      padding: 1em;
+      max-width: 320px;
+      margin-bottom: 12px;
+    }
+
+    /* Form container */
+    form {
+      background: #ffffff;
+      padding: 32px;
+      border-radius: 10px;
+      width: 100%;
+      max-width: 320px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Input */
+    input[type="password"] {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 16px;
+      margin-bottom: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    input[type="password"]:focus {
+      border-color: #4a90e2;
+      box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+    }
+
+    /* Button */
+    button {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      background: #4a90e2;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.1s ease;
+    }
+
+    button:hover {
+      background: #357abd;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .field {
+      position: relative;
+    }
+
+    .field i {
+      position: absolute;
+      top: 50%;
+      left: 12px;
+      transform: translateY(-50%);
+      color: #999;
+    }
+
+    .field input {
+      padding-left: 38px;
+    }
+
+    
+
+    /* Error message */
+    .message.error {
+      background: #fdecea;
+      color: #b71c1c;
+      border: 1px solid #f5c6cb;
+    }
+
+    /* Optional success state */
+    .message.success {
+      background: #e6f4ea;
+      color: #1b5e20;
+      border: 1px solid #b7dfc2;
+    }
+
+    .message i {
+      font-size: 16px;
+    }
+
+    /* Subtle animation */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-4px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+
+  </style>
+ 
+</head>
+
+<body>
+  <div class="login-container">
+
+    <% if (message) { %>
+      <div class="message <%= messageType %>">
+        <i class="fa 
+          <%= messageType === 'error'
+            ? 'fa-exclamation-circle'
+            : 'fa-check-circle' %>"></i>
+        <span><%= message %></span>
+      </div>
+    <% } %>
+
+    <form method="POST" action="/login">
+      <h2>Login</h2>
+
+      <div class="field">
+        <i class="fa fa-lock"></i>
+        <input type="password" name="password" placeholder="Password" required />
+      </div>
+
+      <button type="submit">Login</button>
+    </form>
+
+  </div>
+</body>
+
+
+</html>
