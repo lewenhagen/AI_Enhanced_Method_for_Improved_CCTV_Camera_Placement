@@ -158,3 +158,21 @@ button:disabled {
 .open .arrow {
   transform: rotate(180deg); /* arrow up */
 }
+
+.green-marker div {
+  width: 14px;
+  height: 14px;
+  background: #16a923;
+  border-radius: 50%;
+  border: 2px solid white;
+}
+
+.legend {
+  border-top: 1px solid black;
+  margin-top: 30px;
+  padding: 1em;
+}
+
+.legend legend {
+  font-size: 18px;
+}

@@ -16,7 +16,8 @@
   <link rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/leaflet.polylinemeasure@3.0.0/Leaflet.PolylineMeasure.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chroma-js@latest/chroma.min.js"></script>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"> -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"
     integrity="sha512-cUoWMYmv4H9TGP4hbm1mIjYo90WzIQFo/5jj+P5tQcDTf+iVR59RyIj/a9fRsBxzxt5Dnv/Ex7MzRIxcDwaOLw=="
@@ -107,7 +108,38 @@
 
       <button id="loadBtn">Run analysis</button>
       <a href="/logout">Logout</a>
+
+      <div class="legend">
+        <table>
+          <legend>Legend</legend>
+          <tr>
+            <td>
+              <i class="fa fa-star" style="color: #ff6404ff; font-size: 15px;"></i>
+            </td>
+            <td>
+              = Crime coordinate
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <i class="fa fa-solid fa-location-dot" style="color: #267ECA"></i>
+            </td>
+            <td>
+              = Camera position
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <span class="green-marker"><div></div>
+            </td>
+            <td>
+              = Center location
+            </td>
+          </tr>
+        </table> 
     </div>
+    </div>
+    
   </div>
   <script type="module" src="main.js"></script>
 </body>

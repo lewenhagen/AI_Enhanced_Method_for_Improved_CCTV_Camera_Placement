@@ -20,6 +20,13 @@ let myInterval = null
 let isPaused = false
 let currentMarker = null
 
+const greenIcon = L.divIcon({
+  className: 'green-marker',
+  html: '<div></div>',
+  iconSize: [14, 14],
+  iconAnchor: [7, 7]
+});
+
 const toggleBtn = document.getElementById("toggleSettings");
 const settings = document.getElementById("settings");
 
@@ -428,7 +435,7 @@ L.control.polylineMeasure({
 
 map.on("click", function(e) {
   try {map.removeLayer(currentMarker)} catch (e) { console.log("First marker")}
-  currentMarker = new L.marker(e.latlng).addTo(map)  
+  currentMarker = L.marker(e.latlng, { icon: greenIcon }).addTo(map)  
   navigator.clipboard.writeText(`${e.latlng.lat}, ${e.latlng.lng}`).then(function() {
     console.log('Copying to clipboard was successful!')
     map.panTo(new L.LatLng(e.latlng.lat, e.latlng.lng))
@@ -490,7 +497,7 @@ loadBtn.addEventListener("click", async function(event) {
     }
 
     try {map.removeLayer(currentMarker)} catch (e) { console.log("First marker")}
-    
+
     simulations.value = 1
     hideLoader()
     drawTheBest()

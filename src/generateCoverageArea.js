@@ -3,7 +3,6 @@ import * as turf from '@turf/turf'
 const circleSteps = 60
 let circleHolder = []
 
-
 /**
  * Main function.
  */
@@ -41,7 +40,6 @@ async function generate(buildings, boundingBox, pointsOnBoundary, distance) {
                     if (!turf.booleanContains(building, destinationPoint)) {
                         circle.circleObj = destinationPoint
                         // console.log("Moving to: ", turf.getCoords(circle.center))
-
                         break
                     }
                 }
@@ -50,10 +48,10 @@ async function generate(buildings, boundingBox, pointsOnBoundary, distance) {
             const circleCenterCoords = turf.getCoords(circleObj.center)
             const newline = turf.lineString([circleCenterCoords, circleCoord])
             const cc2 = turf.lineIntersect(newline, building)
-
+            
             if (cc2.features.length > 0) {
                 pointHolder.push(turf.nearestPoint(circleObj.center, cc2))
-            }
+            } 
         }
 
         const nearestPoint = pointHolder.length > 0 ?
@@ -71,6 +69,12 @@ async function generate(buildings, boundingBox, pointsOnBoundary, distance) {
     let circlePoly = turf.intersect(turf.featureCollection([turf.polygon([newCircle]), bbox]))
     let area = circlePoly == null ? turf.area(turf.polygon([newCircle])) : turf.area(circlePoly)
 
+    // for (let building of buildings) {
+    //   if(turf.intersect(turf.featureCollection([circlePoly, building]))) {
+
+    //   }
+    // }
+
     result.push({"center": circleObj.center, "polygon": circlePoly, "area": area})
   }
 
@@ -79,3 +83,4 @@ async function generate(buildings, boundingBox, pointsOnBoundary, distance) {
 
 export { generate }
 // await main()
+

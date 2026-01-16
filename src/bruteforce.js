@@ -1,11 +1,11 @@
-import { generate } from './generateCoverageArea.js'
-import { scoreCalculation } from './scoreCalculation.js'
+// import { generate } from './generateCoverageArea.js'
+// import { scoreCalculation } from './scoreCalculation.js'
 import { createGridOvercaptureArea } from './helpers.js'
 import { getIntersectingBuildingsAI } from './intersectingBuildings.js'
 import { getCrimesInPolygon } from './getCrimesInPolygon.js'
-import { getAllCrimesAvailable } from './getAllCrimesAvailable.js'
+// import { getAllCrimesAvailable } from './getAllCrimesAvailable.js'
 import { fixCrimes } from './helpers.js'
-import { Worker } from 'worker_threads';
+// import { Worker } from 'worker_threads';
 import path from 'path';
 import { WorkerPool } from './pool.js';
 import { fileURLToPath } from "url";
