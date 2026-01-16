@@ -4,7 +4,7 @@ import User from "./models/User.js";
 import 'dotenv/config'
 
 async function main() {
-  await mongoose.connect("mongodb://${process.env.MONGOUSER}:${process.env.MONGOPASS}@localhost:27017/auth?authSource=admin");
+  await mongoose.connect(`mongodb://${process.env.MONGOUSER}:${process.env.MONGOPASS}@localhost:27017/auth?authSource=admin`);
 
   const hash = await bcrypt.hash("", 12);
 
