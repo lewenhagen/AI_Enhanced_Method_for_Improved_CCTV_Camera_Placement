@@ -77,7 +77,11 @@ app.get("/login", (req, res) => {
 })
 
 app.post("/login", loginLimiter, async (req, res) => {
-  
+  if (req.body.honeypot !== "") {
+    req.session.message = "No bots."
+    req.session.messageType = "error"
+    return res.status(400).redirect("/login");
+  }
   const { password } = req.body;
   
   if (!password) {
