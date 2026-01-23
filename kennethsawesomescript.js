@@ -1,9 +1,10 @@
 import { spawn } from 'child_process';
 import { promises as fs } from 'fs'
 import { appendFile } from 'fs/promises';
-const fileName = "experiment-20251212.json"
+const fileName = "experiment-20260123.json"
 const years = [2018, 2019, 2020]
-const radiuses = [100, 150, 200]
+// const radiuses = [100, 150, 200]
+const radiuses = [50, 100, 150, 200]
 const methods = ["bruteforce", "hillclimb", "buildingwalk", "dfs"]
 
 let result = []
