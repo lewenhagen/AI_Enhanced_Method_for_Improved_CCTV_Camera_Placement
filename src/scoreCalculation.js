@@ -4,8 +4,8 @@ const areas = {
   "malmö": 76.81 * 10000
 }
 
-async function scoreCalculation(DISTANCE_WEIGHT, currentCam, currentPoint, crimes, crimeCoords,numberOfCrimesInRadius) {
-  
+async function scoreCalculation(DISTANCE_WEIGHT, currentCam, currentPoint, crimes, crimeCoords, numberOfCrimesInRadius, boundingBox) {
+
   let totalCount = 0
   let totalDistance = 0
   let crimeCount = 0
@@ -13,7 +13,7 @@ async function scoreCalculation(DISTANCE_WEIGHT, currentCam, currentPoint, crime
   
   currentCam.connectedCrimes = []
   currentCam.score = 0
-
+  
   for (const coord of crimeCoords) {
     let crimeAsPoint = turf.point([parseFloat(coord.split(",")[0]), parseFloat(coord.split(",")[1])])
     /**
@@ -68,13 +68,14 @@ async function scoreCalculation(DISTANCE_WEIGHT, currentCam, currentPoint, crime
   // const normalizedCrimeCount = crimeCount / Object.keys(crimes).length || 0 // % of total crime coords this camera covers
 
   currentCam.score = parseFloat(distanceWeightedScore)
+  // console.log("radius 2 area: " + turf.area(boundingBox))
 
   return {
     "camInfo": currentCam,
     "totalCrimeCount": crimeCount, // unique crime coordinates
     "totalCount": totalCount, // all reported crimes
     "totalDistance": totalDistance,
-    "pai": (totalCount/numberOfCrimesInRadius) / (turf.area(currentCam.polygon) / areas["malmö"])
+    "pai": (totalCount/numberOfCrimesInRadius) / (turf.area(currentCam.polygon) / turf.area(boundingBox))
   }
 }
 

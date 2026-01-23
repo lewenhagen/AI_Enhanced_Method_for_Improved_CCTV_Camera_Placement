@@ -120,7 +120,7 @@ async function move(currentPoint, direction) {
 
 async function calculateScore(currentCam, currentPoint, CRIMECOORDS) {
 
-  return await scoreCalculation(DISTANCE_WEIGHT, currentCam, currentPoint, CRIMES, CRIMECOORDS, numberOfCrimesInRadius)
+  return await scoreCalculation(DISTANCE_WEIGHT, currentCam, currentPoint, CRIMES, CRIMECOORDS, numberOfCrimesInRadius, BBOX)
 }
 
 async function getRandomDirection() {

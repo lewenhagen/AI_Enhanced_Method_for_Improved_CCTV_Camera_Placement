@@ -16,7 +16,8 @@ parentPort.on('message', async ({ distanceWeight, camPoint, distance }) => {
       camPoint,
       crimes,
       Object.keys(crimes),
-      numberOfCrimesInRadius
+      numberOfCrimesInRadius,
+      boundingBox
     );
     // console.log(camObject.camInfo.score)
     parentPort.postMessage({ ok: true, result: camObject });

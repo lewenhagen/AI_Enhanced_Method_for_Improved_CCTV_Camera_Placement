@@ -154,6 +154,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
     console.log(JSON.stringify(
       {
+        "coordinates": data.allPoints[0].camInfo.center,
         "num_startpoints": data.gridArea.features.length,
         "exec_time": Math.round((elapsed/1000)*1000)/1000,
         "best_score": data.allPoints[0].camInfo.score,
