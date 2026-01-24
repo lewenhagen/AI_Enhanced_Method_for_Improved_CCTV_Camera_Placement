@@ -197,7 +197,16 @@ async function initBuildingwalk(center, distance, gridDensity, distanceWeight, y
       a.totalDistance - b.totalDistance
     )
   })
-
+  if (allpoints.length === 0) {
+    allpoints[0] = {
+      camInfo: {
+        score: 0
+      },
+      totalCount: 0,
+      totalCrimeCount: 0,
+      pai: 0
+    }
+  }
   !SILENT && console.log("Building walk best score: " + allpoints[0].camInfo.score)
 
   return {
