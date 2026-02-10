@@ -89,6 +89,7 @@ function drawTheBest() {
 
     let layer = L.geoJSON(useThis.camInfo.center).bindPopup(`
       DWS: ${useThis.camInfo.score.toFixed(3)}<br>
+      Weight_score: ${useThis.camInfo.weighted_score.toFixed(3)}<br>
       PAI: ${useThis.pai.toFixed(3)}<br>
       Area: ${useThis.camInfo.area.toFixed(2).toString()}<br>
       Crime count: ${useThis.totalCount}<br>
@@ -526,6 +527,7 @@ animate.addEventListener("click", function(event) {
 
     let layer = L.geoJSON(pointData.camInfo.center).bindPopup(`
       DWS: ${pointData.camInfo.score}<br>
+      Weight_score: ${pointData.camInfo.weighted_score.toFixed(3)}<br>
       PAI: ${pointData.pai.toFixed(3)}<br>
       Area: ${pointData.camInfo.area.toFixed(2).toString()}<br>
       Crime count: ${pointData.totalCount}<br>

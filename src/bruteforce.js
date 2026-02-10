@@ -158,6 +158,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         "num_startpoints": data.gridArea.features.length,
         "exec_time": Math.round((elapsed/1000)*1000)/1000,
         "best_score": data.allPoints[0].camInfo.score,
+        "weighted_score": data.allPoints[0].camInfo.weighted_score,
         "ind_time": null,
         "avg_time": null,
         "steps": data.gridArea.features.length,

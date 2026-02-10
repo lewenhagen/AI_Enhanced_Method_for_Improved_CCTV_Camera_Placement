@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Buffer excluding buildings</title>
+
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+
+  <style>
+    body, html { margin: 0; padding: 0; }
+    #map { height: 100vh; }
+  </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
+
+<script>
+  const map = L.map('map').setView([55.605, 13.003], 16);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19
+  }).addTo(map);
+
+  // -----------------------------
+  // Start point
+  // -----------------------------
+  const startPoint = turf.point([13.003, 55.605]);
+
+  L.circleMarker([55.605, 13.003], {
+    radius: 6,
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 1
+  }).addTo(map).bindPopup("Start point");
+
+  // -----------------------------
+  // Example buildings
+  // -----------------------------
+  const buildings = [
+    turf.polygon([[
+      [13.0027, 55.6052],
+      [13.0032, 55.6052],
+      [13.0032, 55.6048],
+      [13.0027, 55.6048],
+      [13.0027, 55.6052]
+    ]]),
+    turf.polygon([[
+      [13.0034, 55.6051],
+      [13.0038, 55.6051],
+      [13.0038, 55.6047],
+      [13.0034, 55.6047],
+      [13.0034, 55.6051]
+    ]])
+  ];
+
+  L.geoJSON(buildings, {
+    style: { color: 'black', fillColor: '#666', fillOpacity: 0.6 }
+  }).addTo(map);
+
+  // -----------------------------
+  // Create buffer
+  // -----------------------------
+  const buffer = turf.buffer(startPoint, 100, { units: 'meters' });
+
+  // -----------------------------
+  // Union buildings
+  // -----------------------------
+  let buildingsUnion = null;
+  for (const b of buildings) {
+    buildingsUnion = buildingsUnion ? turf.union(buildingsUnion, b) : b;
+  }
+
+  // -----------------------------
+  // Subtract buildings
+  // -----------------------------
+  const clipped = turf.difference(buffer, buildingsUnion);
+
+  // -----------------------------
+  // Keep polygon connected to start point
+  // -----------------------------
+  let finalPoly = null;
+
+  if (clipped) {
+    const parts =
+      clipped.geometry.type === "Polygon"
+        ? [clipped]
+        : clipped.geometry.coordinates.map(c => turf.polygon(c));
+
+    finalPoly = parts.find(p =>
+      turf.booleanPointInPolygon(startPoint, p)
+    );
+
+    // fallback if precision fails
+    if (!finalPoly) {
+      finalPoly = parts
+        .map(p => ({
+          poly: p,
+          dist: turf.distance(startPoint, turf.pointOnFeature(p))
+        }))
+        .sort((a, b) => a.dist - b.dist)[0]?.poly;
+    }
+  }
+
+  // -----------------------------
+  // Draw results
+  // -----------------------------
+  L.geoJSON(buffer, {
+    style: { color: 'green', fillOpacity: 0.15 }
+  }).addTo(map).bindPopup("Original buffer");
+
+  if (finalPoly) {
+    L.geoJSON(finalPoly, {
+      style: { color: 'red', fillOpacity: 0.5 }
+    }).addTo(map).bindPopup("Final polygon (correct side)");
+  }
+</script>
+
+</body>
+</html>

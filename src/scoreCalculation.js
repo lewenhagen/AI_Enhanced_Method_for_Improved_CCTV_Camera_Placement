@@ -10,6 +10,7 @@ async function scoreCalculation(DISTANCE_WEIGHT, currentCam, currentPoint, crime
   let totalDistance = 0
   let crimeCount = 0
   let gridScore = 0
+  let weight_score = 0
   
   currentCam.connectedCrimes = []
   currentCam.score = 0
@@ -43,6 +44,8 @@ async function scoreCalculation(DISTANCE_WEIGHT, currentCam, currentPoint, crime
        */
       gridScore += scoreObject.crimeScore
 
+      weight_score += (1 / Math.max(distance * DISTANCE_WEIGHT, 1))
+
       currentCam.connectedCrimes.push(scoreObject)
 
       /**
@@ -68,7 +71,8 @@ async function scoreCalculation(DISTANCE_WEIGHT, currentCam, currentPoint, crime
   // const normalizedCrimeCount = crimeCount / Object.keys(crimes).length || 0 // % of total crime coords this camera covers
 
   currentCam.score = parseFloat(distanceWeightedScore)
-  // console.log("radius 2 area: " + turf.area(boundingBox))
+  currentCam.weighted_score = weight_score > 0 ? gridScore / weight_score : 0
+  
 
   return {
     "camInfo": currentCam,
