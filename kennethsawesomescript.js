@@ -62,6 +62,7 @@ function runScript(method, center, radius, dist_weight, year) {
       num_startpoints: temp.num_startpoints,
       execution_time: temp.exec_time,
       best_score: temp.best_score,
+      weighted_score: temp.weighted_score,
       ind_time: temp.ind_time,
       avg_time: temp.avg_time,
       steps: temp.steps,
