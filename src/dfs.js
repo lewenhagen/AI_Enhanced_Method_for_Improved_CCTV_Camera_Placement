@@ -206,7 +206,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       "seen_crimes": best.totalCount,
       "unique_crime_coords": best.totalCrimeCount,
       "pai": best.pai,
-      "area": best.camInfo.area
+      "area": best.camInfo.area,
+      "total_distance": best.totalDistance
     }
   ))
 }

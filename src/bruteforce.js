@@ -167,7 +167,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         "seen_crimes": data.allPoints[0].totalCount,
         "unique_crime_coords": data.allPoints[0].totalCrimeCount,
         "pai": data.allPoints[0].pai,
-        "area": data.allPoints[0].camInfo.area
+        "area": data.allPoints[0].camInfo.area,
+        "total_distance": data.allPoints[0].totalDistance
       }
     )
   );
