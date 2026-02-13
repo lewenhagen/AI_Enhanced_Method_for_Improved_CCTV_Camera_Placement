@@ -124,6 +124,7 @@ async function initBruteforce(center, distance, gridDensity, distanceWeight, yea
   })
 
   !SILENT && console.log("Bruteforce best score: " + allpoints[0].camInfo.score)
+  !SILENT && console.log("Bruteforce best pos area: " + allpoints[0].camInfo.area)
 
   return {
     allPoints: allpoints,
@@ -165,7 +166,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         "total_crimes": totalCount,
         "seen_crimes": data.allPoints[0].totalCount,
         "unique_crime_coords": data.allPoints[0].totalCrimeCount,
-        "pai": data.allPoints[0].pai
+        "pai": data.allPoints[0].pai,
+        "area": data.allPoints[0].camInfo.area
       }
     )
   );
