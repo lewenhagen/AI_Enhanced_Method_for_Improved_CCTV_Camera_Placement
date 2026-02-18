@@ -94,7 +94,7 @@ function runScript(method, center, radius, activationFunction, year) {
 let testCounter = 1
 let coordCounter = 1
 let methodCounter = 1
-let distWeightCounter = 1
+let activationCounter = 1
 let radiusCounter = 1
 
 for (const item of hotspots_map) {
