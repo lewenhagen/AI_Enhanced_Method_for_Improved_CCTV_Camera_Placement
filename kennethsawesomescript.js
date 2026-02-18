@@ -62,7 +62,6 @@ function runScript(method, center, radius, activationFunction, year) {
       num_startpoints: temp.num_startpoints,
       execution_time: temp.exec_time,
       best_score: temp.best_score,
-      weighted_score: temp.weighted_score,
       ind_time: temp.ind_time,
       avg_time: temp.avg_time,
       steps: temp.steps,
@@ -115,7 +114,7 @@ for (const item of hotspots_map) {
                     console.log(`Test: ${testCounter}/${hotspots_map.length}`)
                     console.log(`Coordinate: ${coordCounter}/${item.startCoords.length}`)
                     console.log(`Radius: ${radiusCounter}/${radiuses.length}`)
-                    console.log(`Activation: ${af}/${activations.length}`)
+                    console.log(`Activation: ${activationCounter}/${activations.length}`)
                     console.log(`Method: ${methodCounter}/${methods.length}`)
                     console.log("----------------------------")
                     methodCounter++

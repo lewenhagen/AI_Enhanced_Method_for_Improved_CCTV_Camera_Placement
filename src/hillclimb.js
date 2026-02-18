@@ -197,7 +197,6 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       "num_startpoints": 10,
       "exec_time": Number((elapsed/1000).toFixed(5)),
       "best_score": best.camInfo.score,
-      // "weighted_score": best.camInfo.weighted_score,
       "ind_time": data.allPoints[0][data.allPoints[0].length-1].time,
       "avg_time": Number((average).toFixed(5)),
       "steps": data.allPoints[0].length-1,
