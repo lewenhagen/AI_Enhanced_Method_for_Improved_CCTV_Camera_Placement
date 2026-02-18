@@ -4,17 +4,44 @@ const areas = {
   "malmö": 76.81 * 10000
 }
 
-async function scoreCalculation(DISTANCE_WEIGHT, currentCam, currentPoint, crimes, crimeCoords, numberOfCrimesInRadius, boundingBox) {
+/**
+Sigmoid → smooth drop, mostly cares about distance near the midpoint
+Linear → straight penalty from near → far
+Uniform → flat line (distance ignored completely)
+ */
 
+function sigmoid(d, maxDistance) {
+  const midpoint = maxDistance / 2;
+  const steepness = 10 / maxDistance;
+  return 1 / (1 + Math.exp(steepness * (d - midpoint)));
+}
+
+function linear(d, maxDistance) {
+  return Math.max(0, 1 - d / maxDistance);
+}
+
+
+function uniform(d, maxDistance) {
+  return 1;
+}
+
+const activationFunctions = {
+  "sigmoid": sigmoid,
+  "linear": linear,
+  "uniform": uniform
+}
+
+
+async function scoreCalculation(activation, currentCam, currentPoint, crimes, crimeCoords, numberOfCrimesInRadius, boundingBox, MAX_DISTANCE) {
   let totalCount = 0
   let totalDistance = 0
   let crimeCount = 0
   let gridScore = 0
-  let weight_score = 0
-  
+  // let weight_score = 0
+
   currentCam.connectedCrimes = []
   currentCam.score = 0
-  
+
   for (const coord of crimeCoords) {
     let crimeAsPoint = turf.point([parseFloat(coord.split(",")[0]), parseFloat(coord.split(",")[1])])
     /**
@@ -36,15 +63,16 @@ async function scoreCalculation(DISTANCE_WEIGHT, currentCam, currentPoint, crime
         crimeInfo: crimes[coord],
         crimeDistance: distance,
         uniqueCount: crimes[coord].count,
-        crimeScore: crimes[coord].count / Math.max((distance * DISTANCE_WEIGHT), 1)
+        crimeScore: crimes[coord].count * activationFunctions[activation](distance, MAX_DISTANCE)
       }
+      //linear, sigmeud, uniform
 
       /**
        * Holds the grid point's (grid coordinates) summed score. Divide this by N.
        */
       gridScore += scoreObject.crimeScore
 
-      weight_score += (1 / Math.max(distance * DISTANCE_WEIGHT, 1))
+      // weight_score += (Math.max(distance * DISTANCE_WEIGHT, 1))
 
       currentCam.connectedCrimes.push(scoreObject)
 
@@ -67,12 +95,16 @@ async function scoreCalculation(DISTANCE_WEIGHT, currentCam, currentPoint, crime
   // console.log("Found in area: " + totalCount)
   // currentCam.score = crimeCount / Object.keys(crimes).length
 
-  const distanceWeightedScore = gridScore // / bigN || 0
+  // const distanceWeightedScore =  // / bigN || 0
   // const normalizedCrimeCount = crimeCount / Object.keys(crimes).length || 0 // % of total crime coords this camera covers
 
-  currentCam.score = parseFloat(distanceWeightedScore)
-  currentCam.weighted_score = weight_score > 0 ? gridScore / weight_score : 0
-  
+  currentCam.score = parseFloat(gridScore)
+  currentCam.activation = activation
+  // currentCam.weighted_score = weight_score > 0 ? gridScore / weight_score : 0
+  // currentCam.weighted_score2 = gridScore / crimeCount
+  // currentCam.weighted_score = 0
+  // currentCam.weighted_score2 = 0
+
 
   return {
     "camInfo": currentCam,

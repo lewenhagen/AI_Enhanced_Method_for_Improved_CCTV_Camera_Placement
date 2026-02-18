@@ -89,7 +89,7 @@ function drawTheBest() {
 
     let layer = L.geoJSON(useThis.camInfo.center).bindPopup(`
       DWS: ${useThis.camInfo.score.toFixed(3)}<br>
-      Weight_score: ${useThis.camInfo.weighted_score.toFixed(3)}<br>
+      Activation: ${useThis.camInfo.activation}<br>
       PAI: ${useThis.pai.toFixed(3)}<br>
       Area: ${useThis.camInfo.area.toFixed(2).toString()}<br>
       Crime count: ${useThis.totalCount}<br>
@@ -120,7 +120,7 @@ function drawTheBest() {
 //         console.error('Error fetching:', error);
 //     }
 // }
-async function runDFS(center, distance, gridDensity, distanceWeight, maxSteps, startingPos, year) {
+async function runDFS(center, distance, gridDensity, activationFunction, maxSteps, startingPos, year) {
   const headers = { 'Content-Type': 'application/json' }
 
   try {
@@ -128,7 +128,7 @@ async function runDFS(center, distance, gridDensity, distanceWeight, maxSteps, s
           method: 'POST',
           headers: headers,
           body: JSON.stringify({
-            center, distance, gridDensity, distanceWeight, maxSteps, startingPos, year
+            center, distance, gridDensity, activationFunction, maxSteps, startingPos, year
           })
       });
 
@@ -173,7 +173,7 @@ async function runDFS(center, distance, gridDensity, distanceWeight, maxSteps, s
 
 
 
-async function runRandomWalk(center, distance, gridDensity, distanceWeight, maxSteps, startingPos, year) {
+async function runRandomWalk(center, distance, gridDensity, activationFunction, maxSteps, startingPos, year) {
   const headers = { 'Content-Type': 'application/json' }
 
   try {
@@ -181,7 +181,7 @@ async function runRandomWalk(center, distance, gridDensity, distanceWeight, maxS
           method: 'POST',
           headers: headers,
           body: JSON.stringify({
-            center, distance, gridDensity, distanceWeight, maxSteps, startingPos, year
+            center, distance, gridDensity, activationFunction, maxSteps, startingPos, year
           })
       });
 
@@ -206,7 +206,7 @@ async function runRandomWalk(center, distance, gridDensity, distanceWeight, maxS
       }).addTo(drawnAi)
 
 
-      
+
       animate.disabled = false
       theBestBtn.disabled = false
       simulations.disabled = false
@@ -224,7 +224,7 @@ async function runRandomWalk(center, distance, gridDensity, distanceWeight, maxS
   // drawCrimes(allCrimes)
 }
 
-async function runBruteForce(center, distance, gridDensity, distanceWeight, year) {
+async function runBruteForce(center, distance, gridDensity, activationFunction, year) {
   const headers = { 'Content-Type': 'application/json' }
 
   try {
@@ -232,7 +232,7 @@ async function runBruteForce(center, distance, gridDensity, distanceWeight, year
           method: 'POST',
           headers: headers,
           body: JSON.stringify({
-            center, distance, gridDensity, distanceWeight, year
+            center, distance, gridDensity, activationFunction, year
           })
       });
 
@@ -276,7 +276,7 @@ async function runBruteForce(center, distance, gridDensity, distanceWeight, year
 }
 
 
-async function runBuildingWalk(center, distance, gridDensity, distanceWeight, year, steps) {
+async function runBuildingWalk(center, distance, gridDensity, activationFunction, year, steps) {
   const headers = { 'Content-Type': 'application/json' }
 
   try {
@@ -284,7 +284,7 @@ async function runBuildingWalk(center, distance, gridDensity, distanceWeight, ye
           method: 'POST',
           headers: headers,
           body: JSON.stringify({
-            center, distance, gridDensity, distanceWeight, year, steps
+            center, distance, gridDensity, activationFunction, year, steps
           })
       });
 
@@ -436,7 +436,7 @@ L.control.polylineMeasure({
 
 map.on("click", function(e) {
   try {map.removeLayer(currentMarker)} catch (e) { console.log("First marker")}
-  currentMarker = L.marker(e.latlng, { icon: greenIcon }).addTo(map)  
+  currentMarker = L.marker(e.latlng, { icon: greenIcon }).addTo(map)
   navigator.clipboard.writeText(`${e.latlng.lat}, ${e.latlng.lng}`).then(function() {
     console.log('Copying to clipboard was successful!')
     map.panTo(new L.LatLng(e.latlng.lat, e.latlng.lng))
@@ -473,7 +473,7 @@ loadBtn.addEventListener("click", async function(event) {
     animate.disabled = true
     theBestBtn.disabled = true
     sendCoordinatesToClipboardBtn.disabled = true
-    
+
     showLoader()
 
     let center = document.getElementById("center").value
@@ -481,20 +481,21 @@ loadBtn.addEventListener("click", async function(event) {
     let gridDensity = parseInt(document.getElementById("gridDensity").value)
     let maxSteps = parseInt(document.getElementById("max-steps").value)
     let startingPos = document.getElementById("startingPos").value
-    let distanceWeight = parseFloat(document.getElementById("distanceWeight").value)
+    // let distanceWeight = parseFloat(document.getElementById("distanceWeight").value)
+    let activationFunction = document.getElementById("activationFunction").value
     chosenMethod = document.getElementById("walkmode").value
     // let bigN = parseInt(document.querySelector('input[name="useN"]:checked').value)
     let year = document.getElementById("year").value
 
     if (chosenMethod === "random") {
-      await runRandomWalk(center, distance, gridDensity, distanceWeight, maxSteps, startingPos, year)
+      await runRandomWalk(center, distance, gridDensity, activationFunction, maxSteps, startingPos, year)
     } else if (chosenMethod === "dfs") {
-      await runDFS(center, distance, gridDensity, distanceWeight, maxSteps, startingPos, year)
+      await runDFS(center, distance, gridDensity, activationFunction, maxSteps, startingPos, year)
     } else if (chosenMethod === "bruteforce") {
-      await runBruteForce(center, distance, gridDensity, distanceWeight, year)
+      await runBruteForce(center, distance, gridDensity, activationFunction, year)
     } else if (chosenMethod === "building") {
       let steps = document.getElementById("building-steps-value").value
-      await runBuildingWalk(center, distance, gridDensity, distanceWeight, year, steps)
+      await runBuildingWalk(center, distance, gridDensity, activationFunction, year, steps)
     }
 
     try {map.removeLayer(currentMarker)} catch (e) { console.log("First marker")}
@@ -527,7 +528,7 @@ animate.addEventListener("click", function(event) {
 
     let layer = L.geoJSON(pointData.camInfo.center).bindPopup(`
       DWS: ${pointData.camInfo.score}<br>
-      Weight_score: ${pointData.camInfo.weighted_score.toFixed(3)}<br>
+      Activation: ${pointData.camInfo.activation}<br>
       PAI: ${pointData.pai.toFixed(3)}<br>
       Area: ${pointData.camInfo.area.toFixed(2).toString()}<br>
       Crime count: ${pointData.totalCount}<br>

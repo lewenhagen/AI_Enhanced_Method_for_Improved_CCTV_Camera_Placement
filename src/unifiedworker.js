@@ -7,7 +7,7 @@ const { buildings, boundingBox, crimes } = workerData.sharedData;
 
 parentPort.on('message', async (msg) => {
   try {
-    let { type, bigN, distanceWeight, camPoint, distance } = msg;
+    let { type, bigN, activationFunction, camPoint, distance } = msg;
 
     // Shared logic for both methods
     // generate() always needs a single camPoint
@@ -17,7 +17,7 @@ parentPort.on('message', async (msg) => {
     // scoreCalculation is also shared
     const camObject = await scoreCalculation(
       bigN,
-      distanceWeight,
+      activationFunction,
       currentCam,
       camPoint,
       crimes,

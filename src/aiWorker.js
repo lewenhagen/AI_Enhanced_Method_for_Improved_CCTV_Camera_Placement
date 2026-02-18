@@ -24,7 +24,7 @@ const {
     CRIMECOORDS,
     GRIDDENSITY,
     workerId,
-    DISTANCE_WEIGHT,
+    ACTIVATION_FUNCTION,
     MAXSTEPS,
     SILENT,
     numberOfCrimesInRadius
@@ -46,7 +46,7 @@ const directionBearings = {
 //   let temp = await generate(BUILDINGS, BBOX, [point], DISTANCE)
 //   temp = temp[0]
 
-//   let scoreObject = await scoreCalculation(DISTANCE_WEIGHT, temp, point, CRIMES, CRIMECOORDS, numberOfCrimesInRadius)
+//   let scoreObject = await scoreCalculation(ACTIVATION_FUNCTION, temp, point, CRIMES, CRIMECOORDS, numberOfCrimesInRadius)
 //   startPositions.push(scoreObject)
 // }
 
@@ -140,7 +140,7 @@ async function move(currentPoint, direction) {
 
 async function calculateScore(currentCam, currentPoint, CRIMECOORDS) {
 
-  return await scoreCalculation(DISTANCE_WEIGHT, currentCam, currentPoint, CRIMES, CRIMECOORDS, numberOfCrimesInRadius, BBOX)
+  return await scoreCalculation(ACTIVATION_FUNCTION, currentCam, currentPoint, CRIMES, CRIMECOORDS, numberOfCrimesInRadius, BBOX, DISTANCE)
 }
 
 async function getRandomDirection() {

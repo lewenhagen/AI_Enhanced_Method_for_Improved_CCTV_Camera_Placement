@@ -24,7 +24,7 @@ const {
     CRIMECOORDS,
     GRIDDENSITY,
     workerId,
-    DISTANCE_WEIGHT,
+    ACTIVATION_FUNCTION,
     MAXSTEPS,
     SILENT,
     numberOfCrimesInRadius
@@ -120,7 +120,7 @@ async function move(currentPoint, direction) {
 
 async function calculateScore(currentCam, currentPoint, CRIMECOORDS) {
 
-  return await scoreCalculation(DISTANCE_WEIGHT, currentCam, currentPoint, CRIMES, CRIMECOORDS, numberOfCrimesInRadius, BBOX)
+  return await scoreCalculation(ACTIVATION_FUNCTION, currentCam, currentPoint, CRIMES, CRIMECOORDS, numberOfCrimesInRadius, BBOX, DISTANCE)
 }
 
 async function getRandomDirection() {

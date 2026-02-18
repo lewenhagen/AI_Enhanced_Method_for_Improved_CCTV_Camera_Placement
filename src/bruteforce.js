@@ -53,8 +53,8 @@ let data = {}
 
 
 
-async function initBruteforce(center, distance, gridDensity, distanceWeight, year) {
-  // console.log(center, distance, gridDensity, distanceWeight, bigN, year)
+async function initBruteforce(center, distance, gridDensity, activationFunction, year) {
+  console.log(center, distance, gridDensity, activationFunction, year)
   allpoints = []
   data = {}
 
@@ -102,7 +102,7 @@ async function initBruteforce(center, distance, gridDensity, distanceWeight, yea
 
   const workerPromises = gridArea.features.map(f =>
     pool.run({
-      distanceWeight,
+      activationFunction,
       camPoint: f.geometry,
       distance
     })
@@ -138,7 +138,7 @@ async function initBruteforce(center, distance, gridDensity, distanceWeight, yea
 if (import.meta.url === `file://${process.argv[1]}`) {
   let startLoc = process.argv[2]
   let dist = process.argv[3]
-  let distWeight = process.argv[4]
+  let activationFunction = process.argv[4]
   let year = process.argv[5]
 
   SILENT=true
@@ -146,7 +146,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
   const start = performance.now()
 
-  let data = await initBruteforce(startLoc, dist, 5, distWeight, year)
+  let data = await initBruteforce(startLoc, dist, 5, activationFunction, year)
 
   const end = performance.now()
   const elapsed = end - start
@@ -159,7 +159,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         "num_startpoints": data.gridArea.features.length,
         "exec_time": Math.round((elapsed/1000)*1000)/1000,
         "best_score": data.allPoints[0].camInfo.score,
-        "weighted_score": data.allPoints[0].camInfo.weighted_score,
+        // "weighted_score": data.allPoints[0].camInfo.weighted_score,
         "ind_time": null,
         "avg_time": null,
         "steps": data.gridArea.features.length,
@@ -168,7 +168,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         "unique_crime_coords": data.allPoints[0].totalCrimeCount,
         "pai": data.allPoints[0].pai,
         "area": data.allPoints[0].camInfo.area,
-        "total_distance": data.allPoints[0].totalDistance
+        "total_distance": data.allPoints[0].totalDistance,
+        "activation_function": activationFunction,
       }
     )
   );

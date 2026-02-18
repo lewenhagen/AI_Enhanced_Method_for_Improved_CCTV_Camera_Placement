@@ -20,7 +20,7 @@ let DISTANCE = -1
 let gridBuildings = []
 let gridMap = new Map()
 let gridCounter = 0
-let DISTANCE_WEIGHT
+let ACTIVATION_FUNCTION
 let MAXSTEPS
 let numberOfCrimesInRadius
 
@@ -38,7 +38,7 @@ function runWorker() {
         CRIMECOORDS,
         GRIDDENSITY,
         workerId,
-        DISTANCE_WEIGHT,
+        ACTIVATION_FUNCTION,
         MAXSTEPS,
         SILENT,
         numberOfCrimesInRadius
@@ -126,7 +126,7 @@ async function randomWalk(grid, startingPos) {
   ALLPOINTS = results
 }
 
-async function initRandomWalk(center, distance, gridDensity, distanceWeight, maxSteps, startingPos, year) {
+async function initRandomWalk(center, distance, gridDensity, activationFunction, maxSteps, startingPos, year) {
     // console.log(center, distance, gridDensity, distanceWeight, maxSteps, startingPos)
     ALLPOINTS = []
     let data = {}
@@ -158,7 +158,7 @@ async function initRandomWalk(center, distance, gridDensity, distanceWeight, max
     ALLPOINTS = []
     MAXSTEPS = maxSteps
     DISTANCE = distance
-    DISTANCE_WEIGHT = distanceWeight
+    ACTIVATION_FUNCTION = activationFunction
     GRIDDENSITY = gridDensity
 
 
@@ -174,14 +174,14 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
   let startLoc = process.argv[2]
   let dist = process.argv[3]
-  let distWeight = process.argv[4]
+  let activationFunction = process.argv[4]
   let year = process.argv[5]
 
   let json = []
 
   const start = performance.now()
 
-  let data = await initRandomWalk(startLoc, dist, 5, distWeight, 20, 10, year)
+  let data = await initRandomWalk(startLoc, dist, 5, activationFunction, 20, 10, year)
 
   let average = calculateAverage(data.allPoints)
   const end = performance.now()
@@ -197,7 +197,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       "num_startpoints": 10,
       "exec_time": Number((elapsed/1000).toFixed(5)),
       "best_score": best.camInfo.score,
-      "weighted_score": best.camInfo.weighted_score,
+      // "weighted_score": best.camInfo.weighted_score,
       "ind_time": data.allPoints[0][data.allPoints[0].length-1].time,
       "avg_time": Number((average).toFixed(5)),
       "steps": data.allPoints[0].length-1,
@@ -206,7 +206,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       "unique_crime_coords": best.totalCrimeCount,
       "pai": best.pai,
       "area": best.camInfo.area,
-      "total_distance": best.totalDistance
+      "total_distance": best.totalDistance,
+      "activation_function": activationFunction
     }
   ))
 }

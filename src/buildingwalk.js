@@ -111,7 +111,7 @@ async function buildingWalk(camPoint, distance, distanceWeight) {
 
 
 
-async function initBuildingwalk(center, distance, gridDensity, distanceWeight, year, steps) {
+async function initBuildingwalk(center, distance, gridDensity, activationFunction, year, steps) {
   allpoints = []
   data = {}
   circle = turf.circle([parseFloat(center.split(",")[1]), parseFloat(center.split(",")[0])], distance/1000, { steps: 64, units: 'kilometers' })
@@ -179,7 +179,7 @@ async function initBuildingwalk(center, distance, gridDensity, distanceWeight, y
 
   const workerPromises = points.features.map(f =>
     pool.run({
-      distanceWeight,
+      activationFunction,
       camPoint: f.geometry,
       distance
     })
@@ -222,12 +222,12 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   SILENT=true
   let startLoc = process.argv[2]
   let dist = process.argv[3]
-  let distWeight = process.argv[4]
+  let activationFunction = process.argv[4]
   let year = process.argv[5]
 
   const start = performance.now()
 
-  let data = await initBuildingwalk(startLoc, dist, 5, distWeight, year, 5)
+  let data = await initBuildingwalk(startLoc, dist, 5, activationFunction, year, 5)
 
   const end = performance.now()
   const elapsed = end - start
@@ -240,7 +240,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         "num_startpoints": data.allPoints[0].length,
         "exec_time": Math.round((elapsed/1000)*1000)/1000,
         "best_score": data.allPoints[0].camInfo.score,
-        "weighted_score": data.allPoints[0].camInfo.weighted_score,
+        // "weighted_score": data.allPoints[0].camInfo.weighted_score,
         "ind_time": null,
         "avg_time": null,
         "steps": data.allPoints.length,
@@ -249,7 +249,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         "unique_crime_coords": data.allPoints[0].totalCrimeCount,
         "pai": data.allPoints[0].pai,
         "area": data.allPoints[0].camInfo.area,
-        "total_distance": data.allPoints[0].totalDistance
+        "total_distance": data.allPoints[0].totalDistance,
+        "activation_function": activationFunction
       }
     )
   )

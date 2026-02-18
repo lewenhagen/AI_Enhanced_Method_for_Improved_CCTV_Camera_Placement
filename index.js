@@ -49,7 +49,7 @@ app.use(
 
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5,                  
+  max: 5,
   standardHeaders: true,
   legacyHeaders: false,
   message: "Too many login attempts. Try again later."
@@ -83,7 +83,7 @@ app.post("/login", loginLimiter, async (req, res) => {
     return res.status(400).redirect("/login");
   }
   const { password } = req.body;
-  
+
   if (!password) {
     req.session.message = "You need to enter a password"
     req.session.messageType = "error"
@@ -124,7 +124,7 @@ app.post("/run-dfs", async (req, res) => {
   console.time("### DFS exec time")
   response = await initDFS(
     req.body.center, req.body.distance,
-    req.body.gridDensity, req.body.distanceWeight,
+    req.body.gridDensity, req.body.activationFunction,
     req.body.maxSteps, req.body.startingPos, req.body.year)
   console.timeEnd("### DFS exec time")
 
@@ -141,7 +141,7 @@ app.post("/run-randomwalk", async (req, res) => {
   console.time("### Hill climbing exec time")
   response = await initRandomWalk(
     req.body.center, req.body.distance,
-    req.body.gridDensity, req.body.distanceWeight,
+    req.body.gridDensity, req.body.activationFunction,
     req.body.maxSteps, req.body.startingPos, req.body.year)
   console.timeEnd("### Hill climbing exec time")
 
@@ -155,7 +155,7 @@ app.post("/run-bruteforce", async (req, res) => {
   let response = {}
 
   console.time("### Bruteforce exec time")
-  response = await initBruteforce(req.body.center, req.body.distance, req.body.gridDensity, req.body.distanceWeight, req.body.year)
+  response = await initBruteforce(req.body.center, req.body.distance, req.body.gridDensity, req.body.activationFunction, req.body.year)
   console.timeEnd("### Bruteforce exec time")
   console.log(`Grid size: ${response.gridArea.features.length} points`)
 
@@ -175,7 +175,7 @@ app.post("/run-buildingwalk", async (req, res) => {
   let response = {}
 
   console.time("### Building walk exec time")
-  response = await initBuildingwalk(req.body.center, req.body.distance, req.body.gridDensity, req.body.distanceWeight, req.body.year, req.body.steps)
+  response = await initBuildingwalk(req.body.center, req.body.distance, req.body.gridDensity, req.body.activationFunction, req.body.year, req.body.steps)
   console.timeEnd("### Building walk exec time")
 
   response.allPoints = await normalizeScoreForBuildingWalkVisualization(response.allPoints)

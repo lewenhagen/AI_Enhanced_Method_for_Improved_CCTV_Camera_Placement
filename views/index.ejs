@@ -99,10 +99,15 @@
         </div>
 
         <div>
+          <select id="activationFunction">
+            <option value="sigmoid" selected>Choose activation (Sigmoid default)</option>
+            <option value="linear">Linear (straight penalty)</option>
+            <option value="uniform">Uniform (no penalty)</option>
+          </select>
           <!-- <h4>Set distance weight</h4> -->
-          <label for="distanceWeight">Distance weight</label>
+          <!-- <label for="distanceWeight">Distance weight</label>
           <input type="range" id="distanceWeight" min="0" max="1" step="0.1" value="0.2" oninput="this.nextElementSibling.value = this.value"/>
-          <output>0.2</output>
+          <output>0.2</output> -->
         </div>
       </div>
 
@@ -136,10 +141,10 @@
               = Center location
             </td>
           </tr>
-        </table> 
+        </table>
     </div>
     </div>
-    
+
   </div>
   <script type="module" src="main.js"></script>
 </body>
