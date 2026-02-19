@@ -10,7 +10,14 @@ Linear → straight penalty from near → far
 Uniform → flat line (distance ignored completely)
  */
 
+// function sigmoid(d, maxDistance) {
+//   const midpoint = maxDistance / 2;
+//   const steepness = 10 / maxDistance;
+//   return 1 / (1 + Math.exp(steepness * (d - midpoint)));
+// }
+
 function sigmoid(d, maxDistance) {
+  if (d >= maxDistance) return 0;
   const midpoint = maxDistance / 2;
   const steepness = 10 / maxDistance;
   return 1 / (1 + Math.exp(steepness * (d - midpoint)));
@@ -22,7 +29,7 @@ function linear(d, maxDistance) {
 
 
 function uniform(d, maxDistance) {
-  return 1;
+  return d < maxDistance ? 1 : 0;
 }
 
 const activationFunctions = {
