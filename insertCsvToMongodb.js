@@ -7,11 +7,11 @@ const uri = `mongodb://${process.env.MONGOUSER}:${process.env.MONGOPASS}@localho
 const csvFilePath = './crimedata2019-2023.csv'; // Path to your CSV file
 
 const mongoDBName = 'sweden';
-const mongoCollection = 'newCrimes';
+const mongoCollection = 'crimes';
 
 // ==== MIGRATION FUNCTION ====
 const migrateData = async () => {
-  const client = new MongoClient(mongoURI);
+  const client = new MongoClient(uri);
 
   try {
     // 1️⃣ Connect to MongoDB
@@ -51,5 +51,60 @@ const migrateData = async () => {
   }
 };
 
+
+async function run() {
+  const client = new MongoClient(uri);
+  await client.connect();
+  const db = client.db(mongoDBName);
+  const collection = db.collection(mongoCollection);
+
+  const docs = [];
+
+  fs.createReadStream("./cola_zero.csv")
+    .pipe(csv({
+      separator: ";",
+      mapHeaders: ({ header }) => header.replace(/['"]/g, "").trim()
+    }))
+    .on("data", (row) => {
+      if (!row.crimedate_start) {
+        return;
+      }
+
+
+      const latitude = parseFloat(row.latitude.replace(",", "."));
+      const longitude = parseFloat(row.longitude.replace(",", "."));
+
+      const doc = {
+        latitude,
+        longitude,
+        crimedate_start: new Date(row.crimedate_start),
+
+        location: {
+          type: "Point",
+          coordinates: [longitude, latitude]
+        }
+      };
+
+      docs.push(doc);
+
+      if (docs.length >= 1000) {
+        collection.insertMany(docs);
+        docs.length = 0;
+      }
+
+    })
+    .on("end", async () => {
+
+      if (docs.length > 0) {
+        await collection.insertMany(docs);
+      }
+
+      console.log("Import finished");
+      await client.close();
+    });
+}
+
+
 // ==== RUN SCRIPT ====
-migrateData();
+//migrateData();
+run()
