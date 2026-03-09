@@ -9,6 +9,7 @@ import { fixCrimes } from './helpers.js'
 import path from 'path';
 import { WorkerPool } from './pool.js';
 import { fileURLToPath } from "url";
+import os  from 'os';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -95,7 +96,7 @@ async function initBruteforce(center, distance, gridDensity, activationFunction,
 
   const pool = new WorkerPool(
     workerPath,
-    10,
+    os.cpus().length,                      // pool size
     sharedData
   );
 
