@@ -32,7 +32,7 @@ let hotspots_map = [
 ]
 
 await fs.writeFile(fileName, '[\n', 'utf8');
-let isFirst = true;   // track commas
+let isFirst = true;
 
 function runScript(method, center, radius, activationFunction, year, city) {
   return new Promise((resolve, reject) => {
@@ -81,7 +81,7 @@ let radiusCounter = 1
 for (const item of hotspots_map) {
 
     // testCounter = 1
-    // currentHotspot = 1
+    currentHotspot = 1
     coordCounter = 1
     for (const pos of item.startCoords) {
 
@@ -110,10 +110,11 @@ for (const item of hotspots_map) {
             radiusCounter++
         }
         // }
+        currentHotspot++
         coordCounter++
     }
     testCounter++
-    currentHotspot ++
+    // currentHotspot ++
 
 }
 await fs.appendFile(fileName, '\n]\n');
