@@ -85,7 +85,7 @@ for (const item of hotspots_map) {
     coordCounter = 1
     for (const pos of item.startCoords) {
 
-        currentHotspot ++
+        // currentHotspot ++
         radiusCounter = 1
         for (let radius of radiuses) {
             activationCounter = 1
@@ -113,7 +113,7 @@ for (const item of hotspots_map) {
         coordCounter++
     }
     testCounter++
-    currentHotspot = 1
+    currentHotspot ++
 
 }
 await fs.appendFile(fileName, '\n]\n');
