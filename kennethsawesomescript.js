@@ -16,12 +16,25 @@ let ystad = await JSON.parse(await fs.readFile("hotspots/ystad.json"))
 let trelleborg = await JSON.parse(await fs.readFile("hotspots/trelleborg.json"))
 let lund = await JSON.parse(await fs.readFile("hotspots/lund.json"))
 
-let hotspots_map = [ystad, trelleborg, lund]
+let hotspots_map = [
+    {
+        "startCoords": ystad,
+        "city": "Ystad"
+    },
+    {
+        "startCoords": trelleborg,
+        "city": "Trelleborg"
+    },
+    {
+        "startCoords": lund,
+        "city": "Lund"
+    }
+]
 
 await fs.writeFile(fileName, '[\n', 'utf8');
 let isFirst = true;   // track commas
 
-function runScript(method, center, radius, activationFunction, city) {
+function runScript(method, center, radius, activationFunction, year, city) {
   return new Promise((resolve, reject) => {
     const child = spawn('node', [`src/${method}.js`, center, radius, activationFunction]);
 
@@ -37,7 +50,8 @@ function runScript(method, center, radius, activationFunction, city) {
       best_score: temp.best_score,
       seen_crimes: temp.seen_crimes,
       coverage_area: temp.coverage_area,
-      activation_function: activationFunction
+      activation_function: activationFunction,
+      method: method
     };
 
     const json = JSON.stringify(entry, null, 2);
@@ -65,12 +79,13 @@ let activationCounter = 1
 let radiusCounter = 1
 
 for (const item of hotspots_map) {
-    console.log(item)
+
     // testCounter = 1
-    currentHotspot = 1
+    // currentHotspot = 1
     coordCounter = 1
-    for (const pos of item) {
-        currentHotspot ++
+    for (const pos of item.startCoords) {
+
+        // currentHotspot ++
         radiusCounter = 1
         for (let radius of radiuses) {
             activationCounter = 1
@@ -79,9 +94,9 @@ for (const item of hotspots_map) {
                 methodCounter = 1
                 for (let method of methods) {
 
-                    await runScript(method, pos, radius, af, "all")
+                    await runScript(method, pos, radius, af, "all", item.city)
                     // console.log(`Evaluate against year: ${item.year}, Center: ${pos}, Radius: ${radius}, Dist_weight: ${af}, Method: ${method} done.`)
-		    console.log(`Rank: ${currentHotspot}`)
+		                console.log(`Rank: ${coordCounter}`)
                     console.log(`Test: ${testCounter}/${hotspots_map.length}`)
                     console.log(`Coordinate: ${coordCounter}/${item.startCoords.length}`)
                     console.log(`Radius: ${radiusCounter}/${radiuses.length}`)
