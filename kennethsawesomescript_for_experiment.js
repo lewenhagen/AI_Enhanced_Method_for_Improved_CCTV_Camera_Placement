@@ -1,16 +1,16 @@
 import { spawn } from 'child_process';
 import { promises as fs } from 'fs'
 import { appendFile } from 'fs/promises';
-const fileName = "POSS.json"
+const fileName = "experiment-20260218.json"
 const years = [2018, 2019, 2020]
 // const radiuses = [100, 150, 200]
-const radiuses = [100]
-const methods = ["bruteforce", "buildingwalk"]
-let currentHotspot = 1
+const radiuses = [50, 100, 150, 200]
+const methods = ["bruteforce", "hillclimb", "buildingwalk", "dfs"]
+
 let result = []
 // let center = "55.5636,12.9746"
 // let dist_weights = [0, 0.2, 0.4, 0.6, 0.8, 1]
-let activations = ["sigmoid", "uniform"]
+let activations = ["sigmoid", "linear", "uniform"]
 
 let hotspots2017 = await JSON.parse(await fs.readFile("hotspots/hotspots_2017.json"))
 let hotspots2018 = await JSON.parse(await fs.readFile("hotspots/hotspots_2018.json"))
@@ -34,22 +34,42 @@ let hotspots_map = [
 await fs.writeFile(fileName, '[\n', 'utf8');
 let isFirst = true;   // track commas
 
-function runScript(method, center, radius, activationFunction) {
+function runScript(method, center, radius, activationFunction, year) {
   return new Promise((resolve, reject) => {
-    const child = spawn('node', [`src/${method}.js`, center, radius, activationFunction]);
+    const child = spawn('node', [`src/${method}.js`, center, radius, activationFunction, year]);
 
     let output = '';
-
+    // child.stdout.on('data', data => {
+    //     let temp = JSON.parse(data.toString())
+    //     result.push(
+    //         {
+    //             "method": method,
+    //             "year": year,
+    //             "radius": radius,
+    //             "num_startpoints": temp.num_startpoints,
+    //             "execution_time": temp.exec_time,
+    //             "best_score": temp.best_score
+    //         }
+    //     )
+    // });
     child.stdout.on('data', async data => {
     const temp = JSON.parse(data.toString());
 
     const entry = {
-      rank: currentHotspot,
-      center: temp.coordinates,
+      method,
+      year,
+      radius,
+      num_startpoints: temp.num_startpoints,
+      execution_time: temp.exec_time,
       best_score: temp.best_score,
+      ind_time: temp.ind_time,
+      avg_time: temp.avg_time,
+      steps: temp.steps,
+      total_crimes: temp.total_crimes,
       seen_crimes: temp.seen_crimes,
-      coverage_area: temp.coverage_area,
-      activation_function: activationFunction
+      unique_crime_coords: temp.unique_crime_coords,
+      pai: temp.pai,
+      activation_function: temp.activation_function
     };
 
     const json = JSON.stringify(entry, null, 2);
@@ -80,7 +100,7 @@ for (const item of hotspots_map) {
     // testCounter = 1
     coordCounter = 1
     for (const pos of item.startCoords) {
-        currentHotspot ++
+
         radiusCounter = 1
         for (let radius of radiuses) {
             activationCounter = 1

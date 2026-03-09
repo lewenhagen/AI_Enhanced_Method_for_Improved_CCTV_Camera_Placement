@@ -1,16 +1,15 @@
 import { spawn } from 'child_process';
 import { promises as fs } from 'fs'
 import { appendFile } from 'fs/promises';
-const fileName = "POSS.json"
+const fileName = "experiment-20260210.json"
 const years = [2018, 2019, 2020]
 // const radiuses = [100, 150, 200]
-const radiuses = [100]
-const methods = ["bruteforce", "buildingwalk"]
-let currentHotspot = 1
+const radiuses = [50, 100, 150, 200]
+const methods = ["bruteforce", "hillclimb", "buildingwalk", "dfs"]
+
 let result = []
 // let center = "55.5636,12.9746"
-// let dist_weights = [0, 0.2, 0.4, 0.6, 0.8, 1]
-let activations = ["sigmoid", "uniform"]
+let dist_weights = [0, 0.2, 0.4, 0.6, 0.8, 1]
 
 let hotspots2017 = await JSON.parse(await fs.readFile("hotspots/hotspots_2017.json"))
 let hotspots2018 = await JSON.parse(await fs.readFile("hotspots/hotspots_2018.json"))
@@ -34,22 +33,43 @@ let hotspots_map = [
 await fs.writeFile(fileName, '[\n', 'utf8');
 let isFirst = true;   // track commas
 
-function runScript(method, center, radius, activationFunction) {
+function runScript(method, center, radius, dist_weight, year) {
   return new Promise((resolve, reject) => {
-    const child = spawn('node', [`src/${method}.js`, center, radius, activationFunction]);
+    const child = spawn('node', [`src/${method}.js`, center, radius, dist_weight, year]);
 
     let output = '';
-
+    // child.stdout.on('data', data => {
+    //     let temp = JSON.parse(data.toString())
+    //     result.push(
+    //         {
+    //             "method": method,
+    //             "year": year,
+    //             "radius": radius,
+    //             "num_startpoints": temp.num_startpoints,
+    //             "execution_time": temp.exec_time,
+    //             "best_score": temp.best_score
+    //         }
+    //     )
+    // });
     child.stdout.on('data', async data => {
     const temp = JSON.parse(data.toString());
 
     const entry = {
-      rank: currentHotspot,
-      center: temp.coordinates,
+      method,
+      year,
+      radius,
+      dist_weight: dist_weight,
+      num_startpoints: temp.num_startpoints,
+      execution_time: temp.exec_time,
       best_score: temp.best_score,
+      weighted_score: temp.weighted_score,
+      ind_time: temp.ind_time,
+      avg_time: temp.avg_time,
+      steps: temp.steps,
+      total_crimes: temp.total_crimes,
       seen_crimes: temp.seen_crimes,
-      coverage_area: temp.coverage_area,
-      activation_function: activationFunction
+      unique_crime_coords: temp.unique_crime_coords,
+      pai: temp.pai
     };
 
     const json = JSON.stringify(entry, null, 2);
@@ -73,33 +93,33 @@ function runScript(method, center, radius, activationFunction) {
 let testCounter = 1
 let coordCounter = 1
 let methodCounter = 1
-let activationCounter = 1
+let distWeightCounter = 1
 let radiusCounter = 1
 
 for (const item of hotspots_map) {
     // testCounter = 1
     coordCounter = 1
     for (const pos of item.startCoords) {
-        currentHotspot ++
+
         radiusCounter = 1
         for (let radius of radiuses) {
-            activationCounter = 1
+            distWeightCounter = 1
 
-            for (let af of activations) {
+            for (let dw of dist_weights) {
                 methodCounter = 1
                 for (let method of methods) {
 
-                    await runScript(method, pos, radius, af, item.year)
-                    // console.log(`Evaluate against year: ${item.year}, Center: ${pos}, Radius: ${radius}, Dist_weight: ${af}, Method: ${method} done.`)
+                    await runScript(method, pos, radius, dw, item.year)
+                    // console.log(`Evaluate against year: ${item.year}, Center: ${pos}, Radius: ${radius}, Dist_weight: ${dw}, Method: ${method} done.`)
                     console.log(`Test: ${testCounter}/${hotspots_map.length}`)
                     console.log(`Coordinate: ${coordCounter}/${item.startCoords.length}`)
                     console.log(`Radius: ${radiusCounter}/${radiuses.length}`)
-                    console.log(`Activation: ${activationCounter}/${activations.length}`)
+                    console.log(`Dist_weight: ${distWeightCounter}/${dist_weights.length}`)
                     console.log(`Method: ${methodCounter}/${methods.length}`)
                     console.log("----------------------------")
                     methodCounter++
                 }
-                activationCounter++
+                distWeightCounter++
             }
             radiusCounter++
         }

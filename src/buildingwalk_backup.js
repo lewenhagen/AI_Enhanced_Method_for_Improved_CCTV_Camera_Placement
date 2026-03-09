@@ -237,10 +237,19 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
   console.log(JSON.stringify(
       {
-        "coordinates": data.allPoints[0].camInfo.center,
+        "num_startpoints": data.allPoints[0].length,
+        "exec_time": Math.round((elapsed/1000)*1000)/1000,
         "best_score": data.allPoints[0].camInfo.score,
+        "ind_time": null,
+        "avg_time": null,
+        "steps": data.allPoints.length,
+        "total_crimes": totalCount,
         "seen_crimes": data.allPoints[0].totalCount,
-        "coverage_area": data.allPoints[0].camInfo.polygon.geometry.coordinates
+        "unique_crime_coords": data.allPoints[0].totalCrimeCount,
+        "pai": data.allPoints[0].pai,
+        "area": data.allPoints[0].camInfo.area,
+        "total_distance": data.allPoints[0].totalDistance,
+        "activation_function": activationFunction
       }
     )
   )
