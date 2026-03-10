@@ -7,7 +7,10 @@ db/*.sqlite
 experiment.*
 **/*.json
 *.csv
-.ipynb*
+*.ipynb
 notebook.ipynb
 *.gz
 .env
+GraphVenn/*
+crimes_from_martin/
+hotspots/
