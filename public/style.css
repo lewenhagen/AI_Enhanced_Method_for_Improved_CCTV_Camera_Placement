@@ -1,3 +1,5 @@
+@import './formpopup.css';
+
 body {
     margin: 0;
     padding: 0;
@@ -58,6 +60,12 @@ button {
 #sendToClipboardBtn {
   width: 40%;
   background-color: #3e823e;
+  color: white;
+}
+
+#setCoverageBtn {
+  width: 40%;
+  background-color: #4d77d9;
   color: white;
 }
 

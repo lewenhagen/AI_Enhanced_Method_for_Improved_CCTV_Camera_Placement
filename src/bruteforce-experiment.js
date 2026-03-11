@@ -9,6 +9,7 @@ import { fixCrimes } from './helpers.js'
 import path from 'path';
 import { WorkerPool } from './pool.js';
 import { fileURLToPath } from "url";
+import os  from 'os';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -95,7 +96,7 @@ async function initBruteforce(center, distance, gridDensity, activationFunction,
 
   const pool = new WorkerPool(
     workerPath,
-    10,
+    os.cpus().length,                      // pool size
     sharedData
   );
 
@@ -146,7 +147,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const start = performance.now()
 
   let data = await initBruteforce(startLoc, dist, 5, activationFunction, year)
-
+  // console.log(Object.keys(data.allPoints[0].camInfo))
   const end = performance.now()
   const elapsed = end - start
   const totalCount = Object.values(data.crimes)
@@ -155,19 +156,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     console.log(JSON.stringify(
       {
         "coordinates": data.allPoints[0].camInfo.center,
-        "num_startpoints": data.gridArea.features.length,
-        "exec_time": Math.round((elapsed/1000)*1000)/1000,
         "best_score": data.allPoints[0].camInfo.score,
-        "ind_time": null,
-        "avg_time": null,
-        "steps": data.gridArea.features.length,
-        "total_crimes": totalCount,
         "seen_crimes": data.allPoints[0].totalCount,
-        "unique_crime_coords": data.allPoints[0].totalCrimeCount,
-        "pai": data.allPoints[0].pai,
-        "area": data.allPoints[0].camInfo.area,
-        "total_distance": data.allPoints[0].totalDistance,
-        "activation_function": activationFunction,
+        "coverage_area": data.allPoints[0].camInfo.polygon.geometry.coordinates
       }
     )
   );

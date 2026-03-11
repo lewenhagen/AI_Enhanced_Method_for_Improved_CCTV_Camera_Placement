@@ -9,6 +9,8 @@ import { fixCrimes } from './helpers.js'
 import path from 'path';
 import { WorkerPool } from './pool.js';
 import { fileURLToPath } from "url";
+import os  from 'os';
+import fs from 'fs'
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -50,6 +52,54 @@ let data = {}
 //       });
 //     });
 //   }
+
+function solveMaxCoverage(data, N) {
+  const coveredCrimes = new Set();
+  const selected = [];
+
+  const remaining = [...data];
+
+  for (let rank = 1; rank <= N; rank++) {
+    let bestIndex = -1;
+    let bestGain = -1;
+
+    for (let i = 0; i < remaining.length; i++) {
+      const cam = remaining[i];
+
+      const crimes = cam.camInfo.connectedCrimes || [];
+      let gain = 0;
+
+      for (const crime of crimes) {
+        const id = crime.id || JSON.stringify(crime);
+        if (!coveredCrimes.has(id)) gain++;
+      }
+
+      if (gain > bestGain) {
+        bestGain = gain;
+        bestIndex = i;
+      }
+    }
+
+    if (bestIndex === -1) break;
+
+    const chosen = remaining.splice(bestIndex, 1)[0];
+
+    const crimes = chosen.camInfo.connectedCrimes || [];
+    for (const crime of crimes) {
+      const id = crime.id || JSON.stringify(crime);
+      coveredCrimes.add(id);
+    }
+
+    selected.push({
+      rank,
+      ...chosen
+    });
+  }
+
+  return selected;
+}
+
+
 
 
 
@@ -95,7 +145,7 @@ async function initBruteforce(center, distance, gridDensity, activationFunction,
 
   const pool = new WorkerPool(
     workerPath,
-    10,
+    os.cpus().length,                      // pool size
     sharedData
   );
 
@@ -146,31 +196,74 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const start = performance.now()
 
   let data = await initBruteforce(startLoc, dist, 5, activationFunction, year)
-
+  // console.log(Object.keys(data.allPoints[0].camInfo))
   const end = performance.now()
   const elapsed = end - start
-  const totalCount = Object.values(data.crimes)
-      .reduce((sum, item) => sum + item.count, 0);
+  const totalCount = Object.values(data.crimes).reduce((sum, item) => sum + item.count, 0);
+  const N = 10;
 
-    console.log(JSON.stringify(
-      {
-        "coordinates": data.allPoints[0].camInfo.center,
-        "num_startpoints": data.gridArea.features.length,
-        "exec_time": Math.round((elapsed/1000)*1000)/1000,
-        "best_score": data.allPoints[0].camInfo.score,
-        "ind_time": null,
-        "avg_time": null,
-        "steps": data.gridArea.features.length,
-        "total_crimes": totalCount,
-        "seen_crimes": data.allPoints[0].totalCount,
-        "unique_crime_coords": data.allPoints[0].totalCrimeCount,
-        "pai": data.allPoints[0].pai,
-        "area": data.allPoints[0].camInfo.area,
-        "total_distance": data.allPoints[0].totalDistance,
-        "activation_function": activationFunction,
-      }
-    )
-  );
+  const selected = solveMaxCoverage(allpoints, N);
+
+  const features = selected.map((c, i) => ({
+    type: "Feature",
+    properties: {
+      rank: i + 1,
+      score: c.camInfo.score,
+      pai: c.pai,
+      area: c.camInfo.area
+    },
+    geometry: c.camInfo.polygon.geometry
+  }));
+
+  const geojson = {
+    type: "FeatureCollection",
+    features
+  };
+
+  fs.writeFileSync("cameras.geojson", JSON.stringify(geojson, null, 2));
+
+  console.log("Finished.");
+//   function toCSV(data) {
+//     const header = [
+//       "center_lon",
+//       "center_lat",
+//       "polygon",
+//       "score",
+//       "pai",
+//       "area"
+//     ];
+
+//     const rows = data.map(obj => {
+//       const center = obj.camInfo.center.coordinates;
+//       const polygon = JSON.stringify(obj.camInfo.polygon.geometry.coordinates);
+
+//       return [
+//         center[0],
+//         center[1],
+//         polygon,
+//         obj.camInfo.score,
+//         obj.pai,
+//         obj.camInfo.area
+//       ];
+//     });
+
+//     const csv = [
+//       header.join(","),
+//       ...rows.map(r => r.join(","))
+//     ].join("\n");
+
+//     return csv;
+//   }
+
+// // write file
+// const csv = toCSV(data.allPoints);
+
+// fs.writeFileSync("output.csv", csv);
+    // console.log(JSON.stringify(
+    //   {
+    //     "result": data.allPoints
+    //   }
+    // ));
 
 }
 

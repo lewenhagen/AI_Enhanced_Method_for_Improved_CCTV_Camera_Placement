@@ -410,28 +410,89 @@ document.getElementById('map').style.cursor = 'crosshair'
 
 let baseLine = new L.FeatureGroup()
 let drawnItems = new L.FeatureGroup()
+let coverageItems = new L.FeatureGroup()
 let drawnAi = new L.FeatureGroup()
 
 map.addLayer(drawnItems)
 map.addLayer(baseLine)
+map.addLayer(coverageItems)
 map.addLayer(drawnAi)
 
-// let drawControl = new L.Control.Draw({
-//     edit: {
-//         featureGroup: drawnItems
-//     },
-//     draw: {
-//         polygon: true,
-//         polyline: true,
-//         rectangle: true,
-//         circle: false,
-//         marker: false
-//     }
-// })
+let drawControl = new L.Control.Draw({
+    edit: {
+        featureGroup: coverageItems
+    },
+    draw: {
+        polygon: true,
+        polyline: false,
+        rectangle: true,
+        circle: false,
+        marker: false
+    }
+})
 
 // map.addControl(drawControl)
 L.control.polylineMeasure({
 }).addTo(map)
+
+function fixCoords(event) {
+  let layer = event.layer
+  // drawnItems.addLayer(layer)
+  let latlngs = layer.getLatLngs()[0]
+  // Convert Leaflet LatLng objects to GeoJSON-style coordinates (lon, lat)
+  let coords = latlngs.map(ll => [ll.lng, ll.lat])
+  // Ensure the polygon is closed by repeating the first coordinate at the end
+  if (coords.length > 0 && (coords[0][0] !== coords[coords.length - 1][0] || coords[0][1] !== coords[coords.length - 1][1])) {
+    coords.push(coords[0]) // Close the ring
+  }
+
+
+  return coords
+}
+
+map.on('draw:created', async function (event) {
+  // Add layer to map as baseline
+  baseLine.addLayer(event.layer)
+  document.getElementById("myForm").style.display = "block";
+
+  if (event.layerType === "polyline") {
+    let form = document.getElementById("theForm")
+    let input = document.createElement("input")
+    let label = document.createElement("label")
+    
+    label.innerHTML = "Focus on line coverage?"
+    input.setAttribute("type", "checkbox")
+    input.setAttribute("id", "focusLine")
+    input.checked = false
+
+    form.prepend(label)
+    form.prepend(input)
+
+    let latlngs = Array.from(new Set(event.layer.getLatLngs().map(JSON.stringify))).map(JSON.parse)
+    let coords = latlngs.map(ll => [ll.lng, ll.lat])
+    let json = {}
+
+    okButton.addEventListener("click", async function() {
+      drawnItems.clearLayers()
+      json = await startFetchPolyline(coords)
+
+      handleOutputPolyline(json)
+    })
+  } else if (event.layerType === "polygon" || event.layerType === "rectangle") {
+
+    let coords = fixCoords(event)
+    let json = {}
+
+    okButton.addEventListener("click", async function() {
+      drawnItems.clearLayers()
+      json = await startFetch(coords)
+
+      handleOutput(json)
+    })
+}
+  cancelButton.onclick = closeModal
+})
+
 
 
 map.on("click", function(e) {
@@ -571,3 +632,10 @@ methods.addEventListener('change', (event) => {
 
 
 sendCoordinatesToClipboardBtn.addEventListener("click", sendCoordinatesToClipboard)
+
+
+function closeModal() {
+  // baseLine.clearLayers()
+  // drawnItems.clearLayers()
+  // document.getElementById("myForm").style.display = "none"
+}
