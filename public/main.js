@@ -1,5 +1,7 @@
 const theForm = document.getElementById("theForm")
 const okButton = document.getElementById("okButton")
+const setCoverageCheckbox = document.getElementById("setcoverage")
+const coverageValue = document.getElementById("coverageValue")
 const cancelButton = document.getElementById("cancelButton")
 const loadBtn = document.getElementById("loadBtn")
 const animate = document.getElementById("animate")
@@ -26,6 +28,7 @@ const greenIcon = L.divIcon({
   iconSize: [14, 14],
   iconAnchor: [7, 7]
 });
+
 
 const toggleBtn = document.getElementById("toggleSettings");
 const settings = document.getElementById("settings");
@@ -101,6 +104,24 @@ function drawTheBest() {
     layer.openPopup()
     drawnItems.addLayer(L.geoJSON(useThis.camInfo.polygon, {style: {color:"purple"}}))
     drawnItems.bringToBack()
+}
+
+function drawAllCamerasWithCoverage(points) {
+  points.forEach((pointData, index) => {
+    let layer = L.geoJSON(pointData.camInfo.center).bindPopup(`
+      DWS: ${pointData.camInfo.score.toFixed(3)}<br>
+      Activation: ${pointData.camInfo.activation}<br>
+      PAI: ${pointData.pai.toFixed(3)}<br>
+      Area: ${pointData.camInfo.area.toFixed(2).toString()}<br>
+      Crime count: ${pointData.totalCount}<br>
+      Total distance (m): ${pointData.totalDistance.toFixed(2)}<br>
+      Unique crime coordinates: ${pointData.totalCrimeCount}<br>
+      Coordinates (lat/lng): ${pointData.camInfo.center.coordinates[1].toFixed(4)}, ${pointData.camInfo.center.coordinates[0].toFixed(4)}`)
+    // console.log(useThis)
+    drawnItems.addLayer(layer)
+    drawnItems.addLayer(L.geoJSON(pointData.camInfo.polygon, {style: {color:"purple"}}))
+    drawnItems.bringToBack()
+  })
 }
 
 // async function drawBoundingBoxWithoutBuildings() {
@@ -224,7 +245,7 @@ async function runRandomWalk(center, distance, gridDensity, activationFunction, 
   // drawCrimes(allCrimes)
 }
 
-async function runBruteForce(center, distance, gridDensity, activationFunction, year) {
+async function runBruteForce(center, distance, gridDensity, activationFunction, year, coverage, nrOfCams) {
   const headers = { 'Content-Type': 'application/json' }
 
   try {
@@ -232,7 +253,7 @@ async function runBruteForce(center, distance, gridDensity, activationFunction, 
           method: 'POST',
           headers: headers,
           body: JSON.stringify({
-            center, distance, gridDensity, activationFunction, year
+            center, distance, gridDensity, activationFunction, year, coverage, nrOfCams
           })
       });
 
@@ -542,6 +563,8 @@ loadBtn.addEventListener("click", async function(event) {
     let gridDensity = parseInt(document.getElementById("gridDensity").value)
     let maxSteps = parseInt(document.getElementById("max-steps").value)
     let startingPos = document.getElementById("startingPos").value
+    let coverage = document.getElementById("setcoverage").checked
+    let nrOfCams = parseInt(document.getElementById("coverageValue").value)
     // let distanceWeight = parseFloat(document.getElementById("distanceWeight").value)
     let activationFunction = document.getElementById("activationFunction").value
     chosenMethod = document.getElementById("walkmode").value
@@ -553,7 +576,7 @@ loadBtn.addEventListener("click", async function(event) {
     } else if (chosenMethod === "dfs") {
       await runDFS(center, distance, gridDensity, activationFunction, maxSteps, startingPos, year)
     } else if (chosenMethod === "bruteforce") {
-      await runBruteForce(center, distance, gridDensity, activationFunction, year)
+      await runBruteForce(center, distance, gridDensity, activationFunction, year, coverage, nrOfCams)
     } else if (chosenMethod === "building") {
       let steps = document.getElementById("building-steps-value").value
       await runBuildingWalk(center, distance, gridDensity, activationFunction, year, steps)
@@ -563,7 +586,12 @@ loadBtn.addEventListener("click", async function(event) {
 
     simulations.value = 1
     hideLoader()
-    drawTheBest()
+    if (coverage) {
+      drawAllCamerasWithCoverage(bruteForceData.allPoints)
+    } else {
+      drawTheBest()
+    }
+    
     sendCoordinatesToClipboardBtn.disabled = false
     sendCoordinatesToClipboardBtn.innerText = "Copy coordinates"
 })
@@ -633,6 +661,13 @@ methods.addEventListener('change', (event) => {
 
 sendCoordinatesToClipboardBtn.addEventListener("click", sendCoordinatesToClipboard)
 
+setCoverageCheckbox.addEventListener("change", function() {
+  if (this.checked) {
+    coverageValue.disabled = false
+  } else {
+    coverageValue.disabled = true
+  }
+})
 
 function closeModal() {
   // baseLine.clearLayers()

@@ -149,8 +149,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
   const end = performance.now()
   const elapsed = end - start
-  const totalCount = Object.values(data.crimes)
-      .reduce((sum, item) => sum + item.count, 0);
+  const totalCount = Object.values(data.crimes).reduce((sum, item) => sum + item.count, 0);
 
     console.log(JSON.stringify(
       {

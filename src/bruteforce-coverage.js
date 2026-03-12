@@ -5,6 +5,7 @@ import { getIntersectingBuildingsAI } from './intersectingBuildings.js'
 import { getCrimesInPolygon } from './getCrimesInPolygon.js'
 // import { getAllCrimesAvailable } from './getAllCrimesAvailable.js'
 import { fixCrimes } from './helpers.js'
+import { selectGreedyCameras } from './setcover.js'
 // import { Worker } from 'worker_threads';
 import path from 'path';
 import { WorkerPool } from './pool.js';
@@ -103,7 +104,7 @@ function solveMaxCoverage(data, N) {
 
 
 
-async function initBruteforce(center, distance, gridDensity, activationFunction, year) {
+async function initBruteforce(center, distance, gridDensity, activationFunction, year, coverage, nrOfCams) {
   allpoints = []
   data = {}
 
@@ -175,6 +176,16 @@ async function initBruteforce(center, distance, gridDensity, activationFunction,
   !SILENT && console.log("Bruteforce best score: " + allpoints[0].camInfo.score)
   !SILENT && console.log("Bruteforce best pos area: " + allpoints[0].camInfo.area)
 
+  if (coverage) {
+    const start = performance.now()
+    const N = nrOfCams;
+    const filteredCameras = allpoints.filter(cam => cam.camInfo.score > 0)
+    allpoints = selectGreedyCameras(filteredCameras, N);
+    const end = performance.now()
+    const elapsed = end - start
+    allpoints.execTime = Math.round((elapsed/1000)*1000)/1000
+  }
+
   return {
     allPoints: allpoints,
     gridArea: gridArea,
@@ -188,41 +199,45 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   let startLoc = process.argv[2]
   let dist = process.argv[3]
   let activationFunction = process.argv[4]
-  let year = process.argv[5]
+  let year = process.argv[5] || "all"
+  let doCoverage = process.argv[6] || false
+  let nrOfCams = process.argv[7] || 4
 
   SILENT=true
   let json = []
 
-  const start = performance.now()
+  // const start = performance.now()
 
-  let data = await initBruteforce(startLoc, dist, 5, activationFunction, year)
+  let data = await initBruteforce(startLoc, dist, 5, activationFunction, year, doCoverage, nrOfCams)
   // console.log(Object.keys(data.allPoints[0].camInfo))
-  const end = performance.now()
-  const elapsed = end - start
+  // const end = performance.now()
+  // const elapsed = end - start
   const totalCount = Object.values(data.crimes).reduce((sum, item) => sum + item.count, 0);
-  const N = 10;
+  
+  console.log(JSON.stringify(
+      {
+        "coordinates": data.allPoints[0].camInfo.center,
+        "exec_time": data.allPoints.execTime || null,
+        "best_score": data.allPoints[0].camInfo.score,
+        "total_crimes": totalCount,
+        "seen_crimes": data.allPoints[0].totalCount,
+        "unique_crime_coords": data.allPoints[0].totalCrimeCount,
+        "pai": data.allPoints[0].pai,
+        "area": data.allPoints[0].camInfo.area,
+        "activation_function": activationFunction,
+      }
+    )
+  );
+ 
+  // const filteredCameras = allpoints.filter(cam => cam.camInfo.score > 0)
+  
 
-  const selected = solveMaxCoverage(allpoints, N);
 
-  const features = selected.map((c, i) => ({
-    type: "Feature",
-    properties: {
-      rank: i + 1,
-      score: c.camInfo.score,
-      pai: c.pai,
-      area: c.camInfo.area
-    },
-    geometry: c.camInfo.polygon.geometry
-  }));
+  
 
-  const geojson = {
-    type: "FeatureCollection",
-    features
-  };
 
-  fs.writeFileSync("cameras.geojson", JSON.stringify(geojson, null, 2));
 
-  console.log("Finished.");
+
 //   function toCSV(data) {
 //     const header = [
 //       "center_lon",

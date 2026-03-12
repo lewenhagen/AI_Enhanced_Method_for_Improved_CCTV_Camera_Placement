@@ -13,7 +13,7 @@ import { getAreaWithoutBuildings } from './src/getAreaWithoutBuildings.js'
 import { runAi } from './src/runAi.js'
 import { normalizeScoreForVisualization, normalizeScoreForBuildingWalkVisualization } from './src/scoreCalculation.js'
 import { fixCrimes } from './src/helpers.js'
-import { initBruteforce } from './src/bruteforce.js'
+import { initBruteforce } from './src/bruteforce-coverage.js'
 import { initRandomWalk } from './src/hillclimb.js'
 import { initBuildingwalk } from './src/buildingwalk.js'
 import { initDFS } from './src/dfs.js'
@@ -155,7 +155,7 @@ app.post("/run-bruteforce", async (req, res) => {
   let response = {}
 
   console.time("### Bruteforce exec time")
-  response = await initBruteforce(req.body.center, req.body.distance, req.body.gridDensity, req.body.activationFunction, req.body.year)
+  response = await initBruteforce(req.body.center, req.body.distance, req.body.gridDensity, req.body.activationFunction, req.body.year, req.body.coverage, req.body.nrOfCams)
   console.timeEnd("### Bruteforce exec time")
   console.log(`Grid size: ${response.gridArea.features.length} points`)
 
