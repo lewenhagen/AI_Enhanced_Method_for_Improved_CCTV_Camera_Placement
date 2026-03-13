@@ -111,7 +111,7 @@ async function buildingWalk(camPoint, distance, distanceWeight) {
 
 
 
-async function initBuildingwalk(center, distance, gridDensity, activationFunction, year, steps) {
+async function initBuildingwalk(center, distance, gridDensity, activationFunction, year, steps, prefix) {
   allpoints = []
   data = {}
   circle = turf.circle([parseFloat(center.split(",")[1]), parseFloat(center.split(",")[0])], distance/1000, { steps: 64, units: 'kilometers' })
@@ -121,7 +121,7 @@ async function initBuildingwalk(center, distance, gridDensity, activationFunctio
   !SILENT && console.timeEnd("### Get all intersecting buildings")
 
   !SILENT && console.time("### Get all crimes in r*2 bounding box")
-  data.crimes = await getCrimesInPolygon(data.boundingBox, data.buildings, year)
+  data.crimes = await getCrimesInPolygon(data.boundingBox, data.buildings, year, prefix)
   !SILENT && console.timeEnd("### Get all crimes in r*2 bounding box")
   !SILENT && console.time("### Create grid over capture area")
   !SILENT && console.timeEnd("### Create grid over capture area")
@@ -224,10 +224,11 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   let dist = process.argv[3]
   let activationFunction = process.argv[4]
   let year = process.argv[5]
+  let prefix = process.argv[6]
 
   const start = performance.now()
 
-  let data = await initBuildingwalk(startLoc, dist, 5, activationFunction, year, 5)
+  let data = await initBuildingwalk(startLoc, dist, 5, activationFunction, year, 5, prefix)
 
   const end = performance.now()
   const elapsed = end - start

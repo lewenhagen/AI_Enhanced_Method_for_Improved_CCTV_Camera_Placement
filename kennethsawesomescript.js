@@ -1,121 +1,241 @@
-import { spawn } from 'child_process';
-import { promises as fs } from 'fs'
-import { appendFile } from 'fs/promises';
-const fileName = "poss_2026.json"
-// const years = [2018, 2019, 2020]
-// const radiuses = [100, 150, 200]
-const radiuses = [100]
-const methods = ["bruteforce", "buildingwalk"]
-let currentHotspot = 1
-let result = []
-// let center = "55.5636,12.9746"
-// let dist_weights = [0, 0.2, 0.4, 0.6, 0.8, 1]
-let activations = ["sigmoid", "uniform"]
+// import { spawn } from "child_process";
+// import { promises as fs } from "fs";
+// import path from "path";
+// import csv from "csv-parser";
+// import { createReadStream } from "fs";
 
-let ystad = await JSON.parse(await fs.readFile("hotspots/ystad.json"))
-let trelleborg = await JSON.parse(await fs.readFile("hotspots/trelleborg.json"))
-let lund = await JSON.parse(await fs.readFile("hotspots/lund.json"))
+// const radiuses = [100];
+// const methods = ["bruteforce", "buildingwalk"];
+// const hotspotFolders = ["all", "violent", "theft"];
+// const activations = ["uniform"];
 
-let hotspots_map = [
-    {
-        "startCoords": ystad,
-        "city": "Ystad"
-    },
-    {
-        "startCoords": trelleborg,
-        "city": "Trelleborg"
-    },
-    {
-        "startCoords": lund,
-        "city": "Lund"
+// async function main() {
+
+//   for (const folder of hotspotFolders) {
+
+//     const folderPath = `hotspots/${folder}`;
+//     const files = (await fs.readdir(folderPath)).filter(f => f.endsWith(".csv"));
+
+//     for (const file of files) {
+
+//       const filePath = path.join(folderPath, file);
+
+//       // prefix is everything before the first "."
+//       const prefix = file.split(".")[0];
+
+//       console.log(`Processing ${file} → prefix ${prefix}`);
+
+//       const coords = [];
+
+//       await new Promise((resolve, reject) => {
+//         createReadStream(filePath)
+//           .pipe(csv())
+//           .on("data", row => {
+//             coords.push(`${row.latitude},${row.longitude}`);
+//           })
+//           .on("end", resolve)
+//           .on("error", reject);
+//       });
+
+//       let rank = 1;
+
+//       for (const pos of coords) {
+//         for (let radius of radiuses) {
+//           for (let af of activations) {
+//             for (let method of methods) {
+
+//               const fileName = `output_${prefix}_${folder}_${method}_${af}.json`;
+//               const temp = await runScript(method, pos, radius, af, prefix);
+
+//               // append results for this file
+//               const entry = {
+//                 rank: rank,
+//                 city: prefix,
+//                 center: temp.coordinates,
+//                 best_score: temp.best_score,
+//                 seen_crimes: temp.seen_crimes,
+//                 coverage_area: temp.coverage_area,
+//                 activation_function: af,
+//                 method: method
+//               };
+
+//               // if file exists, append; otherwise create new array
+//               let fileData = [];
+//               try {
+//                 const existing = await fs.readFile(fileName, "utf8");
+//                 fileData = JSON.parse(existing);
+//               } catch (err) {
+//                 fileData = [];
+//               }
+
+//               fileData.push(entry);
+//               await fs.writeFile(`hotspots/output/${fileName}`, JSON.stringify(fileData, null, 2));
+
+//             }
+//           }
+//         }
+//         rank++;
+//       }
+
+//     }
+
+//   }
+
+// }
+
+// function runScript(method, center, radius, activationFunction, prefix) {
+
+//   return new Promise((resolve, reject) => {
+
+//     const child = spawn("node", [
+//       `src/${method}.js`,
+//       center,
+//       radius,
+//       activationFunction,
+//       "all",
+//       prefix
+//     ]);
+
+//     let output = "";
+
+//     child.stdout.on("data", data => {
+//       output += data.toString();
+//     });
+
+//     child.stderr.on("data", data => {
+//       console.error("stderr:", data.toString());
+//     });
+
+//     child.on("close", code => {
+
+//       if (code !== 0) {
+//         reject(new Error(`Process exited with code ${code}`));
+//         return;
+//       }
+
+//       try {
+//         resolve(JSON.parse(output));
+//       } catch (err) {
+//         reject(err);
+//       }
+
+//     });
+
+//   });
+
+// }
+
+// main();
+
+import { spawn } from "child_process";
+import { promises as fs } from "fs";
+import path from "path";
+import csv from "csv-parser";
+import { createReadStream } from "fs";
+
+const radiuses = [100];
+const methods = ["bruteforce", "buildingwalk"];
+const hotspotFolders = ["all", "violent", "theft"];
+const activations = ["uniform"];
+const outputDir = "hotspots/output";
+
+async function main() {
+
+  // Ensure output directory exists
+  await fs.mkdir(outputDir, { recursive: true });
+
+  for (const folder of hotspotFolders) {
+
+    const folderPath = `hotspots/${folder}`;
+    const files = (await fs.readdir(folderPath)).filter(f => f.endsWith(".csv"));
+
+    for (const file of files) {
+
+      const filePath = path.join(folderPath, file);
+      const prefix = file.split(".")[0];
+      console.log(`Processing ${file} → prefix ${prefix}`);
+
+      // Load CSV coordinates
+      const coords = [];
+      await new Promise((resolve, reject) => {
+        createReadStream(filePath)
+          .pipe(csv())
+          .on("data", row => coords.push(`${row.latitude},${row.longitude}`))
+          .on("end", resolve)
+          .on("error", reject);
+      });
+
+      // Loop over method/activation/radius
+      for (const method of methods) {
+        for (const af of activations) {
+          for (const radius of radiuses) {
+
+            const fileName = `output_${prefix}_${folder}_${method}_${af}.json`;
+            const filePathOut = path.join(outputDir, fileName);
+
+            // Read existing file if it exists
+            let fileData = [];
+            try {
+              const existing = await fs.readFile(filePathOut, "utf8");
+              fileData = JSON.parse(existing);
+            } catch {
+              fileData = [];
+            }
+
+            let rank = fileData.length + 1;
+
+            // Run all coordinates and collect results
+            for (const pos of coords) {
+              const temp = await runScript(method, pos, radius, af, prefix);
+              
+              fileData.push({
+                rank: rank++,
+                city: prefix,
+                center: temp.coordinates,
+                best_score: temp.best_score,
+                seen_crimes: temp.seen_crimes,
+                coverage_area: temp.coverage_area,
+                activation_function: af,
+                method
+              });
+            }
+
+            // Write updated JSON file once
+            await fs.writeFile(filePathOut, JSON.stringify(fileData, null, 2));
+            console.log(`Saved ${fileData.length} entries → ${fileName}`);
+          }
+        }
+      }
     }
-]
+  }
+}
 
-await fs.writeFile(fileName, '[\n', 'utf8');
-let isFirst = true;
-
-function runScript(method, center, radius, activationFunction, year, city) {
+function runScript(method, center, radius, activationFunction, prefix) {
+  // console.log(method, center, radius, activationFunction, prefix)
   return new Promise((resolve, reject) => {
-    const child = spawn('node', [`src/${method}.js`, center, radius, activationFunction]);
+    const child = spawn("node", [
+      `src/${method}.js`,
+      center,
+      radius,
+      activationFunction,
+      "all",
+      prefix
+    ]);
 
-    let output = '';
+    let output = "";
 
-    child.stdout.on('data', async data => {
-    const temp = JSON.parse(data.toString());
+    child.stdout.on("data", data => output += data.toString());
+    child.stderr.on("data", data => console.error("stderr:", data.toString()));
 
-    const entry = {
-      rank: currentHotspot,
-      city: city,
-      center: temp.coordinates,
-      best_score: temp.best_score,
-      seen_crimes: temp.seen_crimes,
-      coverage_area: temp.coverage_area,
-      activation_function: activationFunction,
-      method: method
-    };
-
-    const json = JSON.stringify(entry, null, 2);
-
-    if (!isFirst) {
-      await fs.appendFile(fileName, ',\n' + json);
-    } else {
-      await fs.appendFile(fileName, json);
-      isFirst = false;
-    }
-  });
-    child.stderr.on('data', data => console.error('stderr:', data.toString()));
-
-    child.on('error', reject);
-    child.on('close', code => {
-      if (code === 0) resolve(output.trim());
-      else reject(new Error(`Process exited with code ${code}`));
+    child.on("close", code => {
+      if (code !== 0) return reject(new Error(`Process exited with code ${code}`));
+      try {
+        resolve(JSON.parse(output));
+      } catch (err) {
+        reject(err);
+      }
     });
   });
 }
-let testCounter = 1
-let coordCounter = 1
-let methodCounter = 1
-let activationCounter = 1
-let radiusCounter = 1
 
-for (const item of hotspots_map) {
-
-    // testCounter = 1
-    currentHotspot = 1
-    coordCounter = 1
-    for (const pos of item.startCoords) {
-
-        // currentHotspot ++
-        radiusCounter = 1
-        for (let radius of radiuses) {
-            activationCounter = 1
-
-            for (let af of activations) {
-                methodCounter = 1
-                for (let method of methods) {
-
-                    await runScript(method, pos, radius, af, "all", item.city)
-                    // console.log(`Evaluate against year: ${item.year}, Center: ${pos}, Radius: ${radius}, Dist_weight: ${af}, Method: ${method} done.`)
-		                console.log(`Rank: ${coordCounter}`)
-                    console.log(`Test: ${testCounter}/${hotspots_map.length}`)
-                    console.log(`Coordinate: ${coordCounter}/${item.startCoords.length}`)
-                    console.log(`Radius: ${radiusCounter}/${radiuses.length}`)
-                    console.log(`Activation: ${activationCounter}/${activations.length}`)
-                    console.log(`Method: ${methodCounter}/${methods.length}`)
-                    console.log("----------------------------")
-                    methodCounter++
-                }
-                activationCounter++
-            }
-            radiusCounter++
-        }
-        // }
-        currentHotspot++
-        coordCounter++
-    }
-    testCounter++
-    // currentHotspot ++
-
-}
-await fs.appendFile(fileName, '\n]\n');
-// await fs.writeFile(fileName', JSON.stringify(result, null, 2), 'utf8')
+main();

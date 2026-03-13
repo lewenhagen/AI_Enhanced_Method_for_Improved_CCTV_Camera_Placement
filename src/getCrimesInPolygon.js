@@ -7,14 +7,84 @@ const dbName = "sweden"
 const collectionName = "crimes"
 
 
-async function getCrimesInPolygon(boundingBox, buildings, year = "all") {
-  const client = new MongoClient(uri)
-  try {
-    await client.connect()
-    const db = client.db(dbName)
-    const collection = db.collection(collectionName)
+// async function getCrimesInPolygon(boundingBox, buildings, year = "all", prefix = null) {
+//   const client = new MongoClient(uri)
+//   try {
+//     await client.connect()
+//     const db = client.db(dbName)
+//     const collection = db.collection(collectionName)
 
-    // Base geo query
+//     // Base geo query
+//     const query = {
+//       location: {
+//         $geoWithin: {
+//           $geometry: {
+//             type: "Polygon",
+//             coordinates: boundingBox.geometry.coordinates
+//           }
+//         }
+//       }
+//     }
+
+//     // Add area filter if prefix is provided
+//     if (prefix !== null) {
+//       query.area = prefix;
+//     }
+//     // Add year filter if requested
+//     if (year !== "all") {
+//       const y = Number(year)
+//       if (!Number.isInteger(y) || y < 1900 || y > 3000) {
+//         throw new Error(`Invalid year: ${year}`)
+//       }
+
+//       // string bounds (ISO YYYY-MM-DD lexicographic ordering works)
+//       const startISO = `${y}-01-01`
+//       const endISO = `${y + 1}-01-01`
+
+//       // date bounds (for fields stored as Date)
+//       const startDate = new Date(`${startISO}T00:00:00Z`)
+//       const endDate = new Date(`${endISO}T00:00:00Z`)
+
+//       // Try to match either string-stored dates OR Date objects
+//       query.$or = [
+//         { crimedate_start: { $gte: startISO, $lt: endISO } },    // for "YYYY-MM-DD" strings
+//         { crimedate_start: { $gte: startDate, $lt: endDate } }   // for Date objects
+//       ]
+//     }
+
+//     // Run the query
+//     const crimesInPolygon = await collection.find(query).toArray()
+//     // console.log(`Found ${crimesInPolygon.length} crimes in polygon (before building filter)`)
+
+//     // Filter out crimes inside buildings (Turf)
+//     const filteredCrimes = crimesInPolygon.filter(crime => {
+//       // ensure crime.location.coordinates exists and is valid
+//       if (!crime.location || !Array.isArray(crime.location.coordinates)) return false
+//       const crimePoint = turf.point(crime.location.coordinates)
+//       return !buildings.some(building =>
+//         turf.booleanPointInPolygon(crimePoint, building)
+//       )
+//     })
+
+//     // console.log(`Remaining after filtering: ${filteredCrimes.length}`)
+//     return filteredCrimes
+
+//   } catch (err) {
+//     console.error("Error in getCrimesInPolygon:", err)
+//     return []
+//   } finally {
+//     await client.close()
+//   }
+// }
+async function getCrimesInPolygon(boundingBox, buildings, year = "all", prefix = null) {
+  const client = new MongoClient(uri);
+
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    const collection = db.collection(collectionName);
+
+    // Base geo query (location within polygon)
     const query = {
       location: {
         $geoWithin: {
@@ -24,52 +94,62 @@ async function getCrimesInPolygon(boundingBox, buildings, year = "all") {
           }
         }
       }
+    };
+
+    // Add area filter if prefix is provided
+    if (prefix !== null) {
+      const areas = Array.isArray(prefix)
+        ? prefix.map(a => Number(a))   // convert to number
+        : [Number(prefix)];
+
+      query.area = { $in: areas };
     }
 
     // Add year filter if requested
     if (year !== "all") {
-      const y = Number(year)
+      const y = Number(year);
       if (!Number.isInteger(y) || y < 1900 || y > 3000) {
-        throw new Error(`Invalid year: ${year}`)
+        throw new Error(`Invalid year: ${year}`);
       }
 
-      // string bounds (ISO YYYY-MM-DD lexicographic ordering works)
-      const startISO = `${y}-01-01`
-      const endISO = `${y + 1}-01-01`
+      const startISO = `${y}-01-01`;
+      const endISO = `${y + 1}-01-01`;
 
-      // date bounds (for fields stored as Date)
-      const startDate = new Date(`${startISO}T00:00:00Z`)
-      const endDate = new Date(`${endISO}T00:00:00Z`)
+      const startDate = new Date(`${startISO}T00:00:00Z`);
+      const endDate = new Date(`${endISO}T00:00:00Z`);
 
-      // Try to match either string-stored dates OR Date objects
-      query.$or = [
-        { crimedate_start: { $gte: startISO, $lt: endISO } },    // for "YYYY-MM-DD" strings
-        { crimedate_start: { $gte: startDate, $lt: endDate } }   // for Date objects
-      ]
+      const yearFilter = [
+        { crimedate_start: { $gte: startISO, $lt: endISO } },   // for string dates
+        { crimedate_start: { $gte: startDate, $lt: endDate } }  // for Date objects
+      ];
+
+      // Ensure the geo + area filters remain
+      query.$and = query.$and || [];
+      query.$and.push({ $or: yearFilter });
     }
 
-    // Run the query
-    const crimesInPolygon = await collection.find(query).toArray()
-    // console.log(`Found ${crimesInPolygon.length} crimes in polygon (before building filter)`)
+    // Fetch crimes
+    const crimesInPolygon = await collection.find(query).toArray();
 
-    // Filter out crimes inside buildings (Turf)
+    // Preprocess buildings into turf polygons (if not already)
+    const buildingPolygons = buildings.map(b => turf.polygon(b.geometry.coordinates));
+
+    // Filter crimes outside buildings
     const filteredCrimes = crimesInPolygon.filter(crime => {
-      // ensure crime.location.coordinates exists and is valid
-      if (!crime.location || !Array.isArray(crime.location.coordinates)) return false
-      const crimePoint = turf.point(crime.location.coordinates)
-      return !buildings.some(building =>
+      if (!crime.location || !Array.isArray(crime.location.coordinates)) return false;
+      const crimePoint = turf.point(crime.location.coordinates);
+      return !buildingPolygons.some(building =>
         turf.booleanPointInPolygon(crimePoint, building)
-      )
-    })
+      );
+    });
 
-    // console.log(`Remaining after filtering: ${filteredCrimes.length}`)
-    return filteredCrimes
+    return filteredCrimes;
 
   } catch (err) {
-    console.error("Error in getCrimesInPolygon:", err)
-    return []
+    console.error("Error in getCrimesInPolygon:", err);
+    return [];
   } finally {
-    await client.close()
+    await client.close();
   }
 }
 

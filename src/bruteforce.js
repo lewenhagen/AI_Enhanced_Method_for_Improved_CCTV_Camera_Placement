@@ -53,7 +53,7 @@ let data = {}
 
 
 
-async function initBruteforce(center, distance, gridDensity, activationFunction, year) {
+async function initBruteforce(center, distance, gridDensity, activationFunction, year, prefix=null) {
   allpoints = []
   data = {}
 
@@ -62,7 +62,7 @@ async function initBruteforce(center, distance, gridDensity, activationFunction,
   !SILENT && console.timeEnd("### Get all intersecting buildings")
 
   !SILENT && console.time("### Get all crimes in r*2 bounding box")
-  data.crimes = await getCrimesInPolygon(data.boundingBox, data.buildings, year)
+  data.crimes = await getCrimesInPolygon(data.boundingBox, data.buildings, year, prefix)
   !SILENT && console.timeEnd("### Get all crimes in r*2 bounding box")
 
   !SILENT && console.time("### Create grid over capture area")
@@ -139,34 +139,40 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   let dist = process.argv[3]
   let activationFunction = process.argv[4]
   let year = process.argv[5]
-
+  let prefix = process.argv[6]
   SILENT=true
   let json = []
 
   const start = performance.now()
 
-  let data = await initBruteforce(startLoc, dist, 5, activationFunction, year)
+  let data = await initBruteforce(startLoc, dist, 5, activationFunction, year, prefix)
 
   const end = performance.now()
   const elapsed = end - start
   const totalCount = Object.values(data.crimes).reduce((sum, item) => sum + item.count, 0);
 
     console.log(JSON.stringify(
+      // {
+      //   "coordinates": data.allPoints[0].camInfo.center,
+      //   "num_startpoints": data.gridArea.features.length,
+      //   "exec_time": Math.round((elapsed/1000)*1000)/1000,
+      //   "best_score": data.allPoints[0].camInfo.score,
+      //   "ind_time": null,
+      //   "avg_time": null,
+      //   "steps": data.gridArea.features.length,
+      //   "total_crimes": totalCount,
+      //   "seen_crimes": data.allPoints[0].totalCount,
+      //   "unique_crime_coords": data.allPoints[0].totalCrimeCount,
+      //   "pai": data.allPoints[0].pai,
+      //   "area": data.allPoints[0].camInfo.area,
+      //   "total_distance": data.allPoints[0].totalDistance,
+      //   "activation_function": activationFunction,
+      // }
       {
         "coordinates": data.allPoints[0].camInfo.center,
-        "num_startpoints": data.gridArea.features.length,
-        "exec_time": Math.round((elapsed/1000)*1000)/1000,
         "best_score": data.allPoints[0].camInfo.score,
-        "ind_time": null,
-        "avg_time": null,
-        "steps": data.gridArea.features.length,
-        "total_crimes": totalCount,
         "seen_crimes": data.allPoints[0].totalCount,
-        "unique_crime_coords": data.allPoints[0].totalCrimeCount,
-        "pai": data.allPoints[0].pai,
-        "area": data.allPoints[0].camInfo.area,
-        "total_distance": data.allPoints[0].totalDistance,
-        "activation_function": activationFunction,
+        "coverage_area": data.allPoints[0].camInfo.polygon.geometry.coordinates
       }
     )
   );
