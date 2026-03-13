@@ -118,6 +118,7 @@ async function initBuildingwalk(center, distance, gridDensity, activationFunctio
 
   !SILENT && console.time("### Get all intersecting buildings")
   data = await getIntersectingBuildingsAI(center, distance)
+  
   !SILENT && console.timeEnd("### Get all intersecting buildings")
 
   !SILENT && console.time("### Get all crimes in r*2 bounding box")
@@ -197,17 +198,24 @@ async function initBuildingwalk(center, distance, gridDensity, activationFunctio
       a.totalDistance - b.totalDistance
     )
   })
+
+
   if (allpoints.length === 0) {
     allpoints[0] = {
       camInfo: {
-        score: 0
+        score: 0,
+        pai: 0,
+        area: 0,
+
       },
       totalCount: 0,
       totalCrimeCount: 0,
-      pai: 0
+      pai: 0,
+      totalDistance: 0
     }
   }
   !SILENT && console.log("Building walk best score: " + allpoints[0].camInfo.score)
+  
 
   return {
     allPoints: allpoints,
@@ -236,15 +244,29 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const totalCount = Object.values(data.crimes)
       .reduce((sum, item) => sum + item.count, 0);
 
-  console.log(JSON.stringify(
-      {
-        "coordinates": data.allPoints[0].camInfo.center,
-        "best_score": data.allPoints[0].camInfo.score,
-        "seen_crimes": data.allPoints[0].totalCount,
-        "coverage_area": data.allPoints[0].camInfo.polygon.geometry.coordinates
+  // console.info(data.allPoints[0])
+  // if (allpoints[0].length === 0) {
+    
+  // }
+  let coverageArea = 0
+  if (!data.allPoints[0]?.camInfo) {
+    data.allPoints[0].camInfo = {
+      center: null,
+      score: 0,
+      polygon: {
+        geometry: {
+          coordinates: []
+        }
       }
-    )
-  )
+    };
+  }
+
+  console.log(JSON.stringify({
+    coordinates: data.allPoints[0]?.camInfo?.center ?? null,
+    best_score: data.allPoints[0]?.camInfo?.score ?? 0,
+    seen_crimes: data.allPoints[0]?.totalCount ?? 0,
+    coverage_area: data.allPoints[0]?.camInfo?.polygon?.geometry?.coordinates ?? []
+  }));
 
 }
 
