@@ -135,7 +135,7 @@ import { createReadStream } from "fs";
 
 const radiuses = [100];
 const methods = ["bruteforce", "buildingwalk"];
-const hotspotFolders = ["all", "violent", "narcotics"];
+const hotspotFolders = ["narcotics"];
 const activations = ["uniform"];
 const outputDir = "hotspots/output";
 
