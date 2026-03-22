@@ -187,9 +187,9 @@ async function main() {
             // Run all coordinates and collect results
             for (const pos of coords) {
               const temp = await runScript(method, pos, radius, af, prefix);
-              
+
               fileData.push({
-                rank: rank++,
+                // rank: rank++,
                 city: prefix,
                 center: temp.coordinates,
                 best_score: temp.best_score,
