@@ -142,6 +142,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   let prefix = process.argv[6]
   SILENT=true
   let json = []
+  console.log(startLoc, dist, activationFunction, year, prefix)
 
   const start = performance.now()
 
