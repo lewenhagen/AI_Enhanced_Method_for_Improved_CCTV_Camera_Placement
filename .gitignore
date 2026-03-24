@@ -7,7 +7,6 @@ db/*.sqlite
 experiment.*
 **/*.json
 *.csv
-*.ipynb
 notebook.ipynb
 *.gz
 .env
@@ -16,3 +15,6 @@ crimes_from_martin/
 hotspots/
 *.html
 .ipynb_checkpoints
+places/
+Result/
+.DS_Store
