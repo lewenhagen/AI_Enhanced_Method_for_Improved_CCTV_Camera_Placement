@@ -4,7 +4,7 @@ import * as turf from '@turf/turf'
 
 const uri = `mongodb://${process.env.MONGOUSER}:${process.env.MONGOPASS}@localhost:27017`
 const dbName = "sweden"
-const collectionName = "crimes"
+const collectionName = "places"
 const crimeMode = ""
 
 // async function getCrimesInPolygon(
