@@ -155,7 +155,8 @@ app.post("/run-bruteforce", async (req, res) => {
   let response = {}
 
   console.time("### Bruteforce exec time")
-  response = await initBruteforce(req.body.center, req.body.distance, req.body.gridDensity, req.body.activationFunction, req.body.year, req.body.coverage, req.body.nrOfCams)
+  // response = await initBruteforce(req.body.center, req.body.distance, req.body.gridDensity, req.body.activationFunction, req.body.year, req.body.coverage, req.body.nrOfCams)
+  response = await initBruteforce(req.body.center, req.body.distance, req.body.gridDensity, req.body.activationFunction, req.body.year)
   console.timeEnd("### Bruteforce exec time")
   console.log(`Grid size: ${response.gridArea.features.length} points`)
 

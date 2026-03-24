@@ -7,12 +7,104 @@ const dbName = "sweden"
 const collectionName = "crimes"
 const crimeMode = ""
 
-async function getCrimesInPolygon(
-  boundingBox,
-  buildings,
-  year = "all",
-  prefix = null
-) {
+// async function getCrimesInPolygon(
+//   boundingBox,
+//   buildings,
+//   year = "all",
+//   prefix = null
+// ) {
+//   const client = new MongoClient(uri);
+
+//   try {
+//     await client.connect();
+//     const db = client.db(dbName);
+//     const collection = db.collection(collectionName);
+
+//     const query = {
+//       location: {
+//         $geoWithin: {
+//           $geometry: {
+//             type: "Polygon",
+//             coordinates: boundingBox.geometry.coordinates
+//           }
+//         }
+//       }
+//     };
+
+//     const andConditions = [];
+
+//     if (prefix !== null) {
+//       const areas = Array.isArray(prefix)
+//         ? prefix.map(a => Number(a))
+//         : [Number(prefix)];
+
+//       andConditions.push({ area: { $in: areas } });
+//     }
+
+//     if (crimeMode === "violent") {
+//       andConditions.push({
+//         crime_code: { $regex: "^(03|93)" }
+//       });
+//     }
+
+//     if (crimeMode === "narc") {
+//       andConditions.push({
+//         crime_code: { $in: ["5004", "5005", "5010", "5011"] }
+//       });
+//     }
+
+//     if (year !== "all") {
+//       const y = Number(year);
+//       if (!Number.isInteger(y) || y < 1900 || y > 3000) {
+//         throw new Error(`Invalid year: ${year}`);
+//       }
+
+//       const startISO = `${y}-01-01`;
+//       const endISO = `${y + 1}-01-01`;
+
+//       const startDate = new Date(`${startISO}T00:00:00Z`);
+//       const endDate = new Date(`${endISO}T00:00:00Z`);
+
+//       andConditions.push({
+//         $or: [
+//           { crimedate_start: { $gte: startISO, $lt: endISO } },
+//           { crimedate_start: { $gte: startDate, $lt: endDate } }
+//         ]
+//       });
+//     }
+
+//     // ✅ Only add $and if needed
+//     if (andConditions.length > 0) {
+//       query.$and = andConditions;
+//     }
+
+//     // Fetch crimes
+//     const crimesInPolygon = await collection.find(query).toArray();
+
+//         // Filter out crimes inside buildings (Turf)
+//     const filteredCrimes = crimesInPolygon.filter(crime => {
+//       // ensure crime.location.coordinates exists and is valid
+//       if (!crime.location || !Array.isArray(crime.location.coordinates)) return false
+//       const crimePoint = turf.point(crime.location.coordinates)
+//       return !buildings.some(building =>
+//         turf.booleanPointInPolygon(crimePoint, building)
+//       )
+//     })
+
+//     // console.log(`Remaining after filtering: ${filteredCrimes.length}`)
+//     return filteredCrimes
+
+//     // return crimesInPolygon;
+
+//   } finally {
+//     await client.close();
+//   }
+// }
+
+// might work
+
+
+async function getCrimesInPolygon(boundingBox, buildings, year = "all", prefix = null) {
   const client = new MongoClient(uri);
 
   try {
@@ -20,87 +112,71 @@ async function getCrimesInPolygon(
     const db = client.db(dbName);
     const collection = db.collection(collectionName);
 
+    // Base query: crimes inside bounding box
     const query = {
       location: {
         $geoWithin: {
-          $geometry: {
-            type: "Polygon",
-            coordinates: boundingBox.geometry.coordinates
-          }
+          $geometry: boundingBox.geometry
         }
       }
     };
 
     const andConditions = [];
 
+    // Area filter
     if (prefix !== null) {
       const areas = Array.isArray(prefix)
         ? prefix.map(a => Number(a))
         : [Number(prefix)];
-
       andConditions.push({ area: { $in: areas } });
     }
 
+    // Crime type filter
     if (crimeMode === "violent") {
-      andConditions.push({
-        crime_code: { $regex: "^(03|93)" }
-      });
+      andConditions.push({ crime_code: { $regex: "^(03|93)" } });
+    } else if (crimeMode === "narc") {
+      andConditions.push({ crime_code: { $in: ["5004", "5005", "5010", "5011"] } });
     }
 
-    if (crimeMode === "narc") {
-      andConditions.push({
-        crime_code: { $in: ["5004", "5005", "5010", "5011"] }
-      });
-    }
-
-    // ✅ Year filter
+    // Year filter (string-based)
     if (year !== "all") {
       const y = Number(year);
       if (!Number.isInteger(y) || y < 1900 || y > 3000) {
         throw new Error(`Invalid year: ${year}`);
       }
-
       const startISO = `${y}-01-01`;
       const endISO = `${y + 1}-01-01`;
-
-      const startDate = new Date(`${startISO}T00:00:00Z`);
-      const endDate = new Date(`${endISO}T00:00:00Z`);
-
-      andConditions.push({
-        $or: [
-          { crimedate_start: { $gte: startISO, $lt: endISO } },
-          { crimedate_start: { $gte: startDate, $lt: endDate } }
-        ]
-      });
+      andConditions.push({ crimedate_start: { $gte: startISO, $lt: endISO } });
     }
 
-    // ✅ Only add $and if needed
+    // Exclude buildings directly in MongoDB
+    const validBuildings = (buildings || []).filter(
+      b => b.geometry?.type && b.geometry.coordinates?.length > 0
+    );
+
+    if (validBuildings.length > 0) {
+      const buildingExclusions = validBuildings.map(building => ({
+        location: { $not: { $geoWithin: { $geometry: building.geometry } } }
+      }));
+      andConditions.push({ $and: buildingExclusions });
+    }
+
+    // Add $and if we have any additional conditions
     if (andConditions.length > 0) {
       query.$and = andConditions;
     }
 
-    // Fetch crimes
-    const crimesInPolygon = await collection.find(query).toArray();
+    // Fetch crimes directly outside buildings
+    const filteredCrimes = await collection.find(query).toArray();
 
-        // Filter out crimes inside buildings (Turf)
-    const filteredCrimes = crimesInPolygon.filter(crime => {
-      // ensure crime.location.coordinates exists and is valid
-      if (!crime.location || !Array.isArray(crime.location.coordinates)) return false
-      const crimePoint = turf.point(crime.location.coordinates)
-      return !buildings.some(building =>
-        turf.booleanPointInPolygon(crimePoint, building)
-      )
-    })
-
-    // console.log(`Remaining after filtering: ${filteredCrimes.length}`)
-    return filteredCrimes
-
-    // return crimesInPolygon;
+    return filteredCrimes;
 
   } finally {
     await client.close();
   }
 }
+
+
 
 // async function getCrimesInPolygon(boundingBox, buildings, year = "all", prefix = null) {
 //   const client = new MongoClient(uri)
@@ -173,6 +249,8 @@ async function getCrimesInPolygon(
 // }
 
 
+
+// FUNKAR INTE
 
 // async function getCrimesInPolygon(boundingBox, buildings, year = "all", prefix = null) {
 //   const client = new MongoClient(uri);
