@@ -1,0 +1,103 @@
+\section{Pseudocode}
+
+\begin{algorithm}
+[!htb]
+\caption{Worker pool setup pseudocode}
+\label{pseudo:setup}
+\begin{algorithmic}
+  [1] \STATE Prepare shared spatial and crime data \STATE Create a pool of worker
+  threads with shared data
+
+  \FORALL{tasks to be evaluated} \STATE Package task-specific parameters \STATE
+  Submit task to the worker pool \ENDFOR
+
+  \STATE Wait for all workers to complete \STATE Collect results from all
+  tasks \STATE Shut down the worker pool
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+[htb!]
+\caption{Bruteforce pseudocode}
+\label{pseudo:bruteforce}
+\begin{algorithmic}
+  [1] \STATE Receive task with camera location, distance, and distance weight
+  \STATE Access shared data (buildings, bounding box, crimes, crime counts)
+
+  \STATE Generate camera coverage at the given location \STATE Compute the camera
+  score \STATE Send result back to the parent process
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+[htb!]
+\caption{Hillclimb pseudocode}
+\label{pseudo:hillclimb}
+\begin{algorithmic}
+  [1]
+
+\STATE Pick a random starting point from the grid 
+\STATE Generate initial camera coverage and compute score 
+\STATE Initialize visited points set and simulation sequence
+
+    \WHILE{step count $<$ MAXSTEPS - 1} 
+        \STATE Define all possible movement directions 
+        \STATE Evaluate all moves from current position in parallel
+        \STATE Filter out moves leading to buildings or previously visited points
+            \IF{no valid moves remain} 
+                \STATE Stop simulation 
+            \ENDIF
+
+        \STATE Sort candidate moves by descending score 
+        \STATE Pick the first move that: 
+            \STATE \quad increases score OR 
+            \STATE \quad keeps score equal but reduces distance traveled
+
+        \IF{no improving move found} 
+            \STATE Stop simulation 
+        \ENDIF
+
+        \STATE Move to the selected point 
+        \STATE Record the score for this step
+        \STATE Mark the point as visited 
+        \STATE Increment step counter 
+    \ENDWHILE
+
+    \STATE Send full simulation sequence back to the parent process
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+[htb!]
+\caption{Depth-First search pseudocode}
+\label{pseudo:dfs}
+\begin{algorithmic}
+  [1] \STATE Select a random starting point from the grid \STATE Generate camera
+  coverage at starting point \STATE Compute initial camera score
+
+  \STATE Initialize visited set \STATE Initialize simulation sequence \STATE
+  Initialize best score with initial score
+
+  \STATE Mark starting point as visited \STATE Add initial score to simulation
+  sequence
+
+  \STATE Recursively explore neighboring grid points:
+
+  \STATE \quad Stop exploration if depth $\ge$ MAXSTEPS $-1$ \STATE \quad
+  Stop exploration if simulation length $\ge$ MAXSTEPS $-1$
+
+  \STATE \quad From current point, evaluate all movement directions \STATE
+  \quad Discard invalid moves and already visited points
+
+  \STATE \quad Sort remaining candidates by: \STATE \qquad descending score
+  \STATE \qquad ascending total distance
+
+  \STATE \quad For each candidate move (in sorted order): \STATE \qquad Mark
+  point as visited \STATE \qquad Add score to simulation sequence \STATE
+  \qquad Update best score if improved \STATE \qquad Recursively continue
+  exploration from that point
+
+  \STATE Add best score found to simulation sequence \STATE Send simulation sequence
+  to parent process
+\end{algorithmic}
+\end{algorithm}
