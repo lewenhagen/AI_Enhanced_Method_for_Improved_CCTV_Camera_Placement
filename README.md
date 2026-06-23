@@ -81,3 +81,7 @@ const hash = await bcrypt.hash("", 12); // add a password
 Start the server with for example `pm2 start index.js` (require installation of the npm package pm2)
 
 Open a browser on `localhost:1337` (change in index.js if you want another).
+
+### Screenshots
+
+![Bruteforce, Sigmoid, 100m, grid 5, No crimes](https://github.com/lewenhagen/AI_Enhanced_Method_for_Improved_CCTV_Camera_Placement/blob/main/screenshots/bf_sigmoid_no_crimes.png "Bruteforce, 100m, Sigmoid, no crimes")
