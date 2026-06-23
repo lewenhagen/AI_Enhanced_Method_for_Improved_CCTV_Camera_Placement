@@ -2,7 +2,7 @@ import { MongoClient } from 'mongodb'
 import 'dotenv/config'
 import * as turf from '@turf/turf'
 
-const uri = `mongodb://${process.env.MONGOUSER}:${process.env.MONGOPASS}@localhost:27017`
+const uri = `mongodb://${process.env.MONGOUSER}:${process.env.MONGOPASS}@localhost:27018`
 const mongo = new MongoClient(uri)
 
 async function getIntersectingBuildings(poly) {

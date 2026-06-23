@@ -19,7 +19,7 @@ import { initBuildingwalk } from './src/buildingwalk.js'
 import { initDFS } from './src/dfs.js'
 import { nextTick } from 'process'
 
-mongoose.connect(`mongodb://${process.env.MONGOUSER}:${process.env.MONGOPASS}@localhost:27017/auth?authSource=admin`);
+mongoose.connect(`mongodb://${process.env.MONGOUSER}:${process.env.MONGOPASS}@localhost:27018/auth?authSource=admin`);
 
 const app = express()
 const port = 1337

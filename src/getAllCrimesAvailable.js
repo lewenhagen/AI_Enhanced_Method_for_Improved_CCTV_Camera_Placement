@@ -2,7 +2,7 @@ import { MongoClient } from 'mongodb'
 import 'dotenv/config'
 import * as turf from '@turf/turf'
 
-const uri = `mongodb://${process.env.MONGOUSER}:${process.env.MONGOPASS}@localhost:27017`
+const uri = `mongodb://${process.env.MONGOUSER}:${process.env.MONGOPASS}@localhost:27018`
 const dbName = "sweden"
 const collectionName = "crimes"
 
@@ -21,11 +21,11 @@ async function getAllCrimesAvailable() {
           const bigN = await collection.countDocuments()
 
           // console.log(`Nr of crimes in dataset (N): ${bigN}`)
-          
+
           await client.close()
-          
+
           return bigN
-          
+
       } catch (err) {
           console.error("Error fetching batch:", err)
       }
