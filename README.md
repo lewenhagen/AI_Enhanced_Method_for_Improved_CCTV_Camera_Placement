@@ -2,40 +2,37 @@
 
 * Get a geojson file of the buildings. I used [https://data.humdata.org/dataset/hotosm_swe_buildings](https://data.humdata.org/dataset/hotosm_swe_buildings) and the file "hotosm_swe_buildings_polygons_geojson.zip" (3 309 367 buildings). Place the file in the folder "geojson".
 
-* TBD: For now it is hardcoded sweden_buildings.geojson. Make it dynamic.
+* Create a `.env`file with the following env. variables set:
 
+```
+MONGOUSER=
+MONGOPASS=
+```
+
+Update the variables in the file `insert.js`:
+
+```js
+const dbName = ""
+const collectionName = ""
+const filePath = "./geojson/<your_file>.geojson"
+```
 
 * Install packages: `npm install`
 * Start db in background: `docker compose up -d mongodb `
 * Insert data: `npm run insert`
 
 ### Index on geometry
-* Pull and start cli container: `docker compose run mongodb mongosh -u root -p pass mongodb://mongodb/`. Look in docker-compose.yml. On MAC it is `mongo`, not `mongosh`.
+
+* Update with the credentials used to start the container. Instructions are shown with user=root, password=pass. Make sure you start the container with the correct credentials.
+* Pull and start cli container: `docker compose run mongodb mongosh -u root -p pass mongodb://mongodb/`. Look in docker-compose.yml. On MAC it is `mongo`, not `mongosh`. Perhaps it is fixed with newer versions. 
 * `use <db>` (sweden)
 * Index on geometry: `db.buildings.createIndex({ "geometry": "2dsphere" })`
 
 
-### Insert more data
-* Install sqlite3: `npm install sqlite3`
-* Migrate data from sqlite3 to mongodb by modifying and running `migrate.js`.
-* Fix location:
-```console
-db.crimes.updateMany(
-  {},
-  [
-    {
-      $set: {
-        location: {
-          type: "Point",
-          coordinates: [
-            { $toDouble: "$longitude" },
-            { $toDouble: "$latitude" }
-          ]
-        }
-      }
-    }
-  ]
-);
+### Insert crime locations
+
+* The crime locations could live in a collection called `crimes`. If other, change the collection variable in the files in the src/ folder.
+* Make sure the collection have the keys `longitude`, `latitude`, `year`.
 ```
 * Create index: `db.crimes.createIndex({ location: "2dsphere" });`
 
@@ -71,3 +68,16 @@ db.crimes.find({
 
 ### Run on mac to connect to dockercontainer
 `docker exec -it mongo mongo -u root -p pass`
+
+### Server
+
+#### Password protect the server
+Update the file `setupauth.js` and add a password:
+
+```js
+const hash = await bcrypt.hash("", 12); // add a password
+```
+
+Start the server with for example `pm2 start index.js` (require installation of the npm package pm2)
+
+Open a browser on `localhost:1337` (change in index.js if you want another).
