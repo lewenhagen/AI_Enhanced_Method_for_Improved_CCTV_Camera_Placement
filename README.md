@@ -71,7 +71,7 @@ db.crimes.find({
 
 ### Server
 
-#### Password protect the server
+#### Passwordprotect the server
 Update the file `setupauth.js` and add a password:
 
 ```js
