@@ -2,7 +2,7 @@ import { MongoClient } from 'mongodb'
 import 'dotenv/config'
 import * as fs from 'fs'
 
-const uri = `mongodb://${process.env.MONGOUSER}:${process.env.MONGOPASS}@localhost:27017`
+const uri = `mongodb://${process.env.MONGO_USERNAME}:${process.env.MONGO_PASSWORD}@localhost:27017`
 
 const dbName = "sweden"
 const collectionName = "buildings"
